@@ -19,7 +19,8 @@
 Playbook deviations: no deck (not required), no submission draft (not possible), fewer subagents.
 
 ## Current
-- Stage 1, Phase 1 done: docs/research/RECON.md, docs/research/COMPETITORS.md. Waiting on Phase 1 gate.
+- Phase 1 approved. Phase 2 drafted in docs/IDEAS.md (pick: sticker territory game, Harberger NFTs, games + nfts). Waiting on Phase 2 gate + 5 grill answers.
+- Roles: split by responsibility in Phase 5; the team assigns names itself.
 
 ## Done
 - git init, docs/PLAYBOOK.md, ASSUMPTIONS.md, .claude/settings.json (attribution off).

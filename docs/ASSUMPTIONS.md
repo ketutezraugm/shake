@@ -12,7 +12,8 @@ Tag: `verified (source)` or `unverified (how to verify)`.
 - Local-only demo OK only with a video; hosted demo is a plus, keep up to 2026-11-18 (ideally 11-25). — verified (Q-012)
 - AI screening (Claude Code + Codex) checks the repo runs and does what the README says; humans decide. — verified (Q-017)
 - Team size of 4 fits both `"2 - 4"` and `"4 - 6"`. — verified (API contract); choice is the human's.
-- One project can win prizes in more than one track. — unverified (ask in NEAR Discord / Telegram)
+- One project can win prizes in more than one track. — unverified (ask in NEAR Discord / Telegram). Working assumption per Ezra: one prize max; tag ~2 tracks that honestly fit.
+- Submission team size `"2 - 4"` (team of 4). — decided by Ezra 2026-11-09
 - Grand prize winner can also take a track prize. — unverified (ask organizers)
 - X video upload limit for a non-Premium account is 2:20. — unverified (check X help page)
 
