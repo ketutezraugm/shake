@@ -19,11 +19,13 @@
 Playbook deviations: no deck (not required), no submission draft (not possible), fewer subagents.
 
 ## Current
-- Stage 1, Phase 1 (recon) in progress.
+- Stage 1, Phase 1 done: docs/research/RECON.md, docs/research/COMPETITORS.md. Waiting on Phase 1 gate.
 
 ## Done
 - git init, docs/PLAYBOOK.md, ASSUMPTIONS.md, .claude/settings.json (attribution off).
 - Gallery dump: docs/research/raw/gallery.json (373 projects, track counts in ASSUMPTIONS.md).
+- raw/: track-prompts.md, judges-past-winners.md, sponsor-tech.md, competitor-list.md done.
+- raw/competitor-profiles-a.md, -b.md (top 8 deep profiles) done.
 
 ## Next
 1. Finish RECON.md + COMPETITORS.md from raw/ files.
@@ -39,7 +41,8 @@ Playbook deviations: no deck (not required), no submission draft (not possible),
 - Playwright MCP: failed to connect; retries automatically. playwright-cli skill works as fallback.
 - Remotion skills: `npx skills add remotion-dev/skills` (only if we do a Remotion video).
 - VHS (terminal GIFs): `winget install charmbracelet.vhs` (optional).
-- near-cli-rs: `npm i -g near-cli-rs` or see https://docs.near.org/tools/near-cli. Rust (`rustup`) if we write a Rust contract; JS contracts via `near-sdk-js` need only node.
+- near-cli-rs: `npm i -g near-cli-rs` or see https://docs.near.org/tools/near-cli.
+- Rust toolchain (`winget install Rustlang.Rustup`, then `cargo install cargo-near`): needed for any contract, because near-sdk-js is archived (raw/sponsor-tech.md). Each dev writing contracts needs it.
 
 ## Usage log
 - (paste top consumers from /usage at stage end)
