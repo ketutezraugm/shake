@@ -55,6 +55,22 @@ Scores 1-5. idea-reality (quick) is noisy: its keyword extraction is weak, so re
 
 **NEAR depth.** A Rust contract that holds the spots as NEP-171 NFTs with Harberger state (price, tax accrual, forced sale, pot). Walletless onboarding through function-call keys or linkdrop-style accounts. A relayer so gas never shows. A presence proof: each tap yields a server-signed or NFC-signed ticket that the contract verifies. Testnet first, with the option of a tiny mainnet season.
 
+## How it works (draft rules)
+
+**Player flow:** see sticker → scan with phone camera (web page, no app) → first time: type a name, playing in ~3 s → spot page shows owner, price, visits → **Visit** (free, 1 explorer point, once per spot per day) or **Buy** at the owner's price → new owner sets a new price, sees the daily tax → live map recolors, old owner gets notified.
+
+**Economy (in-contract coins, not real money):**
+- New player: 100 starter coins, only on a first scan at a real sticker, capped per device.
+- Owner earns 2 coins per visit to their spot, so busy real places are worth more.
+- Owner pays a daily tax on the price they set into the pot. Overpriced spots drain you; underpriced ones get bought out. Balance at 0 means the spot is foreclosed and goes back to unowned.
+- Buyer pays the price to the old owner.
+- Daily: pot split among explorers by points. Loop: owners → pot → explorers → buy spots.
+- Season (e.g., the campus session plus a few days) ends with a leaderboard.
+
+**Real money:** players never deposit. Optional end-of-season prize funded by us or a sponsor (e.g., the café whose door has a sticker). Sustainability story: venues sponsor spots and prize pots.
+
+**Walletless:** the browser generates a key; our server creates `name.<game>.testnet` with a function-call key limited to the game contract and funds it with a little testnet NEAR for gas. No popups or fees. Function-call keys can't attach deposits, which is why coins are an internal ledger. Catch: the account lives in that browser; later, add export / connect-a-wallet.
+
 ## Grill: the 5 hardest questions (answers needed at the gate)
 
 1. **Presence spoofing.** A photo of a QR code lets anyone "visit" from home. Do we buy NTAG 424 DNA NFC tags, which produce a unique signed code per tap (are they available in your city within 2 days?), or accept QR plus GPS plus rate limits and state the limit honestly?
@@ -62,3 +78,60 @@ Scores 1-5. idea-reality (quick) is noisy: its keyword extraction is weak, so re
 3. **Real money or not.** Testnet NEAR makes the game free but the "economy" is play money. Should a tiny mainnet season (e.g., the team seeds 5 NEAR into the pot) be the stretch goal?
 4. **Fun.** Harberger pricing is clever, but is it fun in 30 seconds? What does a first-time player do in their first minute besides "buy"? I'd add a free "visit" tap that earns explorer points toward the pot.
 5. **Fallback.** If the physical session fails (rain, turnout), the demo falls back to a recorded indoor session plus a simulated "week in a minute" replay, as the games prompt suggests. Is that acceptable to you?
+
+---
+
+# Phase 2, round 2 (2026-11-09): new ideas, optimized only for win odds
+
+Round 1 parked: the sticker / GPS territory game (fun, but heavy on physical logistics and a weaker money story).
+
+## New long list (none from round 1)
+1. **Blind deal**: buyer and seller each tell a private AI (inside a TEE) their real limit; a deal happens only if the ranges overlap, at the midpoint; nobody ever learns the other's number; payment settles on NEAR. (privacy, agents)
+2. **Double-blind yes**: tell a TEE-hosted AI who you'd want as a cofounder / study partner / crush; only mutual matches are revealed. (privacy, social)
+3. **Swarm clearing house**: LLM-free double auction where 20 buyer and 5 seller agents, each a NEAR sub-account, trade compute slots; live clearing page. Follows the swarms prompt to the letter. (swarms, agents)
+4. **Evidence-grade thesis** with one original dataset and the best-designed dashboard in the track. (thesis)
+5. **Secret ballot for Sputnik DAOs**: votes tallied in a TEE, only totals + attestation posted. (social, privacy)
+6. **Verified-anonymous feedback**: prove you're in the class/org without revealing who you are. (privacy, social)
+7. **Rent split by income, privately**: housemates' incomes go into a TEE, each sees only their fair share. (privacy, realworld)
+8. **Assurance plans**: "futsal happens only if 10 commit"; deposits refunded plus a bonus if it fails (dominant assurance contract). (social)
+9. **Agent track-record NFT**: an agent's verified job history as a sellable NFT-account. (nfts, agents)
+10. **Group-buy swarm**: students' agents pool orders for bulk discounts. (swarms)
+11. **Sealed-bid NFT auction in TEE**. (nfts, privacy)
+12. **Proof-of-skill NFT from an AI interviewer in TEE**. (nfts, privacy)
+13. **Private salary benchmark for interns**. (privacy)
+14. **Memecoin minted only by mutual pairs** (two people must both confirm). (memecoins, social)
+15. **Thesis prediction ledger**: thesis claims recorded on-chain and auto-scored over time. (thesis). *Exists: NEAR Books does this.*
+
+Collision check (gallery names, 11-09): negotiation 0, matching/crush 0, voting 0, auction 1 (HiveBid), thesis 14 lookalikes ("NEAR on the evidence" x5), private/sealed 14 (mostly finance receipts and OTC).
+
+## Finalists
+
+| | **Blind deal (1)** | Double-blind yes (2) | Swarm clearing (3) | Evidence thesis (4) |
+|---|---|---|---|---|
+| Tracks | privacy + agents | privacy + social | swarms + agents | thesis |
+| Field | privacy 68, zero negotiation entries | privacy 68, zero matching | swarms 32, quality unprofiled | thesis 33, 14 lookalikes, 4 credible |
+| Technical | 4: NEAR AI Cloud private inference + attestation + escrow contract | 3 | 4: sub-accounts, auction contract, sim | 2 (data, no contract) |
+| Design | 4 | 4 | 4 (live clearing page) | 5 (dashboard is the product) |
+| Impact | 4: every second-hand sale, freelance rate, salary offer | 3 | 2 | 2 |
+| Originality | 5 | 4 | 3 | 2 |
+| Money theme | strong (prices, settlement) | weak | medium | medium |
+| Real users this week | 4: campus buy/sell groups, real items | 5 | 1 (simulation by design) | 1 (not needed) |
+| Judge fit | Illia (private AI), Garg (agents act for you), Haseeb (AI never moves money, a rule does) | Illia only | organizers' wishlist, but agent-market fatigue | VC judges, but "evidence not conviction" |
+| Magic moment | Both press "Done"; screen says "Deal at Rp 4.2M. Neither of you will ever see the other's number." | "It's mutual." | Clearing price snaps into place | A chart nobody else has |
+| Build risk (5 days) | medium (TEE attestation is new to us) | medium | medium | low |
+| Podium odds (my estimate) | **30-40%** | 20-30% | 25-35% | 15-25% |
+| Grand prize odds | **4-7%** | 2-4% | 1-3% | <2% |
+
+## Pick: Blind deal (working title)
+
+**Problem.** Haggling punishes whoever names a number first. A student selling a used laptop says Rp 5M, the buyer would have paid 5.5M, and nobody ever finds out. The same happens with freelance rates, salary offers and rent. People walk away from deals both of them wanted because neither will show their limit.
+
+**Product.** A link both sides open. Each tells an AI negotiator their real limit and conditions in plain words ("not below 4M, I'll include the charger"). The AI runs inside a TEE on NEAR AI Cloud, so we, the operator, can't read it either, and the page shows a live attestation panel proving that. A deterministic rule, not the AI, decides: if the ranges overlap, the deal closes at the midpoint; if they don't, both get only "no deal" and nothing else leaks. On a deal, an escrow contract on NEAR holds the buyer's payment until the seller confirms handover.
+
+**NEAR depth.** NEAR AI Cloud private inference with attestation verified in the UI (fresh nonce, per the privacy prompt), a Rust escrow contract with deal state, a commitment hash of each side's limit stored on-chain so results are auditable without revealing numbers, walletless accounts via function-call keys, and optional Intents so the buyer can pay from another chain.
+
+**Why it beats the field.** It's the only negotiation entry among 373. It's money-native, unlike most privacy entries (receipts, OTC). And it keeps AI out of the money path, which answers Haseeb's "90% right is unusable" critique directly.
+
+**Real users.** Campus buy-and-sell WhatsApp/Facebook groups: run 10-20 real deals (testnet escrow, real items, real prices) and log the outcomes. The number to show: "deals that would have failed to start".
+
+**Risks.** TEE attestation setup is the unknown (verify NEAR AI Cloud attestation endpoint and which models run in TEE first, 2-3 h spike). Two-sided UX needs both people present. Fallback: commitments + deterministic matching work without the LLM, with the AI as a nice-to-have translator.
