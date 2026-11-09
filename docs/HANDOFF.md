@@ -19,7 +19,7 @@
 Playbook deviations: no deck (not required), no submission draft (not possible), fewer subagents.
 
 ## Current
-- Phase 1 approved. Phase 2 drafted in docs/IDEAS.md (pick: sticker territory game, Harberger NFTs, games + nfts). Waiting on Phase 2 gate + 5 grill answers.
+- Phase 1 approved. Phase 2 round 1 (sticker/GPS territory game) parked by Ezra: off-track for winning. Round 2 in docs/IDEAS.md, pick: "Blind deal" private negotiation (privacy + agents). Waiting on gate.
 - Roles: split by responsibility in Phase 5; the team assigns names itself.
 
 ## Done

@@ -135,3 +135,8 @@ Collision check (gallery names, 11-09): negotiation 0, matching/crush 0, voting 
 **Real users.** Campus buy-and-sell WhatsApp/Facebook groups: run 10-20 real deals (testnet escrow, real items, real prices) and log the outcomes. The number to show: "deals that would have failed to start".
 
 **Risks.** TEE attestation setup is the unknown (verify NEAR AI Cloud attestation endpoint and which models run in TEE first, 2-3 h spike). Two-sided UX needs both people present. Fallback: commitments + deterministic matching work without the LLM, with the AI as a nice-to-have translator.
+
+### Blind deal: corrections and trust model (2026-11-09)
+- **Price rule fix:** midpoint leaks the counterparty's limit (own limit + price → theirs). Use a price drawn uniformly at random inside the overlap, from NEAR on-chain randomness. Each side learns only that the other's limit lies beyond the price; expected price is still the midpoint.
+- **Trust stack:** (1) limits encrypted in the browser to the attested enclave key; attestation proves the public code runs. (2) Results signed by an enclave-held key; the contract rejects unsigned results; limit commitments on-chain for audit. (3) Escrow contract holds payment, releases on "Received", refunds after deadline, no admin key. (4) Seller-issued single-use link per buyer, one attempt each; deals are binding, so probing costs.
+- **Stated limits:** users trust the served frontend (open source, self-hostable); escrow protects payment, not item quality; strategic shading of limits is possible (Myerson–Satterthwaite), binding deals make it costly.
