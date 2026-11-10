@@ -19,7 +19,8 @@
 Playbook deviations: no deck (not required), no submission draft (not possible), fewer subagents.
 
 ## Current
-- Phase 1 approved. Phase 2 round 1 (sticker/GPS territory game) parked by Ezra: off-track for winning. Round 2 in docs/IDEAS.md, pick: "Blind deal" private negotiation (privacy + agents). Waiting on gate.
+- Phase 2 approved 2026-11-10: **Blind deal** (private negotiation, privacy + agents). Spec + trust model at the end of docs/IDEAS.md.
+- Phase 3: 3 directions in docs/IDENTITY-DIRECTIONS.md, style tiles at https://claude.ai/artifact/N3gwoQ5biN7HzEoD2ZntvZ . Waiting on direction pick + team skills. TEE spike done (raw/tee-spike.md): OutLayer private-dao-example pattern.
 - Roles: split by responsibility in Phase 5; the team assigns names itself.
 
 ## Done
