@@ -20,7 +20,7 @@ Playbook deviations: no deck (not required), no submission draft (not possible),
 
 ## Current
 - Phase 2 approved 2026-11-10: **Blind deal** (private negotiation, privacy + agents). Spec + trust model at the end of docs/IDEAS.md.
-- Phase 3: 3 directions in docs/IDENTITY-DIRECTIONS.md, style tiles at https://claude.ai/artifact/N3gwoQ5biN7HzEoD2ZntvZ . Waiting on direction pick + team skills. TEE spike done (raw/tee-spike.md): OutLayer private-dao-example pattern.
+- Phase 3 done: docs/IDENTITY.md locked (B layout + A colors). Phase 4: docs/BUILD-BRIEF.md written; Sonnet drafting PRD.md, ARCHITECTURE.md, TEAM.md.
 - Roles: split by responsibility in Phase 5; the team assigns names itself.
 
 ## Done
