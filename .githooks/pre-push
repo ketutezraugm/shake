@@ -1,5 +1,11 @@
 #!/bin/sh
 # Blocks direct pushes to main/dev and any force (non-fast-forward) push. See docs/CONTRIBUTING.md.
+# The owner (.github/ROLES) can bypass it deliberately: BD_OVERRIDE=1 git push ...
+if [ "$BD_OVERRIDE" = "1" ]; then
+  owner=$(sed -n 's/^owner: *//p' .github/ROLES | tr -d '\r')
+  [ -n "$owner" ] && [ "$(gh api user --jq .login 2>/dev/null)" = "$owner" ] && exit 0
+  echo "push guard: BD_OVERRIDE is only honoured for the owner ($owner)." >&2
+fi
 zero=0000000000000000000000000000000000000000
 status=0
 while read -r local_ref local_sha remote_ref remote_sha; do
@@ -10,8 +16,8 @@ while read -r local_ref local_sha remote_ref remote_sha; do
       continue
       ;;
   esac
-  [ "$local_sha" = "$zero" ] && continue        # deleting a remote branch
-  [ "$remote_sha" = "$zero" ] && continue       # new branch
+  [ "$local_sha" = "$zero" ] && continue
+  [ "$remote_sha" = "$zero" ] && continue
   if ! git merge-base --is-ancestor "$remote_sha" "$local_sha" 2>/dev/null; then
     echo "push guard: $remote_ref would be rewritten (force push). Merge instead: git merge origin/${remote_ref#refs/heads/}" >&2
     status=1
