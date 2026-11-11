@@ -30,9 +30,10 @@ Playbook deviations: no deck (not required), no submission draft (not possible),
 - raw/competitor-profiles-a.md, -b.md (top 8 deep profiles) done.
 
 ## Next
-1. Finish RECON.md + COMPETITORS.md from raw/ files.
-2. Phase 1 gate.
-3. Phase 2 brainstorm.
+1. Phase 4 gate: Ezra approves PRD + plan (private rounds added 11-11 from team feedback).
+2. Phase 6: root CLAUDE.md for teammates' sessions.
+3. Phase 7: DESIGN-BRIEF.md + Design System / Design artifacts for Abel.
+4. After all planning phases: regenerate the team PDF (script: scratchpad build_pdf.py; reads docs/TEAM-HANDOFF.md + docs). Don't regenerate before that.
 
 ## Open questions
 - Team size field: "2 - 4" or "4 - 6"?
