@@ -5,7 +5,7 @@ NEAR HACKATHON 2026 entry. A buyer and a seller each set a private price limit; 
 **Deadline:** submit by 2026-11-14 12:00 UTC (hard wall 23:59 UTC). Feature freeze 2026-11-13 12:00 UTC.
 
 ## Start every session
-Run **`/inbox`** first (messages, blockers, review feedback; integrator: PRs to review), then create or switch to your task branch. Finish tasks with **`/ship`**. Coordinate with other roles' AIs through GitHub issues labelled `to:<role>` (docs/CONTRIBUTING.md, AI-to-AI communication). Read `docs/HANDOFF.md`, then your role's section in `docs/TEAM.md` and your next task in `docs/plans/IMPLEMENTATION.md`. Before ending a session, update your own workstream section in `docs/HANDOFF.md` and tick finished tasks in `docs/PROGRESS.md`.
+First time on a machine: **`/onboard`**. Then every session: run **`/inbox`** first (messages, blockers, review feedback; integrator: PRs to review), then create or switch to your task branch. Finish tasks with **`/ship`**. Coordinate with other roles' AIs through GitHub issues labelled `to:<role>` (docs/CONTRIBUTING.md, AI-to-AI communication). Read `docs/HANDOFF.md`, then your role's section in `docs/TEAM.md` and your next task in `docs/plans/IMPLEMENTATION.md`. Before ending a session, run **`/handoff`** (saves work, files asks for other roles, prints a team-chat update and a resume line).
 
 ## Doc map
 - `docs/ARCHITECTURE.md`: read before touching the contract, enclave code, relayer or their interfaces.

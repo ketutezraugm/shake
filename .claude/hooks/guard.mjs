@@ -43,7 +43,7 @@ const rules = [
   [pushArgs.some((a) => /\s(--force(-with-lease)?|-f)(\s|$)|\s\+\S/.test(a)), "Force pushes are not allowed. Merge dev into your branch instead of rebasing."],
   [pushArgs.some((a) => /\s([^\s:]+:)?(refs\/heads\/)?(main|dev)(\s|$)/.test(a)), "Direct pushes to main or dev are not allowed. Push a task branch and run /ship to open a PR."],
   [args(/\bgit\s+(?:push|commit|merge)\b([^|;&]*)/).some((a) => /--no-verify\b/.test(a)), "--no-verify skips the push guard and is not allowed."],
-  [args(/\bgit\s+config\b([^|;&]*)/).some((a) => /core\.hooksPath/.test(a)), "Changing core.hooksPath is a human setup step."],
+  [args(/\bgit\s+config\b([^|;&]*)/).some((a) => /core\.hooksPath/.test(a) && !/core\.hooksPath\s+\.githooks\s*$/.test(a)), "core.hooksPath may only be set to .githooks (the push guard)."],
 ];
 
 const owner = roles.owner;

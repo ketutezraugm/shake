@@ -25,10 +25,19 @@ NEAR HACKATHON 2026 · status on 10 Nov 2026 · prepared by Ezra
 5. No secrets in the repo. Keys go in `.env` files that never get committed.
 6. Stuck for more than an hour? Post in the team chat.
 
-## For your Claude
-Accept the GitHub invite, clone https://github.com/ketutezraugm/blind-deal, run `git config core.hooksPath .githooks`, start Claude Code in the repo and paste:
+## Getting started (5 minutes)
+1. Accept the GitHub invite to `ketutezraugm/blind-deal` (check your email or https://github.com/ketutezraugm/blind-deal/invitations).
+2. In a terminal: `gh auth login`, then `git clone https://github.com/ketutezraugm/blind-deal.git` and `cd blind-deal`.
+3. Start Claude Code in that folder and type **`/onboard`**. That's the whole prompt: Claude works out your role from your GitHub login, checks your tools, turns on the push guard, explains the rules and shows your first task.
 
-> Run /inbox. Then read `docs/HANDOFF.md`, `docs/TEAM.md`, `docs/CONTRIBUTING.md` and `docs/ARCHITECTURE.md`. I own the **[your role]** role. Take my next unticked task in `docs/PROGRESS.md` on its own task branch from `dev`, follow `docs/DECISIONS.md` and `docs/IDENTITY.md`, use Sonnet or Haiku subagents only, and finish with /ship.
+**Every session after that**
+| When | Type | What happens |
+|---|---|---|
+| Start | `/inbox` | Messages for you, blockers, review feedback (Harfi: PRs waiting for review) |
+| Task done | `/ship` | Runs the task's check, opens a PR into `dev` for Harfi's review |
+| Before you stop | `/handoff` | Saves your work, files asks for other roles, prints a team-chat update and a resume line |
+| Harfi only | `/review-pr <n>` | Tests a PR on top of `dev` and merges it, or asks for changes |
+| Ezra | `/handoff team` | All-team status for the chat |
 
 Until you have the repo, give your Claude this PDF as context.
 

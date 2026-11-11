@@ -1,7 +1,8 @@
 # Handoff
 
 **Resume prompt (lead / planning session):** `Read docs/HANDOFF.md, then continue the next step under "Lead / planning" of docs/PLAYBOOK.md.`
-**Resume prompt (a teammate's build session):** `Read docs/HANDOFF.md, docs/TEAM.md, docs/CONTRIBUTING.md and docs/ARCHITECTURE.md. I own the [role] role. Continue my next unticked task in docs/PROGRESS.md on its own task branch from dev, and open a PR into dev when its done-check passes.`
+**Teammate sessions:** first time on a machine, type `/onboard`. Every session after: `/inbox` to start, `/ship` per task, `/handoff` to stop. Role comes from your GitHub login (.github/ROLES); no placeholders.
+**Team update (Ezra):** `/handoff team` prints a paste-ready status for the team chat.
 
 Each session edits only its own workstream section below.
 

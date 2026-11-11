@@ -2,13 +2,12 @@
 
 Applies to every teammate and every teammate's Claude session. Questions go to the team chat; changes to these rules go through a PR like everything else.
 
-## One-time setup (each person, each clone)
-```sh
-git clone https://github.com/ketutezraugm/blind-deal.git
-cd blind-deal
-git config core.hooksPath .githooks   # turns on the push guard
-git checkout dev
-```
+## One-time setup (each person, each machine)
+1. Accept the GitHub invite, then `gh auth login`.
+2. `git clone https://github.com/ketutezraugm/blind-deal.git` and start Claude Code in the folder.
+3. Type **`/onboard`**. It works out your role from your GitHub login, checks your tools, turns on the push guard, explains these rules and shows your first task.
+
+Every session after that: **`/inbox`** to start, **`/ship`** to finish a task, **`/handoff`** before you stop. A session-start hook already tells Claude who you are and what's waiting.
 
 ## Branches
 | Branch | What it holds | Who writes to it |
