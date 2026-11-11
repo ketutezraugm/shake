@@ -19,7 +19,8 @@ Each session edits only its own workstream section below.
   2. Phase 8: quality bar is already in CLAUDE.md; confirm at the gate.
   3. Phases 9-12: red-team, win assessment, endgame, readiness check.
   4. After all planning phases: regenerate the team PDF with `python -I scripts/build-handoff-pdf.py docs <tmp>/handoff.html docs/Blind-deal-team-handoff.pdf`. Not before.
-- **Open:** product name; whether one project can win multiple tracks (ask organizers); repo push to a private GitHub repo (awaiting Ezra's yes).
+- **Open:** product name; whether one project can win multiple tracks (ask organizers).
+- **Repo:** https://github.com/ketutezraugm/blind-deal (private, branch main). Add teammates as collaborators.
 - **Artifacts:** style tiles https://claude.ai/artifact/N3gwoQ5biN7HzEoD2ZntvZ
 
 ## Contracts & TEE
