@@ -15,13 +15,14 @@ Each session edits only its own workstream section below.
 ## Lead / planning
 - **Done:** Phases 0-6. Recon, competitors, idea (2 rounds), identity, PRD, architecture, team, plan, decisions, CLAUDE.md, PROGRESS.md. Team feedback on rounds applied 11-11.
 - **Next:**
-  1. Phase 7: docs/DESIGN-BRIEF.md, then the Design System + Design artifacts for Abel, packaging drafts (video script, write-up, pitch, Q&A).
+  1. Phase 7 gate (Ezra). Abel builds screens in her own Claude Design canvas from DESIGN-BRIEF.md + the design system.
   2. Phase 8: quality bar is already in CLAUDE.md; confirm at the gate.
   3. Phases 9-12: red-team, win assessment, endgame, readiness check.
   4. After all planning phases: regenerate the team PDF with `python -I scripts/build-handoff-pdf.py docs <tmp>/handoff.html docs/Blind-deal-team-handoff.pdf`. Not before.
 - **Open:** product name; whether one project can win multiple tracks (ask organizers).
 - **Repo:** https://github.com/ketutezraugm/blind-deal (private, branch main). Add teammates as collaborators.
-- **Artifacts:** style tiles https://claude.ai/artifact/N3gwoQ5biN7HzEoD2ZntvZ
+- **Artifacts:** style tiles https://claude.ai/artifact/N3gwoQ5biN7HzEoD2ZntvZ · design system (starting point, Abel owns) https://claude.ai/artifact/MZUADs1rMt3bbtCbXChzke
+- **Phase 7 drafts:** docs/DESIGN-BRIEF.md (fixed vs Abel's call), docs/PACKAGING.md (video, X post, write-up, pitch, Q&A, demo plan, real-user plan; humanizer pass once the product exists).
 
 ## Contracts & TEE
 - Owner: _unassigned_. Next: D1-04 contract stub, D1-08 OutLayer spike (2-3 h). In progress: none. Blockers: none.
