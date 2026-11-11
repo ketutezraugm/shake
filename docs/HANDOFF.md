@@ -1,51 +1,48 @@
 # Handoff
 
+**Resume prompt (lead / planning session):** `Read docs/HANDOFF.md, then continue the next step under "Lead / planning" of docs/PLAYBOOK.md.`
+**Resume prompt (a teammate's build session):** `Read docs/HANDOFF.md, docs/TEAM.md and docs/ARCHITECTURE.md. I own the [role] role. Continue my next unticked task in docs/PROGRESS.md.`
+
+Each session edits only its own workstream section below.
+
 ## Key facts
-- Deadline: **2026-11-14T23:59Z** (hard). Judging 11-16..18. Started planning 2026-11-09, ~5 days left.
-- MODE: TEAM, 4: Ezra (lead), Harfi, Jose, Abel (all design / creative work).
-- Idea: not chosen yet. Tracks: TBD.
-- Submission: one shot via API or form, only after repo public + X demo post live. No drafts.
-- Screening by Claude Code + Codex: README must be reproducible "do X, see Y".
+- Deadline: submit by **2026-11-14 12:00 UTC** (hard wall 23:59 UTC). Feature freeze 2026-11-13 12:00 UTC. Judging 11-16..18.
+- Team of 4 (submission size `"2 - 4"`): Ezra (lead), Harfi, Jose, Abel (all design and creative work). Roles in TEAM.md; names not assigned yet.
+- Idea: **Blind deal** (name TBD), private negotiation with TEE matching, private rounds, NEAR escrow. Tracks: privacy + agents (if the AI negotiator ships), else privacy + realworld.
+- Submission: one shot, only after repo public + X demo post live. AI screening checks the README reproduces.
+- Identity locked: docs/IDENTITY.md (marosok layout, security-tint blue + carbon-copy yellow).
 
-## Compressed schedule (deviates from PLAYBOOK stage sizing because of the deadline)
-| Day | Work |
-|---|---|
-| 11-09 | Phase 0, Phase 1 recon |
-| 11-10 | Phase 2 idea, Phase 3 identity, Phase 4 PRD/plan (lean) |
-| 11-10..13 | Build; M1 demo slice by end of 11-11 |
-| 11-13 | Feature freeze; packaging (video, README, X post) |
-| 11-14 | Repo public, X post, submit by ~12:00 UTC |
+## Lead / planning
+- **Done:** Phases 0-6. Recon, competitors, idea (2 rounds), identity, PRD, architecture, team, plan, decisions, CLAUDE.md, PROGRESS.md. Team feedback on rounds applied 11-11.
+- **Next:**
+  1. Phase 7: docs/DESIGN-BRIEF.md, then the Design System + Design artifacts for Abel, packaging drafts (video script, write-up, pitch, Q&A).
+  2. Phase 8: quality bar is already in CLAUDE.md; confirm at the gate.
+  3. Phases 9-12: red-team, win assessment, endgame, readiness check.
+  4. After all planning phases: regenerate the team PDF with `python -I scripts/build-handoff-pdf.py docs <tmp>/handoff.html docs/Blind-deal-team-handoff.pdf`. Not before.
+- **Open:** product name; whether one project can win multiple tracks (ask organizers); repo push to a private GitHub repo (awaiting Ezra's yes).
+- **Artifacts:** style tiles https://claude.ai/artifact/N3gwoQ5biN7HzEoD2ZntvZ
 
-Playbook deviations: no deck (not required), no submission draft (not possible), fewer subagents.
+## Contracts & TEE
+- Owner: _unassigned_. Next: D1-04 contract stub, D1-08 OutLayer spike (2-3 h). In progress: none. Blockers: none.
 
-## Current
-- Phase 2 approved 2026-11-10: **Blind deal** (private negotiation, privacy + agents). Spec + trust model at the end of docs/IDEAS.md.
-- Phase 3 done: docs/IDENTITY.md locked. Phase 4 drafted: PRD.md, ARCHITECTURE.md, TEAM.md, DECISIONS.md, plans/IMPLEMENTATION.md. Waiting on Phase 4 gate (Ezra review).
-- Roles: split by responsibility in Phase 5; the team assigns names itself.
+## Backend & integration
+- Owner: _unassigned_. Next: D1-01 scaffold, D1-02 CI, D1-03 Render hello-world, D1-06, D1-09 relayer. In progress: none. Blockers: none.
 
-## Done
-- git init, docs/PLAYBOOK.md, ASSUMPTIONS.md, .claude/settings.json (attribution off).
-- Gallery dump: docs/research/raw/gallery.json (373 projects, track counts in ASSUMPTIONS.md).
-- raw/: track-prompts.md, judges-past-winners.md, sponsor-tech.md, competitor-list.md done.
-- raw/competitor-profiles-a.md, -b.md (top 8 deep profiles) done.
+## Frontend
+- Owner: _unassigned_. Next: D1-10 skeleton on mocks (after D1-05, D1-07). In progress: none. Blockers: none.
 
-## Next
-1. Phase 4 gate: Ezra approves PRD + plan (private rounds added 11-11 from team feedback).
-2. Phase 6: root CLAUDE.md for teammates' sessions.
-3. Phase 7: DESIGN-BRIEF.md + Design System / Design artifacts for Abel.
-4. After all planning phases: regenerate the team PDF (script: scratchpad build_pdf.py; reads docs/TEAM-HANDOFF.md + docs). Don't regenerate before that.
+## Design & packaging (Abel)
+- Next: D1-07 tokens CSS, D1-11 screens in Claude Design (full brief arrives in Phase 7). In progress: none. Blockers: none.
 
-## Open questions
-- Team size field: "2 - 4" or "4 - 6"?
-- Multi-track prize stacking: ask organizers.
+## Known bugs
+- none yet
 
-## Missing tools (install before Stage 2 if wanted)
-- context7: needs auth (`/mcp` in an interactive session).
-- Playwright MCP: failed to connect; retries automatically. playwright-cli skill works as fallback.
-- Remotion skills: `npx skills add remotion-dev/skills` (only if we do a Remotion video).
-- VHS (terminal GIFs): `winget install charmbracelet.vhs` (optional).
-- near-cli-rs: `npm i -g near-cli-rs` or see https://docs.near.org/tools/near-cli.
-- Rust toolchain (`winget install Rustlang.Rustup`, then `cargo install cargo-near`): needed for any contract, because near-sdk-js is archived (raw/sponsor-tech.md). Each dev writing contracts needs it.
+## Recent decisions
+See docs/DECISIONS.md (latest: private rounds replace one attempt, 11-11).
+
+## Tools
+- context7 needs auth (`/mcp` in an interactive session). Playwright MCP flaky; playwright-cli skill as fallback.
+- Rust: `winget install Rustlang.Rustup`, then `cargo install cargo-near` (near-sdk-js is archived). near-cli-rs: https://docs.near.org/tools/near-cli.
 
 ## Usage log
-- (paste top consumers from /usage at stage end)
+- (paste top consumers from /usage at stage ends)
