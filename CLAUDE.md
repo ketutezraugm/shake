@@ -5,7 +5,7 @@ NEAR HACKATHON 2026 entry. A buyer and a seller each set a private price limit; 
 **Deadline:** submit by 2026-11-14 12:00 UTC (hard wall 23:59 UTC). Feature freeze 2026-11-13 12:00 UTC.
 
 ## Start every session
-Read `docs/HANDOFF.md`, then your role's section in `docs/TEAM.md` and your next task in `docs/plans/IMPLEMENTATION.md`. Before ending a session, update your own workstream section in `docs/HANDOFF.md` and tick finished tasks in `docs/PROGRESS.md`.
+Run `git checkout dev && git pull`, then create or switch to your task branch. Read `docs/HANDOFF.md`, then your role's section in `docs/TEAM.md` and your next task in `docs/plans/IMPLEMENTATION.md`. Before ending a session, update your own workstream section in `docs/HANDOFF.md` and tick finished tasks in `docs/PROGRESS.md`.
 
 ## Doc map
 - `docs/ARCHITECTURE.md`: read before touching the contract, enclave code, relayer or their interfaces.
@@ -17,6 +17,7 @@ Read `docs/HANDOFF.md`, then your role's section in `docs/TEAM.md` and your next
 - `docs/PLAYBOOK.md`: the team's planning process; not needed for build tasks.
 
 ## Hard rules
+- **Git: follow `docs/CONTRIBUTING.md`.** Work on a task branch `<role>/<task-id>-<name>` cut from `dev`; open PRs into `dev`; merge `dev` into your branch instead of rebasing. Force pushes, pushes to `main`/`dev`, `--no-verify` and merging PRs are blocked for Claude; a human reviews and merges.
 - **Commits and PRs carry only human authorship.** Write conventional commit messages with no Co-Authored-By or "Generated with" lines, and no AI mentions in code comments or the README.
 - **Ship only original visuals.** Every icon, illustration and animation comes from Abel's Claude Design exports in `app/src/assets/` with a one-line source note. A missing asset goes back to design. Headless behaviour libraries (Radix, React Aria) are fine; icon, illustration and animation packages are excluded.
 - **Implement the design as delivered.** Claude Code builds what the Claude Design files show and invents no visual decisions. Motion uses the IDENTITY.md tokens, animates only `transform` and `opacity`, and respects `prefers-reduced-motion`.

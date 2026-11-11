@@ -1,0 +1,20 @@
+#!/bin/sh
+# Blocks direct pushes to main/dev and any force (non-fast-forward) push. See docs/CONTRIBUTING.md.
+zero=0000000000000000000000000000000000000000
+status=0
+while read -r local_ref local_sha remote_ref remote_sha; do
+  case "$remote_ref" in
+    refs/heads/main|refs/heads/dev)
+      echo "push guard: direct pushes to ${remote_ref#refs/heads/} are not allowed. Push a task branch and open a PR into dev." >&2
+      status=1
+      continue
+      ;;
+  esac
+  [ "$local_sha" = "$zero" ] && continue        # deleting a remote branch
+  [ "$remote_sha" = "$zero" ] && continue       # new branch
+  if ! git merge-base --is-ancestor "$remote_sha" "$local_sha" 2>/dev/null; then
+    echo "push guard: $remote_ref would be rewritten (force push). Merge instead: git merge origin/${remote_ref#refs/heads/}" >&2
+    status=1
+  fi
+done
+exit $status
