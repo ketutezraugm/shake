@@ -1,0 +1,18 @@
+# Review requests per area (docs/TEAM.md). The integrator (SyuraMoons) reviews and merges everything; owners are asked too.
+*                         @SyuraMoons
+/contract/                @ketutezraugm @SyuraMoons
+/tee/                     @ketutezraugm @SyuraMoons
+/relayer/                 @SyuraMoons
+/.github/                 @SyuraMoons @ketutezraugm
+/render.yaml              @SyuraMoons
+/app/                     @ChristianoJ21 @SyuraMoons
+/app/src/design/          @rafaelaanabelpurba @ChristianoJ21
+/app/src/assets/          @rafaelaanabelpurba @ChristianoJ21
+/app/src/contract.ts      @ChristianoJ21 @ketutezraugm
+/relayer/src/types.ts     @SyuraMoons @ChristianoJ21
+/docs/                    @ketutezraugm
+/docs/IDENTITY.md         @rafaelaanabelpurba
+/docs/DESIGN-BRIEF.md     @rafaelaanabelpurba
+/docs/PACKAGING.md        @rafaelaanabelpurba @ketutezraugm
+/.claude/                 @ketutezraugm @SyuraMoons
+/CLAUDE.md                @ketutezraugm
