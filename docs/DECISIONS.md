@@ -55,3 +55,6 @@ Harfi (SyuraMoons) Backend & Integration and integrator; Ezra (ketutezraugm) Con
 
 ## 2026-11-11 Planning complete
 Phases 0-12 approved by Ezra. Build starts (Stage 6). Planning docs change from here only when the build proves them wrong, via PR with a DECISIONS entry.
+
+## 2026-11-12 Reduced motion via reveal tokens
+`tokens.css` adds `--reveal-lift`, `--reveal-swing`, `--reveal-lift-dur`, `--reveal-swing-dur`; under `prefers-reduced-motion` they drop the transforms and shorten the lift to `--dur-quick`, so the reveal becomes a 200 ms crossfade without redefining the base motion tokens. Fonts are self-hosted Latin-subset variable woff2 with Arial fallbacks metric-matched (size-adjust, ascent/descent overrides) to avoid layout shift.

@@ -11,7 +11,7 @@ Mirrors docs/plans/IMPLEMENTATION.md. Tick a box only after the task's done-chec
 - [ ] **D1-04** Contract stub (signatures)
 - [ ] **D1-05** Shared TS contract types
 - [ ] **D1-06** Relayer API types
-- [ ] **D1-07** Design tokens CSS
+- [x] **D1-07** Design tokens CSS (RAP)
 - [ ] **D1-08** OutLayer spike (2-3 h, time-boxed)
 - [ ] **D1-09** Relayer spike
 - [ ] **D1-10** Frontend skeleton on mocks
