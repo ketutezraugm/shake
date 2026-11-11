@@ -49,3 +49,6 @@ Ezra: reviews and merges are done by AI, gated to the Backend & Integration pers
 
 ## 2026-11-11 Roles assigned
 Harfi (SyuraMoons) Backend & Integration and integrator; Ezra (ketutezraugm) Contracts & TEE and owner; Jose (ChristianoJ21) Frontend; Abel (rafaelaanabelpurba) Design & packaging. Ezra's own PRs still go through Harfi's /review-pr like everyone's. Collaborators invited with write access; CODEOWNERS routes review requests.
+
+## 2026-11-11 One-word onboarding and handoffs
+`/onboard` (first time per machine, role from GitHub login, tools, push guard, rules, first task), `/handoff` (end of session; `/handoff team` for Ezra's all-team update) and a SessionStart hook that reports the user's role and waiting work. The guard now allows `core.hooksPath .githooks` so `/onboard` can enable the push guard; any other value stays blocked.
