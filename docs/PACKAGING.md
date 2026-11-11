@@ -96,3 +96,8 @@ We're running it with students: [TBD: N deals, N that would not have started]. T
 - **Consent wording:** "This is a hackathon test. Prices stay private; money is test money. We record only the outcome (deal or not, rounds used, time to deal). We may quote one line from you only if you say yes. You can stop any time."
 - **Log (anonymised):** outcome, rounds used, time to deal, item category, whether the deal would likely have failed to start (user's own answer), and one-line quote with a yes/no permission flag. No names, no limits.
 - **Present:** headline "[TBD: N] deals, [TBD: N] that would have failed to start" (the PRD metric), median time to deal, rounds used. Say it is a small sample with testnet money. Use only quotes with permission.
+
+
+## TODO from red-team
+- Add a sustainability answer to the Q&A: 0.5% fee on settled deals; buy-and-sell groups and marketplaces embed the deal link.
+- Default tracks are privacy + realworld; replace `agents-or-realworld` wording once S-02's fate is known.

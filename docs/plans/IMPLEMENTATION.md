@@ -245,7 +245,8 @@ D1-08 (OutLayer spike) -> M1-05/06 (WASM + deploy) -> M1-07 (contract on testnet
 ### P-01 README on a clean clone
 - **Owner:** BI. **Deps:** S-06.
 - **Files:** `README.md` ("do X, see Y" with `npm run demo:seed`, hosted URL, WASM hash, centralisation and Myerson-Satterthwaite limits, fee hypothesis marked UNVERIFIED).
-- **Done:** a person outside the team follows it on a clean machine and reaches the reveal, reported in chat.
+- **Defaults:** README path uses the hosted relayer and deployed contract; `.env.example` ships those public values so `npm ci && npm run dev -w app` works with no secrets (AI screening can't use our keys).
+- **Done:** a person outside the team follows it on a clean machine with no `.env` and reaches the reveal, reported in chat.
 
 ### P-02 Video and visuals
 - **Owner:** DP. **Deps:** S-06.

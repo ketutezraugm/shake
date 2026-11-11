@@ -71,6 +71,9 @@ Bahasa versions welcome where they read more naturally ("Cocok!").
 | Video title and end cards | demo video | 1920x1080 |
 All made in Claude Design (no icon or illustration libraries, no stock or AI-generated images), exported into `app/src/assets/` with a one-line source note.
 
+## Freeze
+**Tokens freeze 2026-11-12 12:00 UTC** (colors, type, spacing, motion) so Frontend isn't building against moving values. After that, copy and asset swaps only.
+
 ## Surfaces beyond the app
 README hero, demo video frames, X post image, OG image. They should feel like the same product as the app. The first 10 seconds of each matter most: that's where judges decide whether to keep looking.
 

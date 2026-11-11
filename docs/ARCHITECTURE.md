@@ -46,7 +46,7 @@ struct Deal {
   deadline_ns: Option<u64>,                    // set when Funded
 }
 ```
-**Units:** users enter Rupiah. Prices go into the TEE in Rupiah (integer string). The contract converts at a fixed demo rate set in `new` (`rp_per_near`, default 10,000,000, so a Rp 4.2M deal escrows 0.42 testnet NEAR), shown in the UI as "test rate". No oracle.
+**Units:** users enter Rupiah. Prices go into the TEE in Rupiah (integer string). The contract converts at a fixed demo rate set in `new` (`rp_per_near`, default 100,000,000, so a Rp 4.2M deal escrows 0.042 testnet NEAR; small on purpose because faucet limits are unverified), shown in the UI as "test rate". No oracle.
 Storage keys: `deals: LookupMap<u64, Deal>` (prefix `d`), `next_id: u64`, `tee_pubkey: Vec<u8>`, `outlayer: AccountId` (set in `new`; no later setter, so no admin).
 
 | Method | Signature | Access | Deposit |

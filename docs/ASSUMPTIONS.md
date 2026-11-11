@@ -28,3 +28,4 @@ Tag: `verified (source)` or `unverified (how to verify)`.
 - OutLayer governance is centralised; must be stated in README/pitch. — verified (per spike)
 - NEAR AI Cloud: documented E2EE (X25519/XChaCha20) and attestation at /v1/attestation/report; cannot run custom code. Browser E2EE flow works. — unverified (spike)
 - Fallbacks: (1) server key registered in contract, stated trust; (2) commit-reveal. — design decision
+- Testnet faucet amount and rate limit. — unverified (near-faucet.io claims conflict: 2 NEAR/claim vs 100 NEAR/30 min; docs.near.org faucet page 410). Verify by using it on day 1 (D1-09).

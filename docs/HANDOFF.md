@@ -8,7 +8,7 @@ Each session edits only its own workstream section below.
 ## Key facts
 - Deadline: submit by **2026-11-14 12:00 UTC** (hard wall 23:59 UTC). Feature freeze 2026-11-13 12:00 UTC. Judging 11-16..18.
 - Team of 4 (submission size `"2 - 4"`): Ezra (lead), Harfi, Jose, Abel (all design and creative work). Roles in TEAM.md; names not assigned yet.
-- Idea: **Blind deal** (name TBD), private negotiation with TEE matching, private rounds, NEAR escrow. Tracks: privacy + agents (if the AI negotiator ships), else privacy + realworld.
+- Idea: **Blind deal** (name TBD), private negotiation with TEE matching, private rounds, NEAR escrow. Tracks: privacy + realworld by default; agents instead of realworld only if the AI negotiator ships by the freeze.
 - Submission: one shot, only after repo public + X demo post live. AI screening checks the README reproduces.
 - Identity locked: docs/IDENTITY.md (marosok layout, security-tint blue + carbon-copy yellow).
 
@@ -19,7 +19,8 @@ Each session edits only its own workstream section below.
   2. Phase 8: quality bar is already in CLAUDE.md; confirm at the gate.
   3. Phases 9-12: red-team, win assessment, endgame, readiness check.
   4. After all planning phases: regenerate the team PDF with `python -I scripts/build-handoff-pdf.py docs <tmp>/handoff.html docs/Blind-deal-team-handoff.pdf`. Not before.
-- **Open:** product name; whether one project can win multiple tracks (ask organizers).
+- **Endgame:** docs/ENDGAME.md (red-team, win odds, endgame, readiness). Token freeze 11-12 12:00 UTC.
+- **Open:** product name (blocking: needed today); whether one project can win multiple tracks (ask organizers).
 - **Repo:** https://github.com/ketutezraugm/blind-deal (private, branch main). Add teammates as collaborators.
 - **Artifacts:** style tiles https://claude.ai/artifact/N3gwoQ5biN7HzEoD2ZntvZ · design system (starting point, Abel owns) https://claude.ai/artifact/MZUADs1rMt3bbtCbXChzke
 - **Phase 7 drafts:** docs/DESIGN-BRIEF.md (fixed vs Abel's call), docs/PACKAGING.md (video, X post, write-up, pitch, Q&A, demo plan, real-user plan; humanizer pass once the product exists).

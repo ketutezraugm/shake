@@ -6,7 +6,7 @@ Written by the lead 2026-11-10. Drafts must follow this; flag disagreements, don
 Blind deal (name TBD): buyer and seller each set a private price limit; code in a TEE compares them; if ranges overlap, the deal closes at a **random price inside the overlap** (midpoint would leak the other's limit); otherwise "no deal" and nothing else leaks. Deal is binding; buyer pays into an escrow contract released on "Received", refunded after a deadline. Full user flow and trust model: docs/IDEAS.md (end). Identity: docs/IDENTITY.md.
 
 ## Tracks
-Primary `privacy`. Secondary `agents` only if the AI negotiator (Should) ships; otherwise `realworld`.
+Default `privacy` + `realworld`. Switch the second to `agents` only if the AI negotiator (S-02) ships by the feature freeze.
 
 ## Scope
 **Must (demo slice, M1 = end of 11-11, hard by noon 11-12):**

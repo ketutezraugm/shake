@@ -21,7 +21,7 @@ Abel's pick: marosok sarong/ear-tag structure, security-tint blue + carbon-copy 
 Must: OutLayer callback path + stated centralisation. Should: enclave-signed results verified in the contract.
 
 ## 2026-11-10 Units: Rupiah in, testnet NEAR in escrow at a fixed demo rate
-Users think in Rupiah. Fixed `rp_per_near` set at init (default 10,000,000); no oracle.
+Users think in Rupiah. Fixed `rp_per_near` set at init (default 100,000,000, lowered 11-11 so escrow needs little testnet NEAR); no oracle.
 
 ## 2026-11-10 Binding deals without a bond
 A matched buyer who never pays can't be forced; `expire` frees the deal after 24 h. A buyer bond would leak information if sized to the limit; a fixed bond is a Could.
@@ -37,3 +37,6 @@ The contract is the source of truth; no Supabase.
 
 ## 2026-11-11 Private rounds replace "one attempt"
 Team feedback: one attempt punishes misjudgment. Seller chooses 1-3 rounds per buyer (default 2); concessions are monotonic (buyer up, seller down), enforced in the TEE; each round leaks at most 1 bit; a deal ends the game. Laddering accepted as private haggling. "Close" hint dropped (leaks more). Contract: `max_rounds`, `round`, per-round ciphertexts, `Retry` state. (IDEAS.md, feedback section)
+
+## 2026-11-11 Red-team fixes (ENDGAME.md)
+Default tracks privacy + realworld (agents only if S-02 ships). README and `.env.example` default to the hosted relayer and deployed contract so a clean clone runs without secrets. Token freeze 11-12 12:00 UTC. Cut: Bahasa toggle, receipt page (explorer links instead). Sustainability story: 0.5% fee on settled deals; marketplaces embed the link.
