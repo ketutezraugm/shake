@@ -1,0 +1,7 @@
+# GitHub login per role. Read by .claude/hooks/guard.mjs and .githooks/pre-push.
+# owner can override every rule; backend-integration is the AI-assisted reviewer and merger.
+owner: ketutezraugm
+backend-integration:
+contracts-tee:
+frontend:
+design-packaging:

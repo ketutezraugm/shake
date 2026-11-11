@@ -40,3 +40,9 @@ Team feedback: one attempt punishes misjudgment. Seller chooses 1-3 rounds per b
 
 ## 2026-11-11 Red-team fixes (ENDGAME.md)
 Default tracks privacy + realworld (agents only if S-02 ships). README and `.env.example` default to the hosted relayer and deployed contract so a clean clone runs without secrets. Token freeze 11-12 12:00 UTC. Cut: Bahasa toggle, receipt page (explorer links instead). Sustainability story: 0.5% fee on settled deals; marketplaces embed the link.
+
+## 2026-11-11 Git workflow: main + dev, PR-only, no force pushes
+`main` holds releases only (release PRs from `dev`, merge commit, tagged v0.1.0 / v0.9.0 / v1.0.0, two approvals incl. Ezra). `dev` is the default integration branch; task branches `<role>/<task-id>-<name>`; squash-merge by the author after 1 review + green CI; merge `dev` into branches instead of rebasing so no force push is ever needed. Enforced by `.githooks/pre-push` (blocks main/dev pushes and non-fast-forward pushes) and `.claude/settings.json` deny rules (force push, main/dev push, --no-verify, PR merge/approve). Server-side branch protection needs GitHub Pro on a private repo (open question). (docs/CONTRIBUTING.md)
+
+## 2026-11-11 AI integrator, owner override, AI-to-AI channel
+Ezra: reviews and merges are done by AI, gated to the Backend & Integration person's session; Ezra can override any rule. Static deny rules replaced by `.claude/hooks/guard.mjs` (checks `gh api user` against `.github/ROLES`; `BD_OVERRIDE=1` works only for the owner). AIs coordinate through GitHub issues labelled `to:<role>`, PR reviews and HANDOFF sections; shared commands `/inbox`, `/ship`, `/review-pr`, `/release` in `.claude/commands/`. Supersedes "a human merges" in the entry above.

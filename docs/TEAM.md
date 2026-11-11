@@ -45,11 +45,7 @@ Real-user recruiting and pitch: roles 2 and 4 lead.
 A PR that changes any of these needs both the provider and one consumer to approve.
 
 ## Git workflow
-- `main` is protected: PR required, 1 reviewer, green CI.
-- Short branches (`feat/...`, `fix/...`), small PRs, merge within hours.
-- Conventional commits (`feat:`, `fix:`, `docs:`, `chore:`).
-- No AI attribution lines in commits or PRs.
-- After 11-13 12:00 UTC: only fixes, each PR labelled `fix`.
+Full rules: `docs/CONTRIBUTING.md`. In short: `main` = released product (release PRs from `dev` only), `dev` = integration (feature PRs only), task branches `<role>/<task-id>-<name>`; no force pushes, no direct pushes to `main`/`dev`, the Backend & Integration person's Claude reviews, integration-tests and squash-merges (`/review-pr`); Ezra can override anything.
 
 ## Daily sync
 15 minutes, same time daily, in chat if not live. Each person posts: done since last sync, doing next, blocked on. One line each.
