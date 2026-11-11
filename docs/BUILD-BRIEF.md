@@ -10,13 +10,13 @@ Primary `privacy`. Secondary `agents` only if the AI negotiator (Should) ships; 
 
 ## Scope
 **Must (demo slice, M1 = end of 11-11, hard by noon 11-12):**
-1. Seller creates a deal (item title, short description) and gets a single-use buyer link.
+1. Seller creates a deal (item title, short description) and gets a buyer link (one buyer per link).
 2. Walletless accounts: browser generates an ed25519 key; relayer creates `name.<app>.testnet` with that key as full-access key and funds it with a little testnet NEAR (enough for gas + demo escrow).
 3. Each side enters a numeric limit. Browser encrypts it to the TEE's public key; contract stores ciphertext + a commitment hash.
 4. When both are in, the contract calls OutLayer (`outlayer.testnet`, `request_execution`) with both ciphertexts; the WASM decrypts, compares, picks a random price in [seller_min, buyer_max] with TEE randomness, returns only `{matched, price}`; callback stores the result. Pattern: github.com/out-layer/private-dao-example.
 5. Reveal screen on both phones (poll contract view), with the signature reveal.
 6. Escrow: buyer deposits price; "Received" releases to seller; refund after deadline. No admin key.
-7. One attempt per buyer link; deals binding.
+7. Private rounds: the seller picks 1, 2 or 3 rounds per buyer (default 2). After a no-deal, both sides may resubmit; the buyer can only raise, the seller can only lower (checked in the TEE). Each round reveals only deal / no deal; a deal ends the negotiation and is binding.
 8. Hosted demo + README a judge can follow ("do X, see Y"), including a seeded demo deal pair.
 
 **Should (11-12..13):** AI negotiator: natural-language limits/conditions parsed by NEAR AI Cloud private inference with E2EE + attestation (then tag `agents`); attestation / "Verified" panel (fresh nonce) showing OutLayer + NEAR AI proofs; deal receipt page with tx links; Bahasa/English copy; 10-20 real deals with real students logged.

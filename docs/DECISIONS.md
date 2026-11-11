@@ -34,3 +34,6 @@ The relayer proxies NEAR AI requests and adds the API key; prompts are E2EE from
 
 ## 2026-11-10 No database
 The contract is the source of truth; no Supabase.
+
+## 2026-11-11 Private rounds replace "one attempt"
+Team feedback: one attempt punishes misjudgment. Seller chooses 1-3 rounds per buyer (default 2); concessions are monotonic (buyer up, seller down), enforced in the TEE; each round leaks at most 1 bit; a deal ends the game. Laddering accepted as private haggling. "Close" hint dropped (leaks more). Contract: `max_rounds`, `round`, per-round ciphertexts, `Retry` state. (IDEAS.md, feedback section)

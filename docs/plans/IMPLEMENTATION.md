@@ -25,7 +25,8 @@
 
 Each line has its pinning test in the owning task.
 1. Replayed ciphertext (seller ct as buyer, or into another deal) must return `invalid` (M1-05).
-2. Buyer link opened a second time shows "link used", no second submit (M1-02).
+2. A second buyer on the same link is rejected; each side submits once per round; no submits after the last round (M1-02).
+6. Rounds: a later-round buyer limit lower than before, or seller limit higher, is a no-deal (M1-05); the UI also blocks it.
 3. Wrong-amount deposit, wrong caller, wrong state all panic (M1-04).
 4. Malformed or missing OutLayer result lands in `NoDeal`, never stuck in `Computing` (M1-03).
 5. Equal limits (min == max) matches at exactly that price; limit 0 and non-numeric input rejected (M1-05).
@@ -116,9 +117,9 @@ D1-08 (OutLayer spike) -> M1-05/06 (WASM + deploy) -> M1-07 (contract on testnet
 - **Tests first:** `create_deal_returns_incrementing_ids`, `title_and_description_length_bounded`, `get_deal_hides_nothing_secret` (no plaintext field exists).
 - **Done:** `cargo test -p contract create_deal` prints `3 passed`.
 
-### M1-02 Contract: `submit_limit`, link token, one attempt (TDD)
+### M1-02 Contract: `submit_limit`, link token, rounds (TDD)
 - **Owner:** CT. **Deps:** M1-01.
-- **Tests first:** `seller_first_moves_to_seller_in`, `buyer_needs_matching_token_hash`, `second_buyer_submit_fails`, `used_link_rejected`, `buyer_submit_moves_to_computing_and_calls_outlayer` (checks promise to `outlayer`), `cancel_blocked_once_matched`.
+- **Tests first:** `seller_first_moves_to_seller_in`, `buyer_needs_matching_token_hash`, `second_buyer_submit_fails`, `used_link_rejected`, `max_rounds_outside_1_to_3_rejected`, `nodeal_with_rounds_left_moves_to_retry`, `nodeal_on_last_round_is_final`, `one_submit_per_side_per_round`, `buyer_submit_moves_to_computing_and_calls_outlayer` (checks promise to `outlayer`), `cancel_blocked_once_matched`.
 - **Done:** `cargo test -p contract submit_limit` all pass; `cargo test -p contract cancel` passes.
 
 ### M1-03 Contract: `on_outlayer_result` (TDD)
@@ -134,8 +135,8 @@ D1-08 (OutLayer spike) -> M1-05/06 (WASM + deploy) -> M1-07 (contract on testnet
 ### M1-05 WASM matching + commitment (TDD)
 - **Owner:** CT. **Deps:** D1-08.
 - **Files:** `tee/src/lib.rs` (`fn run_match(input, key) -> Response`), `tee/src/commit.rs`, `tee/tests/match.rs`, `tee/testvectors.json` (ciphertext, limit, salt, commit shared with the frontend).
-- **Tests first:** `overlap_matches_price_in_range` (min 4M, max 4.6M, 1000 draws all in range), `no_overlap_returns_no_price` (5M vs 4M), `equal_limits_match_exact`, `zero_or_nonnumeric_limit_invalid`, `commit_mismatch_invalid`, `seller_ct_as_buyer_invalid`, `wrong_deal_id_invalid`.
-- **Done:** `cargo test -p tee` offline prints `7 passed`.
+- **Tests first:** `overlap_matches_price_in_range` (min 4M, max 4.6M, 1000 draws all in range), `no_overlap_returns_no_price` (5M vs 4M), `equal_limits_match_exact`, `zero_or_nonnumeric_limit_invalid`, `commit_mismatch_invalid`, `seller_ct_as_buyer_invalid`, `wrong_deal_id_invalid`, `buyer_lowering_limit_in_later_round_is_nodeal`, `seller_raising_limit_in_later_round_is_nodeal`, `only_latest_round_compared`, `wrong_round_number_invalid`.
+- **Done:** `cargo test -p tee` offline prints `11 passed`.
 
 ### M1-06 WASM: `get_pubkey`, build, deploy to OutLayer
 - **Owner:** CT. **Deps:** M1-05.

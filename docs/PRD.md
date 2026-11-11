@@ -7,7 +7,7 @@ Haggling punishes whoever names a number first. A seller asks 5M, the buyer woul
 
 ## Users
 - Seller: a student selling a used item in a campus chat group.
-- Buyer: a student who got a single-use link from that seller.
+- Buyer: a student who got a buyer link (one buyer per link) from that seller.
 - Judge / AI screener: clones the repo, follows the README, opens the hosted demo.
 
 ## User stories
@@ -23,13 +23,13 @@ Both phones show the same reveal at the same time: "Deal at Rp X", or "No deal",
 
 ## Scope (from brief)
 **Must (M1 = end 11-11, hard stop noon 11-12):**
-1. Seller creates deal (title, description), gets single-use buyer link.
+1. Seller creates deal (title, description), gets a buyer link (one buyer per link).
 2. Walletless accounts: browser ed25519 key; relayer creates `name.<app>.testnet` and funds it.
 3. Each side enters a numeric limit, encrypted in the browser to the TEE key; contract stores ciphertext + commitment hash.
 4. When both are in, contract calls OutLayer; WASM compares, picks a random price in [seller_min, buyer_max], returns `{matched, price}`; callback stores it.
 5. Reveal screen on both phones (poll contract view).
 6. Escrow: buyer deposits price; "Received" releases; refund after deadline; no admin key.
-7. One attempt per buyer link; deals binding.
+7. Private rounds: the seller picks 1, 2 or 3 rounds per buyer (default 2). After a no-deal, both sides may resubmit; the buyer can only raise, the seller can only lower (checked in the TEE). Each round reveals only deal / no deal; a deal ends the negotiation and is binding.
 8. Hosted demo + README with a seeded demo pair.
 
 **Should (11-12..13):** AI negotiator (NEAR AI Cloud, E2EE + attestation); "Verified" attestation panel with fresh nonce; receipt page with tx links; Bahasa/English; 10-20 real deals logged.
@@ -69,6 +69,8 @@ Both phones show the same reveal at the same time: "Deal at Rp X", or "No deal",
 | Testnet faucet dry | M | H | Fund the relayer early; keep a reserve | Fewer demo accounts, reuse |
 | Two-sided demo needs two devices | H | M | Seeded demo pair; split-screen page | Recorded video |
 | Strategic misreporting (Myerson-Satterthwaite) | H | L | Binding deals; state the limit in README | None needed |
+| Probing across rounds ("egg drop") | M | M | Max 3 rounds, seller-chosen; a deal ends the game (one egg); monotonic limits; README states leak of at most 1 bit per round | Seller sets 1 round |
+| Laddering (buyer starts low, steps up) | H | L | Accepted: it is private haggling; seller never gets less than their own minimum | Seller sets 1 round |
 | OutLayer centralisation | H | M | State it in README and pitch | None |
 | Time (4 days) | H | H | Freeze 11-13 12:00 UTC; Should items cut first | Ship M1 only |
 
@@ -82,5 +84,5 @@ Both phones show the same reveal at the same time: "Deal at Rp X", or "No deal",
 ## Open questions
 Resolved 2026-11-10 in DECISIONS.md: result trust (callback path Must, enclave signature Should), units (Rupiah in, fixed demo rate to testnet NEAR), randomness (TEE), account naming (parent account once the name is final), NEAR AI key (relayer proxy, E2EE prompts).
 Still open:
-1. Seller can re-post the same item as a new deal with a different minimum. Accepted: each buyer still gets one attempt, and the seller learns only "deal / no deal" from a buyer who joins.
+1. Seller can re-post the same item as a new deal with a different minimum. Accepted: each buyer still gets at most the seller's chosen rounds, and the seller learns only "deal / no deal" from a buyer who joins.
 2. NEAR AI Cloud credit: $5 coupon seen, $10 UNVERIFIED; ask organizers if the AI negotiator ships.
