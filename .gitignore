@@ -1,0 +1,10 @@
+node_modules/
+target/
+dist/
+.env
+.env.*
+!.env.example
+.near-credentials/
+*.log
+.DS_Store
+.claude/settings.local.json
