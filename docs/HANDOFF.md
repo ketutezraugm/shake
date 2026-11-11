@@ -1,7 +1,7 @@
 # Handoff
 
 **Resume prompt (lead / planning session):** `Read docs/HANDOFF.md, then continue the next step under "Lead / planning" of docs/PLAYBOOK.md.`
-**Resume prompt (a teammate's build session):** `Read docs/HANDOFF.md, docs/TEAM.md and docs/ARCHITECTURE.md. I own the [role] role. Continue my next unticked task in docs/PROGRESS.md.`
+**Resume prompt (a teammate's build session):** `Read docs/HANDOFF.md, docs/TEAM.md, docs/CONTRIBUTING.md and docs/ARCHITECTURE.md. I own the [role] role. Continue my next unticked task in docs/PROGRESS.md on its own task branch from dev, and open a PR into dev when its done-check passes.`
 
 Each session edits only its own workstream section below.
 
@@ -21,7 +21,7 @@ Each session edits only its own workstream section below.
   4. After all planning phases: regenerate the team PDF with `python -I scripts/build-handoff-pdf.py docs <tmp>/handoff.html docs/Blind-deal-team-handoff.pdf`. Not before.
 - **Endgame:** docs/ENDGAME.md (red-team, win odds, endgame, readiness). Token freeze 11-12 12:00 UTC.
 - **Open:** product name (blocking: needed today); whether one project can win multiple tracks (ask organizers).
-- **Repo:** https://github.com/ketutezraugm/blind-deal (private, branch main). Add teammates as collaborators.
+- **Repo:** https://github.com/ketutezraugm/blind-deal (private). Branches: `main` (releases), `dev` (default, integration). Rules: docs/CONTRIBUTING.md. Each clone runs `git config core.hooksPath .githooks`. Add teammates as collaborators.
 - **Artifacts:** style tiles https://claude.ai/artifact/N3gwoQ5biN7HzEoD2ZntvZ · design system (starting point, Abel owns) https://claude.ai/artifact/MZUADs1rMt3bbtCbXChzke
 - **Phase 7 drafts:** docs/DESIGN-BRIEF.md (fixed vs Abel's call), docs/PACKAGING.md (video, X post, write-up, pitch, Q&A, demo plan, real-user plan; humanizer pass once the product exists).
 
