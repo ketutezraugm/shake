@@ -52,3 +52,6 @@ Harfi (SyuraMoons) Backend & Integration and integrator; Ezra (ketutezraugm) Con
 
 ## 2026-11-11 One-word onboarding and handoffs
 `/onboard` (first time per machine, role from GitHub login, tools, push guard, rules, first task), `/handoff` (end of session; `/handoff team` for Ezra's all-team update) and a SessionStart hook that reports the user's role and waiting work. The guard now allows `core.hooksPath .githooks` so `/onboard` can enable the push guard; any other value stays blocked.
+
+## 2026-11-11 Planning complete
+Phases 0-12 approved by Ezra. Build starts (Stage 6). Planning docs change from here only when the build proves them wrong, via PR with a DECISIONS entry.
