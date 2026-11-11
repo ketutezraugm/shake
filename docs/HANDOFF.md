@@ -7,7 +7,7 @@ Each session edits only its own workstream section below.
 
 ## Key facts
 - Deadline: submit by **2026-11-14 12:00 UTC** (hard wall 23:59 UTC). Feature freeze 2026-11-13 12:00 UTC. Judging 11-16..18.
-- Team of 4 (submission size `"2 - 4"`): Ezra (lead), Harfi, Jose, Abel (all design and creative work). Roles in TEAM.md; names not assigned yet.
+- Team of 4 (submission size `"2 - 4"`): Ezra (lead), Harfi, Jose, Abel (all design and creative work). Roles: Harfi (SyuraMoons) Backend & Integration + integrator; Ezra (ketutezraugm) Contracts & TEE + owner; Jose (ChristianoJ21) Frontend; Abel (rafaelaanabelpurba) Design & packaging. Mapping in .github/ROLES.
 - Idea: **Blind deal** (name TBD), private negotiation with TEE matching, private rounds, NEAR escrow. Tracks: privacy + realworld by default; agents instead of realworld only if the AI negotiator ships by the freeze.
 - Submission: one shot, only after repo public + X demo post live. AI screening checks the README reproduces.
 - Identity locked: docs/IDENTITY.md (marosok layout, security-tint blue + carbon-copy yellow).
@@ -26,16 +26,16 @@ Each session edits only its own workstream section below.
 - **Phase 7 drafts:** docs/DESIGN-BRIEF.md (fixed vs Abel's call), docs/PACKAGING.md (video, X post, write-up, pitch, Q&A, demo plan, real-user plan; humanizer pass once the product exists).
 
 ## Contracts & TEE
-- Owner: _unassigned_. Next: D1-04 contract stub, D1-08 OutLayer spike (2-3 h). In progress: none. Blockers: none.
+- Owner: Ezra (ketutezraugm). Next: D1-04 contract stub, D1-08 OutLayer spike (2-3 h). In progress: none. Blockers: none.
 
 ## Backend & integration
-- Owner: _unassigned_. Next: D1-01 scaffold, D1-02 CI, D1-03 Render hello-world, D1-06, D1-09 relayer. In progress: none. Blockers: none.
+- Owner: Harfi (SyuraMoons), also the integrator: runs /review-pr on every needs-review PR first. Next: D1-01 scaffold, D1-02 CI, D1-03 Render hello-world, D1-06, D1-09 relayer. In progress: none. Blockers: none.
 
 ## Frontend
-- Owner: _unassigned_. Next: D1-10 skeleton on mocks (after D1-05, D1-07). In progress: none. Blockers: none.
+- Owner: Jose (ChristianoJ21). Next: D1-10 skeleton on mocks (after D1-05, D1-07). In progress: none. Blockers: none.
 
 ## Design & packaging (Abel)
-- Next: D1-07 tokens CSS, D1-11 screens in Claude Design (full brief arrives in Phase 7). In progress: none. Blockers: none.
+- Owner: Abel (rafaelaanabelpurba). Next: D1-07 tokens CSS, D1-11 screens in Claude Design (full brief arrives in Phase 7). In progress: none. Blockers: none.
 
 ## Known bugs
 - none yet

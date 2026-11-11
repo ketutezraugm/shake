@@ -46,3 +46,6 @@ Default tracks privacy + realworld (agents only if S-02 ships). README and `.env
 
 ## 2026-11-11 AI integrator, owner override, AI-to-AI channel
 Ezra: reviews and merges are done by AI, gated to the Backend & Integration person's session; Ezra can override any rule. Static deny rules replaced by `.claude/hooks/guard.mjs` (checks `gh api user` against `.github/ROLES`; `BD_OVERRIDE=1` works only for the owner). AIs coordinate through GitHub issues labelled `to:<role>`, PR reviews and HANDOFF sections; shared commands `/inbox`, `/ship`, `/review-pr`, `/release` in `.claude/commands/`. Supersedes "a human merges" in the entry above.
+
+## 2026-11-11 Roles assigned
+Harfi (SyuraMoons) Backend & Integration and integrator; Ezra (ketutezraugm) Contracts & TEE and owner; Jose (ChristianoJ21) Frontend; Abel (rafaelaanabelpurba) Design & packaging. Ezra's own PRs still go through Harfi's /review-pr like everyone's. Collaborators invited with write access; CODEOWNERS routes review requests.
