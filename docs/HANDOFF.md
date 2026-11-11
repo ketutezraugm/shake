@@ -14,17 +14,12 @@ Each session edits only its own workstream section below.
 - Identity locked: docs/IDENTITY.md (marosok layout, security-tint blue + carbon-copy yellow).
 
 ## Lead / planning
-- **Done:** Phases 0-6. Recon, competitors, idea (2 rounds), identity, PRD, architecture, team, plan, decisions, CLAUDE.md, PROGRESS.md. Team feedback on rounds applied 11-11.
-- **Next:**
-  1. Phase 7 gate (Ezra). Abel builds screens in her own Claude Design canvas from DESIGN-BRIEF.md + the design system.
-  2. Phase 8: quality bar is already in CLAUDE.md; confirm at the gate.
-  3. Phases 9-12: red-team, win assessment, endgame, readiness check.
-  4. After all planning phases: regenerate the team PDF with `python -I scripts/build-handoff-pdf.py docs <tmp>/handoff.html docs/Blind-deal-team-handoff.pdf`. Not before.
-- **Endgame:** docs/ENDGAME.md (red-team, win odds, endgame, readiness). Token freeze 11-12 12:00 UTC.
-- **Open:** product name (blocking: needed today); whether one project can win multiple tracks (ask organizers).
-- **Repo:** https://github.com/ketutezraugm/blind-deal (private). Branches: `main` (releases), `dev` (default, integration). Rules: docs/CONTRIBUTING.md. Each clone runs `git config core.hooksPath .githooks`. Add teammates as collaborators.
-- **Artifacts:** style tiles https://claude.ai/artifact/N3gwoQ5biN7HzEoD2ZntvZ · design system (starting point, Abel owns) https://claude.ai/artifact/MZUADs1rMt3bbtCbXChzke
-- **Phase 7 drafts:** docs/DESIGN-BRIEF.md (fixed vs Abel's call), docs/PACKAGING.md (video, X post, write-up, pitch, Q&A, demo plan, real-user plan; humanizer pass once the product exists).
+- **Status:** planning complete (Phases 0-12 approved 2026-11-11). Stage 6 = build, one milestone at a time.
+- **Lead duties during the build (Ezra):** `/handoff team` once a day; approve releases ("go" on `/release` PRs); token freeze 11-12 12:00 UTC, feature freeze 11-13 12:00 UTC, submit 11-14 12:00 UTC (checklist: docs/ENDGAME.md Phase 11).
+- **Open:** product name (blocks D1-09 parent account, README, logo); whether one project can win multiple tracks (ask organizers); competitor re-scan on 11-13 (not scheduled yet).
+- **Before submission:** humanizer pass on README + write-up (docs/PACKAGING.md); regenerate the team PDF only if the team asks (`python -I scripts/build-handoff-pdf.py docs <tmp>/handoff.html docs/Blind-deal-team-handoff.pdf`).
+- **Repo:** https://github.com/ketutezraugm/blind-deal (private). `main` = releases (tag v0.0.1 = repo setup), `dev` = default. Rules: docs/CONTRIBUTING.md. Collaborators invited 11-11.
+- **Artifacts:** style tiles https://claude.ai/artifact/N3gwoQ5biN7HzEoD2ZntvZ · design system (Abel owns) https://claude.ai/artifact/MZUADs1rMt3bbtCbXChzke
 
 ## Contracts & TEE
 - Owner: Ezra (ketutezraugm). Next: D1-04 contract stub, D1-08 OutLayer spike (2-3 h). In progress: none. Blockers: none.
