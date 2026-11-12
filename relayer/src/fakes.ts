@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import type { ChainDeal, NearReader } from "./near.js";
-import type { SlotRow, Store } from "./store.js";
+import { HttpError } from "./errors.js";
+import type { NewProfile, SlotRow, Store } from "./store.js";
 import type { Listing, Negotiation } from "./types.js";
 
 // In-memory stand-ins for the tests; claim() mirrors the claim_slot SQL function.
@@ -22,6 +23,7 @@ export class FakeNear implements NearReader {
 export class FakeStore implements Store {
   readonly listings: Listing[] = [];
   readonly slots: Slot[] = [];
+  readonly profiles: NewProfile[] = [];
   readonly reservedDeals = new Map<string, number>();
 
   private free(id: string) {
@@ -82,6 +84,19 @@ export class FakeStore implements Store {
     if (!slot) return null;
     slot.buyer = buyer;
     return { dealId: slot.dealId, linkToken: slot.linkToken };
+  }
+
+  async hasProfileForUser(supabaseUserId: string) {
+    return this.profiles.some((p) => p.supabaseUserId === supabaseUserId);
+  }
+
+  async handleTaken(handle: string) {
+    return this.profiles.some((p) => p.handle === handle);
+  }
+
+  async createProfile(profile: NewProfile) {
+    if (await this.handleTaken(profile.handle)) throw new HttpError(409, "handle or login already has an account");
+    this.profiles.push(profile);
   }
 
   async negotiationsOf(buyer: string): Promise<Negotiation[]> {

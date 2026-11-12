@@ -129,6 +129,26 @@ export function supabaseStore(url: string, serviceKey: string): Store {
       return slot ? { dealId: slot.deal_id, linkToken: slot.link_token } : null;
     },
 
+    async hasProfileForUser(supabaseUserId) {
+      const row = optional(await db.from("profiles").select("account_id").eq("supabase_user_id", supabaseUserId).maybeSingle());
+      return row !== null;
+    },
+
+    async handleTaken(handle) {
+      return optional(await db.from("profiles").select("account_id").eq("handle", handle).maybeSingle()) !== null;
+    },
+
+    async createProfile(profile) {
+      const { error } = await db.from("profiles").insert({
+        account_id: profile.accountId,
+        handle: profile.handle,
+        auth: profile.auth,
+        supabase_user_id: profile.supabaseUserId,
+      });
+      if (error?.code === UNIQUE_VIOLATION) throw new HttpError(409, "handle or login already has an account");
+      if (error) throw new Error(error.message);
+    },
+
     async negotiationsOf(buyer) {
       const rows = check(
         await db

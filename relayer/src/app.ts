@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import { Hono, type Context } from "hono";
 import { cors } from "hono/cors";
+import { openAccount, type AccountsDeps } from "./accounts.js";
 import { createAuthenticator } from "./auth.js";
 import { HttpError } from "./errors.js";
 import type { NearReader } from "./near.js";
@@ -13,22 +14,26 @@ export type Deps = {
   store: Store;
   near: NearReader;
   allowedOrigin: string;
+  /** Absent when the relayer has no account-creating key; POST /accounts then answers 503. */
+  accounts?: AccountsDeps;
   now?: () => number;
 };
 
 const PAGE_SIZE = 20;
 const REQUESTS_PER_MINUTE = 120;
+const ACCOUNTS_PER_IP_PER_HOUR = 3;
+const HOUR_MS = 60 * 60 * 1000;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 const HOLDING_STATES = new Set(["Matched", "Funded"]);
 
-export function createApp({ store, near, allowedOrigin, now = Date.now }: Deps) {
+export function createApp({ store, near, allowedOrigin, accounts, now = Date.now }: Deps) {
   const app = new Hono();
   const authenticate = createAuthenticator(near, now);
 
   app.use(
     cors({
       origin: allowedOrigin,
-      allowHeaders: ["content-type", "x-account-id", "x-public-key", "x-timestamp", "x-signature"],
+      allowHeaders: ["content-type", "x-account-id", "x-public-key", "x-timestamp", "x-signature", "authorization"],
       allowMethods: ["GET", "POST", "OPTIONS"],
     }),
   );
@@ -65,6 +70,17 @@ export function createApp({ store, near, allowedOrigin, now = Date.now }: Deps) 
   }
 
   app.get("/health", (c) => c.json({ ok: true }));
+
+  app.post("/accounts", rateLimit(ACCOUNTS_PER_IP_PER_HOUR, now, HOUR_MS), async (c) => {
+    if (!accounts) throw new HttpError(503, "account creation is not configured");
+    let body: unknown;
+    try {
+      body = await c.req.json();
+    } catch {
+      throw new HttpError(400, "body must be JSON");
+    }
+    return c.json(await openAccount(accounts, store, c.req.header("authorization"), body), 201);
+  });
 
   app.get("/listings", async (c) => {
     const category = c.req.query("category");
