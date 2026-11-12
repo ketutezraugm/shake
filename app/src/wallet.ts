@@ -17,6 +17,10 @@ async function walletConnector(): Promise<NearConnector> {
   return connector;
 }
 
+export async function getWallet() {
+  return (await walletConnector()).wallet();
+}
+
 /** Wallet sign-in: the wallet adds a limited key for this app, and the account becomes the signed-in one. */
 export async function signInWithWallet(): Promise<WalletSession> {
   const session = await connectWallet(await walletConnector(), chain);
