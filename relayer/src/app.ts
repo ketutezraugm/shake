@@ -91,6 +91,10 @@ export function createApp({ store, near, allowedOrigin, accounts, chat, now = Da
     return listing;
   }
 
+  // A buyer who raises first moves a Retry deal to Waiting, so the seller still owes the round while their sealed limits lag the round number.
+  const sellerOwesRound = (deal: ChainDeal) =>
+    deal.seller_cts ? (deal.state === "Retry" || deal.state === "Waiting") && deal.seller_cts.length < deal.round : deal.state === "Retry";
+
   const isMatched = (deal: ChainDeal) => MATCHED_STATES.has(deal.state) || (deal.state === "NoDeal" && deal.matched_at_ns != null);
 
   /** The deal's seller or buyer, and only once it has matched: chat is for people who struck a deal. */
@@ -204,20 +208,20 @@ export function createApp({ store, near, allowedOrigin, accounts, chat, now = Da
     const released = deals.find((deal) => deal.state === "Released");
     if (released) {
       await store.setStatus(listing.id, "sold");
-      return c.json({ ...listing, status: "sold" });
+      return c.json({ ...listing, status: "sold", reservedDealId: null });
     }
     if (listing.status === "open") {
       const holding = deals.find((deal) => HOLDING_STATES.has(deal.state));
       if (!holding) return c.json(listing);
       await store.setStatus(listing.id, "reserved", holding.id);
-      return c.json({ ...listing, status: "reserved" });
+      return c.json({ ...listing, status: "reserved", reservedDealId: holding.id });
     }
     const reservedId = await store.reservedDealOf(listing.id);
     const reserving = deals.find((deal) => deal.id === reservedId);
     const ended = !reserving || reserving.state === "Refunded" || (reserving.state === "NoDeal" && reserving.matched_at_ns != null);
     if (!ended) return c.json(listing);
     await store.setStatus(listing.id, "open");
-    return c.json({ ...listing, status: "open" });
+    return c.json({ ...listing, status: "open", reservedDealId: null });
   });
 
   app.get("/profiles/:handle", async (c) => {
@@ -299,7 +303,7 @@ export function createApp({ store, near, allowedOrigin, accounts, chat, now = Da
       for (const slot of (await store.slotsOf(listing.id)).filter((s) => s.buyerAccount !== null)) {
         const deal = await near.getDeal(slot.dealId);
         if (!deal) continue;
-        if (deal.state === "Retry") inbox.roundsWaiting.push({ listingId: listing.id, title: listing.title, dealId: deal.id, round: deal.round });
+        if (sellerOwesRound(deal)) inbox.roundsWaiting.push({ listingId: listing.id, title: listing.title, dealId: deal.id, round: deal.round });
         else note(deal, listing.id, listing.title, "seller");
       }
     }

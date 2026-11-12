@@ -49,7 +49,9 @@ export function chainFor(accountId: string): ChainAccess {
     const signer = keySigner(accountId, exportSecretKey(), chainConfig);
     return { signer, client: nearClient(signer, chainConfig), teePubkey: realTeePubkey ?? "" };
   }
-  return { signer: mockSigner(accountId), client: clientFor(accountId), teePubkey: MOCK_TEE_PUBLIC_KEY };
+  // Requests carry real signatures even on the mock chain, so a local relayer (npm run dev:relayer) can check them.
+  const signRequest: Signer["signRequest"] = (method, path, body) => keySigner(accountId, exportSecretKey(), chainConfig).signRequest(method, path, body);
+  return { signer: { ...mockSigner(accountId), signRequest }, client: clientFor(accountId), teePubkey: MOCK_TEE_PUBLIC_KEY };
 }
 
 const linkKey = (dealId: number) => `blind-deal:link:${dealId}`;
