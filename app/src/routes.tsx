@@ -3,14 +3,17 @@ import { Chat } from "./screens/Chat";
 import { Create } from "./screens/Create";
 import { DealPage } from "./screens/DealPage";
 import { Demo } from "./screens/Demo";
+import { Handle } from "./screens/Handle";
 import { Home } from "./screens/Home";
 import { Inbox } from "./screens/Inbox";
 import { Join } from "./screens/Join";
+import { Keys } from "./screens/Keys";
 import { Listing } from "./screens/Listing";
 import { Offer } from "./screens/Offer";
 import { Profile } from "./screens/Profile";
 import { Sell } from "./screens/Sell";
 import { Shell } from "./screens/Shell";
+import { SignIn } from "./screens/SignIn";
 
 export type Route =
   | { name: "home" }
@@ -21,6 +24,8 @@ export type Route =
   | { name: "inbox" }
   | { name: "chat"; dealId: number }
   | { name: "signin" }
+  | { name: "signup" }
+  | { name: "keys" }
   // Test UI from D1-10; the offer flow (MK-24) replaces these.
   | { name: "create" }
   | { name: "deal"; id: number }
@@ -33,6 +38,8 @@ const FIXED: Record<string, Route> = {
   "/sell": { name: "sell" },
   "/inbox": { name: "inbox" },
   "/signin": { name: "signin" },
+  "/signup": { name: "signup" },
+  "/keys": { name: "keys" },
   "/new": { name: "create" },
   "/demo": { name: "demo" },
 };
@@ -90,16 +97,6 @@ function usePath(): string {
   return path;
 }
 
-// Screens not built yet; each names the task that builds it.
-function Pending({ title, task }: { title: string; task: string }) {
-  return (
-    <main className="screen">
-      <h1 className="headline">{title}</h1>
-      <p className="muted">Coming in {task}.</p>
-    </main>
-  );
-}
-
 export function Router() {
   const [path = "/", query = ""] = usePath().split("?");
   return (
@@ -126,7 +123,11 @@ function Page({ route, query }: { route: Route; query: string }) {
     case "chat":
       return <Chat dealId={route.dealId} />;
     case "signin":
-      return <Pending title="Sign in" task="MK-20" />;
+      return <SignIn />;
+    case "signup":
+      return <Handle />;
+    case "keys":
+      return <Keys />;
     case "create":
       return <Create />;
     case "deal":
