@@ -9,7 +9,7 @@ Mirrors docs/plans/IMPLEMENTATION.md. Tick a box only after the task's done-chec
 - [ ] **D1-02** CI
 - [ ] **D1-03** Render hello-world
 - [x] **D1-04** Contract stub (signatures) (EZ)
-- [ ] **D1-05** Shared TS contract types
+- [x] **D1-05** Shared TS contract types (EZ)
 - [ ] **D1-06** Relayer API types
 - [ ] **D1-07** Design tokens CSS
 - [ ] **D1-08** OutLayer spike (2-3 h, time-boxed)
