@@ -1,7 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { ContractClient } from "./contract";
 import type { Signer } from "./signer";
-import { createSlots, resubmitSeller } from "./slots";
+import { decrypt } from "eciesjs";
+import vectors from "../../tee/testvectors.json";
+import { addSlots, createSlots, resubmitSeller } from "./slots";
 
 // A real compressed secp256k1 public key (the TEE test key); sealing needs a valid one.
 const TEE_PUBKEY = "02466d7fcae563e5cb09a0d1870bb580344804617879a14949cf22285f1bae3f27";
@@ -173,5 +175,35 @@ describe("resubmitSeller", () => {
 
     expect(submitted.at(-1)).toEqual({ dealId: 100, linkToken: null });
     expect(localStorage.getItem(`blind-deal:minimum:${listingId}`)).toContain("4000000");
+  });
+});
+
+describe("addSlots", () => {
+  const relayerUrl = "https://relayer.example";
+
+  it("adds slots sealed with the minimum stored when the listing was made", async () => {
+    const listingId = "88888888-8888-8888-8888-888888888888";
+    const { client } = fakeClient();
+    await createSlots({ listingId, count: 1, minimum: MINIMUM, maxRounds: 1, signer, client, teePubkey: TEE_PUBKEY, relayerUrl });
+    const sealed: number[][] = [];
+    const recording = { ...client, submitLimit: async (_id: number, ct: number[]) => void sealed.push(ct) } as ContractClient;
+
+    const added = await addSlots({ listingId, count: 2, maxRounds: 1, signer, client: recording, teePubkey: TEE_PUBKEY, relayerUrl });
+
+    expect(added).toHaveLength(2);
+    expect(sealed).toHaveLength(2);
+    for (const ct of sealed) {
+      const plain = JSON.parse(new TextDecoder().decode(decrypt(vectors.test_secret_key, Uint8Array.from(ct))));
+      expect(plain.limit).toBe(MINIMUM);
+    }
+  });
+
+  it("refuses on a device that does not hold the minimum, before any deal is made", async () => {
+    const { client, created } = fakeClient();
+
+    await expect(
+      addSlots({ listingId: "99999999-9999-9999-9999-999999999999", count: 1, maxRounds: 1, signer, client, teePubkey: TEE_PUBKEY, relayerUrl }),
+    ).rejects.toThrow(/device you listed from/);
+    expect(created).toHaveLength(0);
   });
 });

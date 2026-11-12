@@ -60,10 +60,26 @@ export type CreateSlotsOptions = {
  * Sequential (one key, one nonce) and registered one by one, so a failure leaves a usable listing with fewer slots.
  */
 export async function createSlots(options: CreateSlotsOptions): Promise<SlotInput[]> {
-  const { listingId, count, minimum, maxRounds, signer, client, teePubkey, relayerUrl, onProgress } = options;
-  // The minimum never leaves this browser except sealed to the TEE; resubmitSeller needs it for later rounds.
-  localStorage.setItem(minimumKey(listingId), JSON.stringify({ limit: minimum } satisfies StoredMinimum));
+  // The minimum never leaves this browser except sealed to the TEE; resubmitSeller and addSlots need it later.
+  localStorage.setItem(minimumKey(options.listingId), JSON.stringify({ limit: options.minimum } satisfies StoredMinimum));
+  return makeSlots(options);
+}
 
+export type AddSlotsOptions = Omit<CreateSlotsOptions, "minimum">;
+
+/**
+ * "Add more offer slots" on a listing whose slots are all claimed. Uses the seller's current minimum from this
+ * browser (lowered by resubmitSeller if they lowered it), so old and new slots never carry different floors.
+ * The relayer refuses more than 10 slots per listing.
+ */
+export async function addSlots(options: AddSlotsOptions): Promise<SlotInput[]> {
+  const stored = localStorage.getItem(minimumKey(options.listingId));
+  if (!stored) throw new Error("open this on the device you listed from: the minimum is only kept there");
+  return makeSlots({ ...options, minimum: (JSON.parse(stored) as StoredMinimum).limit });
+}
+
+async function makeSlots(options: CreateSlotsOptions): Promise<SlotInput[]> {
+  const { listingId, count, minimum, maxRounds, signer, client, teePubkey, relayerUrl, onProgress } = options;
   const slots: SlotInput[] = [];
   for (let i = 0; i < count; i++) {
     const linkToken = randomToken();
@@ -77,7 +93,6 @@ export async function createSlots(options: CreateSlotsOptions): Promise<SlotInpu
   }
   return slots;
 }
-
 export type ResubmitOptions = {
   listingId: string;
   dealId: number;
