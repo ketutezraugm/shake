@@ -1,5 +1,15 @@
 [package]
 name = "tee"
 version = "0.1.0"
-edition = "2021"
 publish = false
+edition = "2021"
+
+[dependencies]
+ecies = { version = "0.2", default-features = false, features = ["pure"] }
+libsecp256k1 = "0.7"
+critical-section = { version = "1", features = ["std"] } # ecies "pure" needs an impl or the link leaves an import
+hkdf = "0.12"
+sha2 = "0.10"
+hex = "0.4"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
