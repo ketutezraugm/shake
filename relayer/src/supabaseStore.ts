@@ -103,7 +103,7 @@ export function supabaseStore(url: string, serviceKey: string): Store {
     async addPhoto(id, contentType) {
       const path = `${id}/${randomUUID()}.${EXTENSIONS[contentType]}`;
       const current = check(await db.from("listings").select("photo_paths").eq("id", id).single<{ photo_paths: string[] }>());
-      check(await db.from("listings").update({ photo_paths: [...current.photo_paths, path] }).eq("id", id));
+      check(await db.from("listings").update({ photo_paths: [...current.photo_paths, path] }).eq("id", id).select("id").single());
       const signed = check(await db.storage.from(BUCKET).createSignedUploadUrl(path));
       return { uploadUrl: signed.signedUrl, photoUrl: photoUrl(path) };
     },
@@ -170,7 +170,7 @@ export function supabaseStore(url: string, serviceKey: string): Store {
     },
 
     async setStatus(id, status, reservedDeal = null) {
-      check(await db.from("listings").update({ status, reserved_deal_id: reservedDeal }).eq("id", id));
+      check(await db.from("listings").update({ status, reserved_deal_id: reservedDeal }).eq("id", id).select("id").single());
     },
 
     async reservedDealOf(id) {
