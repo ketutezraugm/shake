@@ -64,13 +64,15 @@ Storage keys: `deals: LookupMap<u64, Deal>` (prefix `d`), `next_id: u64`, `tee_p
 
 Rounds: on `matched:false`, the contract moves to `Retry` if `round < max_rounds` (incrementing `round`), else `NoDeal`. If the result is malformed, the round counts as a no-deal and the attached fee is not refunded (OutLayer rule). Ciphertexts are public on-chain by design.
 
-## OutLayer shapes (shapes follow private-dao-example; field names UNVERIFIED until spike)
+## OutLayer shapes (verified in the D1-08 spike; request and result envelope in DECISIONS.md)
 Request `input_data`:
 ```json
 { "action": "match", "deal_id": 7, "round": 2,
-  "seller_cts": ["<hex r1>", "<hex r2>"], "buyer_cts": ["<hex r1>", "<hex r2>"] }
+  "seller_cts": ["<hex r1>", "<hex r2>"], "buyer_cts": ["<hex r1>", "<hex r2>"],
+  "seller_commits": ["<hex r1>", "<hex r2>"], "buyer_commits": ["<hex r1>", "<hex r2>"] }
 ```
-Plaintext inside each ciphertext: `{"deal_id":7,"side":"seller","round":2,"limit":"4000000","salt":"<hex>"}`. The WASM compares only the latest round, and checks across rounds that the buyer never lowered and the seller never raised their limit (monotonic concessions); a violation makes that round a no-deal. `limit` is a decimal string to avoid float and u64 problems; hash the same bytes on client and TEE.
+The commitments are the ones stored on-chain; the contract passes them so the WASM can check each ciphertext against them. Exactly one ciphertext and commitment per round and side, and `round` equals that count.
+Plaintext inside each ciphertext: `{"deal_id":7,"side":"seller","round":2,"limit":"4000000","salt":"<hex>"}`. Commitment: `sha256("blind-deal:v1|{deal_id}|{side}|{round}|{limit}|{salt}")` over exactly those characters (`tee/src/commit.rs`; vectors in `tee/testvectors.json`). The WASM opens every round and checks across rounds that the buyer never lowered and the seller never raised their limit (monotonic concessions); a violation makes the result a no-deal. It then compares only the latest round. `limit` is a canonical decimal string (digits only, no leading zero, nonzero, fits u64) to avoid float and u64 problems; hash the same bytes on client and TEE.
 Response: `{"deal_id":7,"matched":true,"price":"4300000"}` or `{"deal_id":7,"matched":false}`. Price is uniform in [seller_min, buyer_max] from TEE entropy. Also a `get_pubkey` action returning the deal public key derived from a `PROTECTED_` secret. The WASM checks commitments against the salts, and that each plaintext's `deal_id` equals the request's and `side` matches its slot (so a seller ciphertext can't be replayed as the buyer's, or into another deal); any mismatch returns `{"deal_id":7,"error":"invalid"}`.
 
 **Result trust (decided):** Must: the callback accepts results only via OutLayer's callback path (predecessor check per the template), and the README states that OutLayer's operator is currently centralised. Should, if the spike shows PROTECTED_ keys can sign: the WASM also signs `{deal_id, matched, price}` with an ed25519 key whose public half is fixed in the contract at `new`, and the contract verifies it.

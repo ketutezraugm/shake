@@ -12,7 +12,8 @@ struct Input {
 }
 
 fn keypair() -> Result<(libsecp256k1::SecretKey, libsecp256k1::PublicKey), String> {
-    let secret = std::env::var("PROTECTED_DEAL_MASTER_SECRET").map_err(|_| "master secret not set")?;
+    let secret =
+        std::env::var("PROTECTED_DEAL_MASTER_SECRET").map_err(|_| "master secret not set")?;
     let master = hex::decode(secret).map_err(|e| e.to_string())?;
     let mut seed = [0u8; 32];
     Hkdf::<Sha256>::new(None, &master)
@@ -28,7 +29,8 @@ fn run(input: Input) -> Result<serde_json::Value, String> {
     match input.action.as_str() {
         "get_pubkey" => Ok(serde_json::json!({ "pubkey": hex::encode(pk.serialize_compressed()) })),
         "decrypt" => {
-            let ct = hex::decode(input.ciphertext.ok_or("ciphertext missing")?).map_err(|e| e.to_string())?;
+            let ct = hex::decode(input.ciphertext.ok_or("ciphertext missing")?)
+                .map_err(|e| e.to_string())?;
             let pt = ecies::decrypt(&sk.serialize(), &ct).map_err(|e| format!("{e:?}"))?;
             Ok(serde_json::json!({ "plaintext": String::from_utf8_lossy(&pt) }))
         }
@@ -39,7 +41,10 @@ fn run(input: Input) -> Result<serde_json::Value, String> {
 fn main() {
     let mut raw = String::new();
     io::stdin().read_to_string(&mut raw).expect("stdin");
-    let out = match serde_json::from_str::<Input>(&raw).map_err(|e| e.to_string()).and_then(run) {
+    let out = match serde_json::from_str::<Input>(&raw)
+        .map_err(|e| e.to_string())
+        .and_then(run)
+    {
         Ok(v) => serde_json::json!({ "success": true, "result": v }),
         Err(e) => serde_json::json!({ "success": false, "error": e }),
     };

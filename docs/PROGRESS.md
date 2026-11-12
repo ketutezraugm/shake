@@ -23,7 +23,7 @@ Mirrors docs/plans/IMPLEMENTATION.md. Tick a box only after the task's done-chec
 - [ ] **M1-02** Contract: `submit_limit`, link token, rounds (TDD)
 - [ ] **M1-03** Contract: `on_outlayer_result` (TDD)
 - [ ] **M1-04** Contract: escrow (TDD)
-- [ ] **M1-05** WASM matching + commitment (TDD)
+- [x] **M1-05** WASM matching + commitment (TDD) (EZ)
 - [ ] **M1-06** WASM: `get_pubkey`, build, deploy to OutLayer
 - [ ] **M1-07** Contract on testnet + OutLayer round trip
 - [ ] **M1-08** Relayer with rate limits
