@@ -5,6 +5,7 @@ import { Demo } from "./screens/Demo";
 import { Home } from "./screens/Home";
 import { Join } from "./screens/Join";
 import { Listing } from "./screens/Listing";
+import { Offer } from "./screens/Offer";
 import { Profile } from "./screens/Profile";
 import { Sell } from "./screens/Sell";
 
@@ -103,7 +104,7 @@ export function Router() {
     case "sell":
       return <Sell />;
     case "offer":
-      return <Pending title="Your offer" task="MK-24" />;
+      return <Offer dealId={route.dealId} />;
     case "inbox":
       return <Pending title="Inbox" task="MK-25" />;
     case "signin":

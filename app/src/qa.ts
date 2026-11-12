@@ -1,12 +1,20 @@
-import type { Question } from "../../relayer/src/types";
-import { signedPost } from "./relayer";
+import type { AssistantRes, Question } from "../../relayer/src/types";
+import { RelayerError, signedPost } from "./relayer";
 import type { Signer } from "./signer";
 
-/** `POST /assistant`: an answer from the listing and its public Q&A, or `unknown` when they don't cover it (MK-05). */
-export type AssistantReply = { answer: string } | { unknown: true };
+export type AssistantReply = AssistantRes;
 
-export function askAssistant(relayerUrl: string, signer: Signer, listingId: string, question: string): Promise<AssistantReply> {
-  return signedPost(relayerUrl, signer, "/assistant", { listingId, question }, "Asking the assistant");
+// Rate limited (429) or no model key (503): the buyer can still put the question to the seller.
+const FALL_BACK_TO_SELLER = new Set([429, 503]);
+
+/** `POST /assistant`: an answer from the listing and its public Q&A, or `unknown` when they don't cover it or it is unavailable. */
+export async function askAssistant(relayerUrl: string, signer: Signer, listingId: string, question: string): Promise<AssistantReply> {
+  try {
+    return await signedPost<AssistantRes>(relayerUrl, signer, "/assistant", { listingId, question }, "Asking the assistant");
+  } catch (error) {
+    if (error instanceof RelayerError && FALL_BACK_TO_SELLER.has(error.status)) return { unknown: true };
+    throw error;
+  }
 }
 
 /** Puts a question to the seller; their answer later shows on the listing for everyone. */

@@ -41,10 +41,16 @@ describe("askAssistant", () => {
     expect(await askAssistant(RELAYER, signer, "l1", "Comes with the box?")).toEqual({ unknown: true });
   });
 
-  it("explains a rate limit in words", async () => {
-    stubRelayer(Response.json({ error: "slow down" }, { status: 429 }));
+  it.each([429, 503])("falls back to unknown when the assistant answers %i (rate limit or no key)", async (status) => {
+    stubRelayer(Response.json({ error: "try later" }, { status }));
 
-    await expect(askAssistant(RELAYER, signer, "l1", "Anything?")).rejects.toThrow("Asking the assistant failed: slow down");
+    expect(await askAssistant(RELAYER, signer, "l1", "Anything?")).toEqual({ unknown: true });
+  });
+
+  it("still reports other failures in words", async () => {
+    stubRelayer(Response.json({ error: "broken" }, { status: 500 }));
+
+    await expect(askAssistant(RELAYER, signer, "l1", "Anything?")).rejects.toThrow("Asking the assistant failed: broken");
   });
 });
 
