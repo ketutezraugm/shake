@@ -1,0 +1,109 @@
+/* Design tokens. Source of truth: docs/IDENTITY.md (locked 2026-11-10). */
+
+@font-face {
+  font-family: "Big Shoulders Display";
+  src: url("/fonts/big-shoulders-display-latin-var.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Familjen Grotesk";
+  src: url("/fonts/familjen-grotesk-latin-var.woff2") format("woff2");
+  font-weight: 400 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Arial resized to each face's average advance and vertical metrics, so the swap causes no layout shift. */
+@font-face {
+  font-family: "Big Shoulders Display Fallback";
+  src: local("Arial"), local("ArialMT");
+  size-adjust: 88%;
+  ascent-override: 111.8%;
+  descent-override: 24.2%;
+  line-gap-override: 0%;
+}
+
+@font-face {
+  font-family: "Familjen Grotesk Fallback";
+  src: local("Arial"), local("ArialMT");
+  size-adjust: 95%;
+  ascent-override: 107.9%;
+  descent-override: 23.7%;
+  line-gap-override: 0%;
+}
+
+:root {
+  /* Color */
+  --ground: #2e4fa3;
+  --surface: #23408a;
+  --check: #1b2f66;
+  --line: #9db0e0;
+  --ink: #f4f6fb;
+  --ink-muted: #c9d4f0;
+  --tag: #f2d640;
+  --danger: #ffc9bf;
+
+  /* Type */
+  --font-display: "Big Shoulders Display", "Big Shoulders Display Fallback", sans-serif;
+  --font-text: "Familjen Grotesk", "Familjen Grotesk Fallback", sans-serif;
+  --weight-display-heavy: 900;
+  --weight-display-light: 200;
+  --weight-text: 400;
+  --weight-text-bold: 700;
+  --text-13: 0.8125rem;
+  --text-16: 1rem;
+  --text-20: 1.25rem;
+  --text-28: 1.75rem;
+  --text-48: 3rem;
+  --text-96: 6rem;
+  --text-160: 10rem;
+  --leading-display: 0.9;
+  --leading-text: 1.45;
+
+  /* Space */
+  --space-4: 4px;
+  --space-8: 8px;
+  --space-12: 12px;
+  --space-16: 16px;
+  --space-24: 24px;
+  --space-32: 32px;
+  --space-48: 48px;
+  --space-64: 64px;
+  --gutter-phone: 20px;
+  --touch-min: 48px;
+
+  /* Shape */
+  --radius-button: 3px;
+  --radius-panel: 20px;
+  --radius-tag: 8px 8px 40px 40px;
+  --tag-hole: 16px;
+  --radius-icon: 3px;
+
+  /* Motion */
+  --dur-instant: 100ms;
+  --dur-quick: 200ms;
+  --dur-deliberate: 400ms;
+  --dur-reveal: 600ms;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in: cubic-bezier(0.7, 0, 0.84, 0);
+  --ease-std: cubic-bezier(0.2, 0, 0, 1);
+
+  /* The reveal: cloth lift then one tag swing from the punched hole. */
+  --reveal-lift: translateY(-100%);
+  --reveal-swing: rotate(-4deg);
+  --reveal-lift-dur: var(--dur-reveal);
+  --reveal-swing-dur: 300ms;
+}
+
+/* Reduced motion: lift and swing collapse to a 200 ms crossfade; components keep their opacity transition. */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --reveal-lift: none;
+    --reveal-swing: none;
+    --reveal-lift-dur: var(--dur-quick);
+    --reveal-swing-dur: 0ms;
+  }
+}
