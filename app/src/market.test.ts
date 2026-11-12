@@ -13,6 +13,7 @@ function listing(overrides: Partial<ShopListing>): ShopListing {
     status: "open",
     createdAt: "2026-11-13T00:00:00.000Z",
     freeSlots: 3,
+    askingPrice: "1000000",
     ...overrides,
   };
 }

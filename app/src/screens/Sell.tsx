@@ -1,13 +1,11 @@
 import { useState, type FormEvent } from "react";
 import { CATEGORIES, type Category } from "../../../relayer/src/types";
 import { currentAccount } from "../accounts";
-import { chain, relayerUrl, SLOTS_AT_PUBLISH, teePubkey } from "../config";
+import { chainFor } from "../client";
+import { relayerUrl, SLOTS_AT_PUBLISH } from "../config";
 import { digitsOnly, groupThousands } from "../format";
-import { exportSecretKey } from "../keys";
-import { nearClient } from "../nearClient";
 import { publishListing, type PublishStep } from "../publish";
 import { Link, navigate } from "../routes";
-import { keySigner } from "../signer";
 
 const CATEGORY_LABELS: Record<Category, string> = {
   electronics: "Electronics",
@@ -37,26 +35,27 @@ export function Sell() {
       </main>
     );
   }
-  if (!relayerUrl || !teePubkey || !chain.contractId) {
+  if (!relayerUrl) {
     return (
       <main className="screen">
         <h1 className="headline">Sell something</h1>
         <p className="error" role="alert">
-          Selling needs VITE_RELAYER_URL, VITE_TEE_PUBKEY and VITE_CONTRACT_ID in the app's environment.
+          Selling needs VITE_RELAYER_URL in the app's environment.
         </p>
       </main>
     );
   }
-  return <SellForm account={account} relayerUrl={relayerUrl} teePubkey={teePubkey} />;
+  return <SellForm account={account} relayerUrl={relayerUrl} />;
 }
 
-type FormProps = { account: string; relayerUrl: string; teePubkey: string };
+type FormProps = { account: string; relayerUrl: string };
 
-function SellForm({ account, relayerUrl, teePubkey }: FormProps) {
+function SellForm({ account, relayerUrl }: FormProps) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState<Category>("other");
   const [maxRounds, setMaxRounds] = useState(2);
+  const [askingPrice, setAskingPrice] = useState("");
   const [minimum, setMinimum] = useState("");
   const [photos, setPhotos] = useState<File[]>([]);
   const [step, setStep] = useState<PublishStep | null>(null);
@@ -68,17 +67,18 @@ function SellForm({ account, relayerUrl, teePubkey }: FormProps) {
     setError(null);
     setStep({ stage: "listing" });
     try {
-      const signer = keySigner(account, exportSecretKey(), chain);
+      const { signer, client, teePubkey } = chainFor(account);
       const id = await publishListing({
         title,
         description,
         category,
         maxRounds,
+        askingPrice,
         minimum,
         photos,
         slotCount: SLOTS_AT_PUBLISH,
         signer,
-        client: nearClient(signer, chain),
+        client,
         teePubkey,
         relayerUrl,
         onProgress: setStep,
@@ -138,6 +138,19 @@ function SellForm({ account, relayerUrl, teePubkey }: FormProps) {
         </label>
 
         <label>
+          Asking price (Rp)
+          <input
+            className="price-input"
+            value={groupThousands(askingPrice)}
+            onChange={(e) => setAskingPrice(digitsOnly(e.target.value))}
+            inputMode="numeric"
+            required
+            disabled={busy}
+          />
+          <span className="hint">Everyone sees this on your listing. Buyers can offer up to it.</span>
+        </label>
+
+        <label>
           Lowest price you'd take (Rp)
           <input
             className="price-input"
@@ -147,12 +160,14 @@ function SellForm({ account, relayerUrl, teePubkey }: FormProps) {
             required
             disabled={busy}
           />
-          <span className="hint">Buyers never see it. Only the sealed code compares it, and it stays in this browser.</span>
+          <span className="hint">
+            Must be at or below your asking price. Buyers never see it: only the sealed code compares it, and it stays in this browser.
+          </span>
         </label>
 
         {error && <p className="error" role="alert">{error}</p>}
         {busy && <p className="muted" role="status">{progressText(step)}</p>}
-        <button className="primary" disabled={busy || title.trim() === "" || minimum === ""}>
+        <button className="primary" disabled={busy || title.trim() === "" || askingPrice === "" || minimum === ""}>
           Publish listing
         </button>
       </form>
