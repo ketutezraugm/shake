@@ -5,6 +5,8 @@ export type Env = {
   contractId: string;
   nearRpcUrl: string;
   allowedOrigin: string;
+  /** Absent when no NEAR AI key is set; POST /assistant then answers 503. */
+  nearAiApiKey: string | null;
   /** Set together: the parent signs, so it must be the account whose sub-accounts users get. */
   accounts: { parentId: string; privateKey: `ed25519:${string}`; fundNear: string } | null;
 };
@@ -23,6 +25,7 @@ export function loadEnv(source: NodeJS.ProcessEnv = process.env): Env {
     contractId: required(source, "CONTRACT_ID"),
     nearRpcUrl: required(source, "NEAR_RPC_URL"),
     allowedOrigin: required(source, "ALLOWED_ORIGIN"),
+    nearAiApiKey: source.NEAR_AI_API_KEY || null,
     accounts: loadAccounts(source),
   };
 }

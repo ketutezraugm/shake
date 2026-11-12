@@ -33,7 +33,7 @@ Mirrors docs/plans/IMPLEMENTATION.md (marketplace plan, Revision B: slots and tw
 - [ ] **MK-32** Asking price in the frames (DP)
 
 ## Block C: 2026-11-13 12:00-24:00 UTC
-- [ ] **MK-05** AI product assistant (CT)
+- [x] **MK-05** AI product assistant (CT): `POST /assistant` live-model checks pass; the asking price joins the prompt once MK-15 lands
 - [ ] **MK-24** Offer flow (FE)
 - [ ] **MK-25** Chat and inbox (FE)
 - [ ] **MK-31** Seed photos (DP)

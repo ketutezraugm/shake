@@ -5,6 +5,7 @@ import {
   PHOTO_TYPES,
   type AnswerReq,
   type AskReq,
+  type AssistantReq,
   type Category,
   type CreateAccountReq,
   type CreateListingReq,
@@ -101,5 +102,9 @@ export function parseUpdateProfile(body: unknown): UpdateProfileReq {
 }
 
 export const parseAsk = (body: unknown): AskReq => ({ question: text(record(body).question, "question", 1, 500) });
+export function parseAssistantAsk(body: unknown): AssistantReq {
+  const { listingId } = record(body);
+  return { listingId: typeof listingId === "string" ? listingId : "", question: parseAsk(body).question };
+}
 export const parseAnswer = (body: unknown): AnswerReq => ({ answer: text(record(body).answer, "answer", 1, 1000) });
 export const parseMessage = (body: unknown): SendMessageReq => ({ body: text(record(body).body, "body", 1, 1000) });
