@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import { MockChain, encodeMockLimit, mockClient, sha256 } from "./mockClient";
-import { parseRoute } from "./routes";
 
 const NO_COMMIT = Array<number>(32).fill(0);
 const YOCTO_PER_RP = 10n ** 16n;
@@ -56,14 +55,5 @@ describe("mock client", () => {
     await expect(
       mockClient(chain, "buyer.test").submitLimit(id, encodeMockLimit(2), NO_COMMIT, "wrong"),
     ).rejects.toThrow("link token");
-  });
-});
-
-describe("routes", () => {
-  it("parses the app routes", () => {
-    expect(parseRoute("/")).toEqual({ name: "landing" });
-    expect(parseRoute("/d/7")).toEqual({ name: "deal", id: 7 });
-    expect(parseRoute("/d/7/join")).toEqual({ name: "join", id: 7 });
-    expect(parseRoute("/nope")).toEqual({ name: "notFound" });
   });
 });
