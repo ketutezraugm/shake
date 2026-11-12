@@ -12,20 +12,25 @@ Mirrors docs/plans/IMPLEMENTATION.md (marketplace plan, Revision B: slots and tw
 - [ ] **D1-03** Render hello-world (BI)
 
 ## Block A: 2026-11-12 evening
-- [ ] **MK-04** Client crypto, real contract client, slot helper (CT)
+- [x] **MK-04** Client crypto, real contract client, slot helper (EZ)
 - [ ] **MK-10** Supabase: apply 0001, add 0002 (BI)
 - [ ] **MK-30** Marketplace screens in Claude Design (DP)
 
 ## Block B: 2026-11-13 00:00-12:00 UTC
-- [ ] **MK-07** Marketplace round trip on testnet (CT)
+- [ ] **MK-07** Marketplace round trip on testnet (CT): chain half passes (EZ); Supabase half waits on MK-10 and MK-12
 - [ ] **G2** Gate 12:00 UTC: MK-07 green (lead)
-- [ ] **MK-11** `POST /accounts` with Supabase JWT (BI)
-- [ ] **MK-12** Relayer: profiles, questions, messages, inbox, reserved sync (BI)
+- [x] **MK-11** `POST /accounts` with Supabase JWT (BI)
+- [x] **MK-12** Relayer: profiles, questions, messages, inbox, reserved sync (BI)
 - [ ] **MK-20** Google/email sign-in, handle, keys (BI)
-- [ ] **MK-06** NEAR wallet login (CT)
-- [ ] **MK-21** Browse, search, seller profile (FE)
-- [ ] **MK-22** Create listing (FE)
+- [ ] **MK-06** NEAR wallet login (CT): code and live key checks pass (EZ); one real wallet session still open
+- [ ] **MK-21** Browse, search, seller profile (FE): logic and routes in PR, visuals wait on MK-30, live data on #47
+- [ ] **MK-22** Create listing (FE): flow and screen in PR, live run waits on MK-20 sign-in and a deployed relayer
 - [ ] **MK-23** Listing page: assistant and Q&A (FE)
+
+## Asking price (decided 2026-11-13)
+- [ ] **MK-15** Asking price in the API (BI)
+- [ ] **MK-26** Asking price in the screens (FE)
+- [ ] **MK-32** Asking price in the frames (DP)
 
 ## Block C: 2026-11-13 12:00-24:00 UTC
 - [ ] **MK-05** AI product assistant (CT)

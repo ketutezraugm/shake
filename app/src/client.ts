@@ -1,9 +1,12 @@
+import { chain as chainConfig, teePubkey as realTeePubkey } from "./config";
 import type { ContractClient, Deal } from "./contract";
-import { MockChain, mockClient } from "./mockClient";
+import { exportSecretKey } from "./keys";
+import { MOCK_TEE_PUBLIC_KEY, MockChain, mockClient, mockSigner } from "./mockClient";
+import { nearClient } from "./nearClient";
+import { keySigner, type Signer } from "./signer";
 
 // Until M1-11 swaps in testnet, the mock chain lives on the dev server (vite.config.ts) so any browser can join a deal.
 const STORE_URL = "/__mock-chain";
-const READS = new Set(["getDeal", "getState"]);
 
 async function readDeals(): Promise<Deal[]> {
   const response = await fetch(STORE_URL);
@@ -19,17 +22,34 @@ export function clientFor(accountId: string): ContractClient {
   const chain = new MockChain();
   const client = mockClient(chain, accountId);
 
-  // Load before every call and save after writes only, so a poll never overwrites another browser's submit.
+  // Load before every call and save only when the call changed something. A read can change things too: it is where
+  // a finished "computing" step lands, and the answer is derived from the deal, so two tabs settle it the same way.
   const synced = {} as Record<string, unknown>;
   for (const [name, method] of Object.entries(client) as [string, (...args: unknown[]) => Promise<unknown>][]) {
     synced[name] = async (...args: unknown[]) => {
       chain.restore(await readDeals());
+      const before = JSON.stringify(chain.dump());
       const result = await method(...args);
-      if (!READS.has(name)) await writeDeals(chain.dump());
+      const after = chain.dump();
+      if (JSON.stringify(after) !== before) await writeDeals(after);
       return result;
     };
   }
   return synced as unknown as ContractClient;
+}
+
+export type ChainAccess = { signer: Signer; client: ContractClient; teePubkey: string };
+
+/**
+ * What a screen needs to act as `accountId`: the real contract and a browser-key signer when VITE_CONTRACT_ID is set,
+ * otherwise the shared dev-server mock chain. Same `Signer` and `ContractClient` either way, so screens never branch.
+ */
+export function chainFor(accountId: string): ChainAccess {
+  if (chainConfig.contractId) {
+    const signer = keySigner(accountId, exportSecretKey(), chainConfig);
+    return { signer, client: nearClient(signer, chainConfig), teePubkey: realTeePubkey ?? "" };
+  }
+  return { signer: mockSigner(accountId), client: clientFor(accountId), teePubkey: MOCK_TEE_PUBLIC_KEY };
 }
 
 const linkKey = (dealId: number) => `blind-deal:link:${dealId}`;

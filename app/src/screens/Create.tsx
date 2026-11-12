@@ -2,11 +2,11 @@ import { useState, type FormEvent } from "react";
 import { currentAccount } from "../accounts";
 import { clientFor, newLinkToken, saveLinkToken } from "../client";
 import { digitsOnly, groupThousands } from "../format";
-import { encodeMockLimit, sha256 } from "../mockClient";
+import { MOCK_TEE_PUBLIC_KEY, sha256 } from "../mockClient";
 import { navigate } from "../routes";
 import { AccountStep } from "./AccountStep";
+import { sealLimit } from "../crypto";
 
-const NO_COMMIT = Array<number>(32).fill(0);
 
 export function Create() {
   const [account, setAccount] = useState(currentAccount);
@@ -33,7 +33,8 @@ function DealForm({ seller }: { seller: string }) {
       const client = clientFor(seller);
       const token = newLinkToken();
       const id = await client.createDeal(title.trim(), description.trim(), await sha256(token), rounds);
-      await client.submitLimit(id, encodeMockLimit(minimumRp), NO_COMMIT, null);
+      const sealed = await sealLimit(id, "seller", 1, String(minimumRp), MOCK_TEE_PUBLIC_KEY);
+      await client.submitLimit(id, sealed.ct, sealed.commit, null);
       saveLinkToken(id, token);
       navigate(`/d/${id}`);
     } catch (e) {

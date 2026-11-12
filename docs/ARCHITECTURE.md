@@ -9,7 +9,7 @@ Two stores, split by what the data is. The contract holds money, sealed limits a
 - **Deal contract** (Rust, near-sdk 5.30.1, unchanged v1): deal state, ciphertexts, commitments, OutLayer call and callback, escrow. Demo contract `blind-deal-59xtyh4b.testnet`. One slot is one deal on it.
 - **OutLayer WASM** (Rust, wasm32-wasip2, unchanged v1): decrypts, compares, draws price, returns `{deal_id, matched, price}`. Runs in TDX on `outlayer.testnet`.
 - **NEAR AI Cloud** (Must): the product assistant, called only by the relayer. Should: browser-side E2EE chat completion that turns text into `{min}` or `{max}` (negotiator).
-- **NEAR Connect wallets** (Meteor, HOT, MyNEAR; package and version UNVERIFIED, verify at build): sign-in returns a function-call access key on the deal contract; payable calls are approved in the wallet.
+- **NEAR Connect wallets** (`@hot-labs/near-connect` 0.12.0; its manifest marks Meteor, Intear, Nightly, Unity and WalletConnect as testnet-capable, each with function-call key sign-in): sign-in returns a function-call access key on the deal contract; payable calls are approved in the wallet.
 
 ## Sequence
 Account creation (Google or email path) happens once before the first step. Wallet users skip it.
@@ -108,12 +108,12 @@ Built in PR #35:
 | GET /health | none | `{ok:true}` |
 | GET /listings?q=&category=&cursor= | none | Open listings, newest first, 20 per page; `nextCursor` is the last `createdAt` |
 | GET /listings/:id | none | One listing with `freeSlots` |
-| POST /listings | signed | `{title, description, category, maxRounds}` -> listing (201) |
+| POST /listings | signed | `{title, description, category, maxRounds, askingPrice}` -> listing (201); `askingPrice` is whole Rupiah as a digit string, required (MK-15) |
 | POST /listings/:id/photos | seller | `{contentType}` (jpeg, png, webp) -> `{uploadUrl, photoUrl}`; PUT the bytes to `uploadUrl`; max 4, then 409; bucket limit 2 MB |
 | POST /listings/:id/slots | seller | `{slots:[{dealId, linkToken}]}`, max 10 per listing (409 above); listing must be open; each deal verified on chain: the seller's, `Waiting`, no buyer, same `max_rounds`, token hashes to `link_hash` |
 | POST /listings/:id/claim | signed buyer | `{dealId, linkToken}`; the same slot on repeat; 409 when none is free or the listing is not open; 403 for the seller |
 | POST /listings/:id/close | seller | Ends an open listing |
-| POST /listings/:id/sync | none | Re-reads the slot deals and updates the listing status (rules in docs/DATA-MODEL.md). As built it only marks `sold` on Funded or Released; Revision B adds `reserved` and the way back to `open` (MK-12) |
+| POST /listings/:id/sync | none | Re-reads the slot deals and updates the listing status (rules in docs/DATA-MODEL.md). Matched or Funded reserves, Released sells, an expired or refunded reservation reopens |
 | GET /me/listings | signed | The seller's listings with `slots: [{dealId, buyerAccount}]` (no link tokens) |
 | GET /me/negotiations | signed | The buyer's claimed deals with link tokens |
 
@@ -171,7 +171,7 @@ docs/      PRD, ARCHITECTURE, TEAM, DECISIONS, IDENTITY
 | cargo-near / near-cli-rs | 0.31.1 (cli) | Standard build/deploy | Hand-rolled wasm-opt |
 | OutLayer WASM | wasm32-wasip2 | Only TEE with a path from a contract; no infra | Shade Agent (3-6 h Docker/Phala setup) |
 | near-api-js | 7.4.0 | Verified current, widest examples; we need key gen, tx signing and view calls only | near-kit 0.20.2 (newer, fewer examples) |
-| NEAR Connect (wallet login) | UNVERIFIED package and version, verify at build | Meteor, HOT and MyNEAR wallets with a function-call key | Wallet selector variants not checked |
+| NEAR Connect (wallet login) | `@hot-labs/near-connect` 0.12.0 | One connector for Meteor, Intear, Nightly and others, testnet-capable, with a function-call key | Wallet selector variants not checked |
 | Vite + React + TS | UNVERIFIED version, pin at repo init | Matches brief | Next.js (no SSR need) |
 | eciesjs | UNVERIFIED version | Used by private-dao-example | Own crypto |
 | Supabase (hosted: Auth, Postgres, Storage) | n/a | Sign-in, listings, photos, Q&A and chat storage as configuration, behind the relayer | Relayer with SQLite on a Render disk; listings on-chain with photos on FastFS; Realtime (not needed, the app polls) |

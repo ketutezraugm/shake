@@ -107,6 +107,7 @@ erDiagram
         string description "at most 1000 bytes"
         string category "electronics, fashion, home, vehicles, hobbies, other"
         string_array photo_paths "at most 4, bucket listing-photos"
+        bigint asking_price "public, whole Rupiah, required (MK-15); the floor is never stored"
         i16 max_rounds "1 to 3, same on each slot's deal"
         string status "open, reserved, sold, closed"
         timestamptz created_at
@@ -194,7 +195,7 @@ Slot flow on these states: the seller creates a deal and submits round 1, so the
 | The reserving deal ended: NoDeal with `matched_at_ns` set (expired), or Refunded | open |
 | Seller calls `POST /listings/:id/close` while open | closed |
 
-Claims are refused unless the listing is `open`. On reservation the seller's app cancels unclaimed and still-Waiting slots (`cancel` allows Created and Waiting). A second buyer whose deal also matched in that window sees "Another buyer got there first" and no pay button; that match expires unfunded after 24 h. Slots are not refilled automatically: "Offers full" means every slot is claimed, and the seller can register more, up to 10 per listing. As built in PR #35, sync handles `open -> sold` only (on Funded or Released) and `reserved` is missing from the 0001 check constraint; MK-10 and MK-12 add both.
+Claims are refused unless the listing is `open`. On reservation the seller's app cancels unclaimed and still-Waiting slots (`cancel` allows Created and Waiting). A second buyer whose deal also matched in that window sees "Another buyer got there first" and no pay button; that match expires unfunded after 24 h. Slots are not refilled automatically: "Offers full" means every slot is claimed, and the seller can register more, up to 10 per listing. The deal that holds the reservation is kept in `listings.reserved_deal_id` (never exposed by the API), so a second matching deal does not take over; when that deal is Refunded, or NoDeal with `matched_at_ns` set (an expired match), the listing reopens.
 
 ## Units
 

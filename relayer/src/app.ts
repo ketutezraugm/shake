@@ -1,36 +1,53 @@
 import { createHash } from "node:crypto";
 import { Hono, type Context } from "hono";
 import { cors } from "hono/cors";
+import { openAccount, type AccountsDeps } from "./accounts.js";
 import { createAuthenticator } from "./auth.js";
 import { HttpError } from "./errors.js";
-import type { NearReader } from "./near.js";
+import type { ChainDeal, NearReader } from "./near.js";
 import { rateLimit } from "./rateLimit.js";
 import type { Store } from "./store.js";
-import type { ClaimRes, Listing, ListingPage, SellerListing } from "./types.js";
-import { MAX_PHOTOS, MAX_SLOTS, parseCategory, parseCreateListing, parsePhotoReq, parseSlots } from "./validate.js";
+import type { ClaimRes, Inbox, Listing, ListingPage, SellerListing, Shop } from "./types.js";
+import {
+  MAX_PHOTOS,
+  MAX_SLOTS,
+  parseAnswer,
+  parseAsk,
+  parseCategory,
+  parseCreateListing,
+  parseMessage,
+  parsePhotoReq,
+  parseSlots,
+  parseUpdateProfile,
+} from "./validate.js";
 
 export type Deps = {
   store: Store;
   near: NearReader;
   allowedOrigin: string;
+  /** Absent when the relayer has no account-creating key; POST /accounts then answers 503. */
+  accounts?: AccountsDeps;
   now?: () => number;
 };
 
 const PAGE_SIZE = 20;
 const REQUESTS_PER_MINUTE = 120;
+const ACCOUNTS_PER_IP_PER_HOUR = 3;
+const HOUR_MS = 60 * 60 * 1000;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
-// A deal that has taken the buyer's money ends the listing; the other states can still fall through.
-const SOLD_STATES = new Set(["Funded", "Released"]);
+const HOLDING_STATES = new Set(["Matched", "Funded"]);
+// Chat and the inbox's matches open once a deal has matched; a NoDeal that kept `matched_at_ns` is an expired match.
+const MATCHED_STATES = new Set(["Matched", "Funded", "Released", "Refunded"]);
 
-export function createApp({ store, near, allowedOrigin, now = Date.now }: Deps) {
+export function createApp({ store, near, allowedOrigin, accounts, now = Date.now }: Deps) {
   const app = new Hono();
   const authenticate = createAuthenticator(near, now);
 
   app.use(
     cors({
       origin: allowedOrigin,
-      allowHeaders: ["content-type", "x-account-id", "x-public-key", "x-timestamp", "x-signature"],
-      allowMethods: ["GET", "POST", "OPTIONS"],
+      allowHeaders: ["content-type", "x-account-id", "x-public-key", "x-timestamp", "x-signature", "authorization"],
+      allowMethods: ["GET", "POST", "PUT", "OPTIONS"],
     }),
   );
   app.use(rateLimit(REQUESTS_PER_MINUTE, now));
@@ -65,7 +82,36 @@ export function createApp({ store, near, allowedOrigin, now = Date.now }: Deps) 
     return listing;
   }
 
+  const isMatched = (deal: ChainDeal) => MATCHED_STATES.has(deal.state) || (deal.state === "NoDeal" && deal.matched_at_ns != null);
+
+  /** The deal's seller or buyer, and only once it has matched: chat is for people who struck a deal. */
+  async function chatParty(dealId: string, account: string): Promise<number> {
+    const id = Number(dealId);
+    const deal = Number.isSafeInteger(id) && id >= 0 ? await near.getDeal(id) : null;
+    if (!deal) throw new HttpError(404, "deal not found");
+    if (deal.seller !== account && deal.buyer !== account) throw new HttpError(403, "only the deal's seller or buyer can chat");
+    if (!isMatched(deal)) throw new HttpError(409, "chat opens after a deal");
+    return id;
+  }
+
+  const afterId = (value: string | undefined) => {
+    const after = value === undefined ? 0 : Number(value);
+    if (!Number.isSafeInteger(after) || after < 0) throw new HttpError(400, "bad after");
+    return after;
+  };
+
   app.get("/health", (c) => c.json({ ok: true }));
+
+  app.post("/accounts", rateLimit(ACCOUNTS_PER_IP_PER_HOUR, now, HOUR_MS), async (c) => {
+    if (!accounts) throw new HttpError(503, "account creation is not configured");
+    let body: unknown;
+    try {
+      body = await c.req.json();
+    } catch {
+      throw new HttpError(400, "body must be JSON");
+    }
+    return c.json(await openAccount(accounts, store, c.req.header("authorization"), body), 201);
+  });
 
   app.get("/listings", async (c) => {
     const category = c.req.query("category");
@@ -140,13 +186,111 @@ export function createApp({ store, near, allowedOrigin, now = Date.now }: Deps) 
     return c.json({ ...listing, status: "closed" });
   });
 
+  // One item, one sale: the first matched deal reserves the listing, a release sells it, and an expired or refunded reservation reopens it.
   app.post("/listings/:id/sync", async (c) => {
     const listing = await findListing(c.req.param("id"));
-    if (listing.status !== "open") return c.json(listing);
-    const deals = await Promise.all((await store.slotsOf(listing.id)).map((slot) => near.getDeal(slot.dealId)));
-    if (!deals.some((deal) => deal && SOLD_STATES.has(deal.state))) return c.json(listing);
-    await store.setStatus(listing.id, "sold");
-    return c.json({ ...listing, status: "sold" });
+    if (listing.status === "sold" || listing.status === "closed") return c.json(listing);
+    const deals = (await Promise.all((await store.slotsOf(listing.id)).map((slot) => near.getDeal(slot.dealId)))).filter((deal) => deal !== null);
+
+    const released = deals.find((deal) => deal.state === "Released");
+    if (released) {
+      await store.setStatus(listing.id, "sold");
+      return c.json({ ...listing, status: "sold" });
+    }
+    if (listing.status === "open") {
+      const holding = deals.find((deal) => HOLDING_STATES.has(deal.state));
+      if (!holding) return c.json(listing);
+      await store.setStatus(listing.id, "reserved", holding.id);
+      return c.json({ ...listing, status: "reserved" });
+    }
+    const reservedId = await store.reservedDealOf(listing.id);
+    const reserving = deals.find((deal) => deal.id === reservedId);
+    const ended = !reserving || reserving.state === "Refunded" || (reserving.state === "NoDeal" && reserving.matched_at_ns != null);
+    if (!ended) return c.json(listing);
+    await store.setStatus(listing.id, "open");
+    return c.json({ ...listing, status: "open" });
+  });
+
+  app.get("/profiles/:handle", async (c) => {
+    const profile = await store.profileByHandle(c.req.param("handle"));
+    if (!profile) throw new HttpError(404, "profile not found");
+    const { accountId, ...publicFields } = profile;
+    const all = await store.listBySeller(accountId);
+    const shop: Shop = {
+      profile: publicFields,
+      listings: all.filter((l) => l.status === "open" || l.status === "reserved"),
+      soldCount: all.filter((l) => l.status === "sold").length,
+    };
+    return c.json(shop);
+  });
+
+  app.put("/me/profile", async (c) => {
+    const { account, body } = await signed(c);
+    const { handle, ...fields } = parseUpdateProfile(body);
+    if (await store.profileOf(account)) return c.json(await store.saveProfile(account, fields));
+    if (!handle) throw new HttpError(400, "handle is required to create a profile");
+    return c.json(await store.saveProfile(account, fields, { handle }));
+  });
+
+  app.get("/listings/:id/questions", async (c) => c.json(await store.answeredQuestions((await findListing(c.req.param("id"))).id)));
+
+  app.post("/listings/:id/questions", async (c) => {
+    const { account, body } = await signed(c);
+    const listing = await findListing(c.req.param("id"));
+    if (listing.sellerAccount === account) throw new HttpError(403, "sellers cannot ask on their own listing");
+    return c.json(await store.addQuestion(listing.id, account, parseAsk(body).question), 201);
+  });
+
+  app.post("/questions/:id/answer", async (c) => {
+    const { account, body } = await signed(c);
+    const id = Number(c.req.param("id"));
+    const question = Number.isSafeInteger(id) ? await store.question(id) : null;
+    if (!question) throw new HttpError(404, "question not found");
+    await ownListing(question.listingId, account);
+    const answered = await store.answerQuestion(id, parseAnswer(body).answer);
+    if (!answered) throw new HttpError(409, "question already answered");
+    return c.json(answered);
+  });
+
+  app.get("/deals/:dealId/messages", async (c) => {
+    const { account } = await signed(c);
+    const dealId = await chatParty(c.req.param("dealId"), account);
+    return c.json(await store.messagesOf(dealId, afterId(c.req.query("after"))));
+  });
+
+  app.post("/deals/:dealId/messages", async (c) => {
+    const { account, body } = await signed(c);
+    const dealId = await chatParty(c.req.param("dealId"), account);
+    return c.json(await store.addMessage(dealId, account, parseMessage(body).body), 201);
+  });
+
+  app.get("/me/inbox", async (c) => {
+    const { account } = await signed(c);
+    const after = afterId(c.req.query("after"));
+    const inbox: Inbox = { questions: await store.unansweredFor(account), roundsWaiting: [], matches: [], newMessages: [] };
+
+    const seen = new Set<number>();
+    const note = (deal: ChainDeal, listingId: string, title: string, role: "seller" | "buyer") => {
+      if (!isMatched(deal)) return;
+      seen.add(deal.id);
+      const counterparty = role === "seller" ? deal.buyer : deal.seller;
+      inbox.matches.push({ listingId, title, dealId: deal.id, role, counterparty: counterparty ?? "", state: deal.state });
+    };
+
+    for (const listing of await store.listBySeller(account)) {
+      for (const slot of (await store.slotsOf(listing.id)).filter((s) => s.buyerAccount !== null)) {
+        const deal = await near.getDeal(slot.dealId);
+        if (!deal) continue;
+        if (deal.state === "Retry") inbox.roundsWaiting.push({ listingId: listing.id, title: listing.title, dealId: deal.id, round: deal.round });
+        else note(deal, listing.id, listing.title, "seller");
+      }
+    }
+    for (const negotiation of await store.negotiationsOf(account)) {
+      const deal = await near.getDeal(negotiation.dealId);
+      if (deal) note(deal, negotiation.listingId, negotiation.title, "buyer");
+    }
+    inbox.newMessages = await store.messagesIn([...seen], after, account);
+    return c.json(inbox);
   });
 
   app.get("/me/listings", async (c) => {

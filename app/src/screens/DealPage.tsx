@@ -3,11 +3,11 @@ import { currentAccount } from "../accounts";
 import { clientFor, loadLinkToken } from "../client";
 import type { Deal } from "../contract";
 import { rpFromYocto } from "../format";
-import { encodeMockLimit } from "../mockClient";
+import { MOCK_TEE_PUBLIC_KEY } from "../mockClient";
 import { LimitForm } from "./LimitForm";
+import { sealLimit } from "../crypto";
 
 const POLL_MS = 3000;
-const NO_COMMIT = Array<number>(32).fill(0);
 
 export function DealPage({ id }: { id: number }) {
   const account = currentAccount();
@@ -27,7 +27,8 @@ export function DealPage({ id }: { id: number }) {
     setBusy(true);
     setError(null);
     try {
-      await client.submitLimit(id, encodeMockLimit(limitRp), NO_COMMIT, null);
+      const sealed = await sealLimit(id, "seller", deal!.round, String(limitRp), MOCK_TEE_PUBLIC_KEY);
+      await client.submitLimit(id, sealed.ct, sealed.commit, null);
       await reload();
     } catch (e) {
       setError((e as Error).message);
