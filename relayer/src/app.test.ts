@@ -19,12 +19,12 @@ function person(account: string): Person {
   return { account, key };
 }
 
-async function call(who: Person | null, method: "GET" | "POST", path: string, body?: unknown) {
+async function call(who: Person | null, method: "GET" | "POST" | "PUT", path: string, body?: unknown) {
   const raw = body === undefined ? "" : JSON.stringify(body);
   const headers: Record<string, string> = { "content-type": "application/json" };
   if (who) {
     const timestamp = String(Date.now());
-    const signature = Buffer.from(who.key.sign(signingMessage(method, path, raw, timestamp)).signature).toString("base64");
+    const signature = Buffer.from(who.key.sign(signingMessage(method, new URL(path, "http://x").pathname, raw, timestamp)).signature).toString("base64");
     Object.assign(headers, {
       "x-account-id": who.account,
       "x-public-key": who.key.getPublicKey().toString(),
@@ -40,7 +40,7 @@ async function call(who: Person | null, method: "GET" | "POST", path: string, bo
 
 function chainDeal(id: number, seller: string, token: string, patch: Partial<ChainDeal> = {}): ChainDeal {
   const link_hash = [...createHash("sha256").update(token).digest()];
-  return { id, seller, buyer: null, link_hash, max_rounds: 2, state: "Waiting", ...patch };
+  return { id, seller, buyer: null, link_hash, max_rounds: 2, round: 1, state: "Waiting", ...patch };
 }
 
 const listingBody = { title: "Used bike", description: "Works fine", category: "vehicles", maxRounds: 2 };
@@ -238,5 +238,155 @@ describe("sync", () => {
     setDeal(1, { state: "Matched" });
     await sync(listing);
     expect((await call(person("carol.test"), "POST", `/listings/${listing.id}/claim`)).status).toBe(409);
+  });
+});
+
+const profileBody = { displayName: "Demo Shop", bio: "Second-hand finds", city: "Yogyakarta", avatarUrl: null };
+
+describe("profiles", () => {
+  it("shows open and reserved listings and the sold count, and 404s an unknown handle", async () => {
+    const seller = person("demo.testnet");
+    store.profiles.push({ accountId: seller.account, handle: "demo", auth: "email", supabaseUserId: "u1" });
+    const open = await newListing(seller);
+    const reserved = await newListing(seller);
+    const sold = await newListing(seller);
+    await store.setStatus(reserved.id, "reserved", 1);
+    await store.setStatus(sold.id, "sold");
+
+    const { status, json } = await call(null, "GET", "/profiles/demo");
+    expect(status).toBe(200);
+    expect(json.profile.handle).toBe("demo");
+    expect(json.profile).not.toHaveProperty("supabaseUserId");
+    expect(json.listings.map((l: Listing) => l.id).sort()).toEqual([open.id, reserved.id].sort());
+    expect(json.soldCount).toBe(1);
+    expect((await call(null, "GET", "/profiles/nobody")).status).toBe(404);
+  });
+
+  it("lets a wallet user create a profile once with a handle, then edit it without changing the handle", async () => {
+    const wallet = person("alice.testnet");
+    expect((await call(wallet, "PUT", "/me/profile", profileBody)).status).toBe(400);
+
+    const created = await call(wallet, "PUT", "/me/profile", { ...profileBody, handle: "alice" });
+    expect(created.status).toBe(200);
+    expect(store.profiles[0]).toMatchObject({ accountId: "alice.testnet", handle: "alice", auth: "wallet" });
+
+    const edited = await call(wallet, "PUT", "/me/profile", { ...profileBody, handle: "other", city: "Bali" });
+    expect(edited.json).toMatchObject({ handle: "alice", city: "Bali" });
+  });
+
+  it("refuses a handle another account already holds", async () => {
+    store.profiles.push({ accountId: "bob.testnet", handle: "taken", auth: "email", supabaseUserId: "u2" });
+    const { status } = await call(person("alice.testnet"), "PUT", "/me/profile", { ...profileBody, handle: "taken" });
+    expect(status).toBe(409);
+  });
+});
+
+describe("questions", () => {
+  let seller: Person;
+  let asker: Person;
+  let listing: Listing;
+  beforeEach(async () => {
+    seller = person("seller.testnet");
+    asker = person("asker.testnet");
+    listing = await newListing(seller);
+  });
+
+  it("answer_only_by_listing_seller", async () => {
+    const { json: asked } = await call(asker, "POST", `/listings/${listing.id}/questions`, { question: "Any scratches?" });
+    expect((await call(asker, "POST", `/questions/${asked.id}/answer`, { answer: "No" })).status).toBe(403);
+    expect((await call(seller, "POST", `/questions/${asked.id}/answer`, { answer: "A small one" })).status).toBe(200);
+    expect((await call(seller, "POST", `/questions/${asked.id}/answer`, { answer: "Again" })).status).toBe(409);
+  });
+
+  it("unanswered_questions_not_public", async () => {
+    const { json: asked } = await call(asker, "POST", `/listings/${listing.id}/questions`, { question: "Any scratches?" });
+    expect((await call(null, "GET", `/listings/${listing.id}/questions`)).json).toEqual([]);
+
+    await call(seller, "POST", `/questions/${asked.id}/answer`, { answer: "A small one" });
+    const { json } = await call(null, "GET", `/listings/${listing.id}/questions`);
+    expect(json).toHaveLength(1);
+    expect(json[0]).toMatchObject({ question: "Any scratches?", answer: "A small one" });
+  });
+
+  it("refuses the seller asking on their own listing and an empty question", async () => {
+    expect((await call(seller, "POST", `/listings/${listing.id}/questions`, { question: "Hi" })).status).toBe(403);
+    expect((await call(asker, "POST", `/listings/${listing.id}/questions`, { question: "" })).status).toBe(400);
+  });
+});
+
+describe("messages", () => {
+  let seller: Person;
+  let buyer: Person;
+  beforeEach(() => {
+    seller = person("seller.testnet");
+    buyer = person("buyer.testnet");
+    near.deals.set(7, chainDeal(7, seller.account, "t", { buyer: buyer.account, state: "Matched" }));
+  });
+
+  it("messages_refused_for_non_party_and_pre_match", async () => {
+    const stranger = person("stranger.testnet");
+    expect((await call(stranger, "GET", "/deals/7/messages")).status).toBe(403);
+    expect((await call(stranger, "POST", "/deals/7/messages", { body: "hi" })).status).toBe(403);
+    expect((await call(null, "GET", "/deals/7/messages")).status).toBe(401);
+    expect((await call(buyer, "GET", "/deals/99/messages")).status).toBe(404);
+
+    near.deals.set(8, chainDeal(8, seller.account, "u", { buyer: buyer.account, state: "Retry" }));
+    expect((await call(buyer, "POST", "/deals/8/messages", { body: "hi" })).status).toBe(409);
+    near.deals.set(9, chainDeal(9, seller.account, "v", { buyer: buyer.account, state: "NoDeal" }));
+    expect((await call(buyer, "GET", "/deals/9/messages")).status).toBe(409);
+  });
+
+  it("lets both parties exchange messages and poll from the last id", async () => {
+    await call(buyer, "POST", "/deals/7/messages", { body: "Is it still there?" });
+    await call(seller, "POST", "/deals/7/messages", { body: "Yes" });
+
+    const all = await call(seller, "GET", "/deals/7/messages");
+    expect(all.json.map((m: { body: string }) => m.body)).toEqual(["Is it still there?", "Yes"]);
+    const after = await call(buyer, "GET", `/deals/7/messages?after=${all.json[0].id}`);
+    expect(after.json.map((m: { body: string }) => m.body)).toEqual(["Yes"]);
+    expect((await call(buyer, "POST", "/deals/7/messages", { body: "" })).status).toBe(400);
+  });
+});
+
+describe("inbox", () => {
+  it("inbox_lists_slots_waiting_for_seller_round", async () => {
+    const seller = person("seller.testnet");
+    const buyer = person("buyer.testnet");
+    const listing = await newListing(seller);
+    await store.addSlots(listing.id, [
+      { dealId: 1, linkToken: "a" },
+      { dealId: 2, linkToken: "b" },
+    ]);
+    await store.claim(listing.id, buyer.account);
+    near.deals.set(1, chainDeal(1, seller.account, "a", { buyer: buyer.account, state: "Retry", round: 2 }));
+    near.deals.set(2, chainDeal(2, seller.account, "b"));
+
+    const { json } = await call(seller, "GET", "/me/inbox");
+    expect(json.roundsWaiting).toEqual([{ listingId: listing.id, title: "Used bike", dealId: 1, round: 2 }]);
+    expect((await call(buyer, "GET", "/me/inbox")).json.roundsWaiting).toEqual([]);
+  });
+
+  it("lists unanswered questions for the seller and matches for both sides, with unread messages", async () => {
+    const seller = person("seller.testnet");
+    const buyer = person("buyer.testnet");
+    const listing = await newListing(seller);
+    await call(buyer, "POST", `/listings/${listing.id}/questions`, { question: "Box included?" });
+    await store.addSlots(listing.id, [{ dealId: 1, linkToken: "a" }]);
+    await store.claim(listing.id, buyer.account);
+    near.deals.set(1, chainDeal(1, seller.account, "a", { buyer: buyer.account, state: "Matched" }));
+    await call(buyer, "POST", "/deals/1/messages", { body: "Hello" });
+
+    const forSeller = (await call(seller, "GET", "/me/inbox")).json;
+    expect(forSeller.questions).toMatchObject([{ question: "Box included?", listingTitle: "Used bike" }]);
+    expect(forSeller.matches).toEqual([
+      { listingId: listing.id, title: "Used bike", dealId: 1, role: "seller", counterparty: buyer.account, state: "Matched" },
+    ]);
+    expect(forSeller.newMessages.map((m: { body: string }) => m.body)).toEqual(["Hello"]);
+
+    const forBuyer = (await call(buyer, "GET", "/me/inbox")).json;
+    expect(forBuyer.questions).toEqual([]);
+    expect(forBuyer.matches[0]).toMatchObject({ role: "buyer", counterparty: seller.account });
+    expect(forBuyer.newMessages).toEqual([]);
+    expect((await call(seller, "GET", `/me/inbox?after=${forSeller.newMessages[0].id}`)).json.newMessages).toEqual([]);
   });
 });
