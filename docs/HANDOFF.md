@@ -31,7 +31,7 @@ Each session edits only its own workstream section below.
 - Owner: Jose (ChristianoJ21). Next: D1-10 skeleton on mocks (after D1-05, D1-07). In progress: none. Blockers: none.
 
 ## Design & packaging (Abel)
-- Owner: Abel (rafaelaanabelpurba). Next: D1-07 tokens CSS, D1-11 screens in Claude Design (full brief arrives in Phase 7). In progress: none. Blockers: none.
+- Owner: Abel (rafaelaanabelpurba). Done: D1-07 tokens (PR #9); identity switched to direction G (#32 approved, PR #33); D1-11 drawn: 12 screens + demo split, phone and desktop, canvas https://claude.ai/artifact/2a84fxGdsY2sezcJvjVAaG page "Final screens (G)" (must be shared before others can open it; D1-11 tick waits on Jose confirming he can read it); M1-14 assets in PR #41 (9 stickers, 5 icons, app/src/design/assets/README.md; tick after FE merges). Design system: https://claude.ai/artifact/C52dyDv46uwPsNeJzL1Rgi. Next (marketplace pivot, #38): MK-30 screens in Claude Design, home, listing, profile first, reusing the G blind-offer, reveal, pay and proof frames; MK-31 seed photos (6 real items, team photos) by 11-13 afternoon. In progress: none. Blockers: none (canvas sharing is on Abel).
 
 ## Known bugs
 - none yet

@@ -83,7 +83,7 @@ D1-08 (OutLayer spike) -> M1-05/06 (WASM + deploy) -> M1-07 (contract on testnet
 
 ### D1-07 Design tokens CSS
 - **Owner:** DP. **Deps:** D1-01.
-- **Files:** `app/src/design/tokens.css` (all color, motion, spacing, radius, type-scale tokens from IDENTITY.md, `prefers-reduced-motion` block), `app/public/fonts/` (Big Shoulders Display, Familjen Grotesk woff2).
+- **Files:** `app/src/design/tokens.css` (all color, motion, spacing, radius, type-scale tokens from IDENTITY.md, `prefers-reduced-motion` block), `app/public/fonts/` (Manrope variable woff2 and its OFL licence; direction G, issue #32).
 - **Done:** `grep -c -E -e '--(ground|surface|check|line|ink|ink-muted|tag|danger|dur-instant|dur-quick|dur-deliberate|dur-reveal|ease-out|ease-in|ease-std):' app/src/design/tokens.css` prints `15`.
 
 ### D1-08 OutLayer spike (2-3 h, time-boxed)
