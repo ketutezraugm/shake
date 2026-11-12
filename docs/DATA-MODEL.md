@@ -107,6 +107,7 @@ erDiagram
         string description "at most 1000 bytes"
         string category "electronics, fashion, home, vehicles, hobbies, other"
         string_array photo_paths "at most 4, bucket listing-photos"
+        bigint asking_price "public, whole Rupiah, required (MK-15); the floor is never stored"
         i16 max_rounds "1 to 3, same on each slot's deal"
         string status "open, reserved, sold, closed"
         timestamptz created_at

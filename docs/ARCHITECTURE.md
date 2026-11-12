@@ -108,7 +108,7 @@ Built in PR #35:
 | GET /health | none | `{ok:true}` |
 | GET /listings?q=&category=&cursor= | none | Open listings, newest first, 20 per page; `nextCursor` is the last `createdAt` |
 | GET /listings/:id | none | One listing with `freeSlots` |
-| POST /listings | signed | `{title, description, category, maxRounds}` -> listing (201) |
+| POST /listings | signed | `{title, description, category, maxRounds, askingPrice}` -> listing (201); `askingPrice` is whole Rupiah as a digit string, required (MK-15) |
 | POST /listings/:id/photos | seller | `{contentType}` (jpeg, png, webp) -> `{uploadUrl, photoUrl}`; PUT the bytes to `uploadUrl`; max 4, then 409; bucket limit 2 MB |
 | POST /listings/:id/slots | seller | `{slots:[{dealId, linkToken}]}`, max 10 per listing (409 above); listing must be open; each deal verified on chain: the seller's, `Waiting`, no buyer, same `max_rounds`, token hashes to `link_hash` |
 | POST /listings/:id/claim | signed buyer | `{dealId, linkToken}`; the same slot on repeat; 409 when none is free or the listing is not open; 403 for the seller |

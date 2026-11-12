@@ -6,7 +6,7 @@ Draft 2026-11-12. Binding sources: PRD, marketplace pivot design (docs/superpowe
 
 | Time | Shot | On-screen | Voiceover |
 |---|---|---|---|
-| 0:00-0:08 | Instagram profile of a student seller, thumb taps the bio link `/@handle`. Shop opens with photos and no prices | "Seller wants 5M. Buyer would pay 5.5M. Neither says so." | "Whoever names a number first loses. So people walk away from deals both of them wanted. This seller put her shop in her bio. Every item shows a photo and no price." |
+| 0:00-0:08 | Instagram profile of a student seller, thumb taps the bio link `/@handle`. Shop opens with photos and asking prices | "Seller wants 5M. Buyer would pay 5.5M. Neither says so." | "Whoever names a number first loses. So people walk away from deals both of them wanted. This seller put her shop in her bio. Every item shows a photo and an asking price. How low she'd really go stays sealed." |
 | 0:08-0:20 | Tap a laptop listing. Type "Is the charger included?" in the assistant. Answer appears. Type "What's the lowest price?" and the assistant declines | "Ask the assistant" then "Offers used: 3 of 10" | "Buyers can ask an AI assistant about the item. It answers from the listing and from public questions, and it never sees the price. If it doesn't know, the question goes to the seller and her answer is public." |
 | 0:20-0:35 | Buyer signs in with Google, types a maximum, taps Confirm. Seller's phone shows the listing was sealed earlier | "No wallet. No seed phrase." | "The seller sealed her minimum once, when she listed the laptop. The buyer signs in with Google and types the most he would pay. The chain is behind the sign-in." |
 | 0:35-1:00 | Animation: number encrypted on the phone, arrow to a sealed box | "Encrypted on your phone". "Runs in a TEE on OutLayer" | "Each limit is encrypted before it leaves the phone. Only code running in a secure enclave can open it, and that code is public and hash-pinned. We can't read your number either." |
@@ -24,9 +24,9 @@ Draft 2026-11-12. Binding sources: PRD, marketplace pivot design (docs/superpowe
 (Count before posting, trim "Rp" if over 280. Attach the video. Add @NearLegion @NearBuilders in the thread if room is short.)
 
 **Thread:**
-1. "How it works: the seller puts a shop link in their bio. Listings show no price. Offers are encrypted in the browser to a key held inside the TEE. The public, hash-pinned code returns only matched and price. NEAR holds ciphertext and a commitment hash."
-2. "Sign in with Google or email. A relayer makes the NEAR account behind it, so there is no wallet and no seed phrase. An AI assistant answers item questions and never sees the price. Escrow releases on 'Received', refunds after the deadline, no admin key. Repo: [TBD: URL]. Demo: [TBD: URL]."
-3. "We're testing with students who sell second-hand things: [TBD: N] real deals so far. Question for people who sell used items: would you put a shop link like this in your bio instead of quoting a price? @NearLegion @NearBuilders"
+1. "How it works: the seller puts a shop link in their bio. Listings show an asking price; the seller's real floor stays sealed. Offers are encrypted in the browser to a key held inside the TEE. The public, hash-pinned code returns only matched and price. NEAR holds ciphertext and a commitment hash."
+2. "Sign in with Google or email. A relayer makes the NEAR account behind it, so there is no wallet and no seed phrase. An AI assistant answers item questions and never sees the seller's floor. Escrow releases on 'Received', refunds after the deadline, no admin key. Repo: [TBD: URL]. Demo: [TBD: URL]."
+3. "We're testing with students who sell second-hand things: [TBD: N] real deals so far. Question for people who sell used items: would you put a shop link like this in your bio instead of haggling in DMs? @NearLegion @NearBuilders"
 
 ## 3. Submission write-up
 
@@ -34,7 +34,7 @@ Draft 2026-11-12. Binding sources: PRD, marketplace pivot design (docs/superpowe
 
 Haggling punishes whoever names a number first. A student selling a used laptop says Rp 5M, the buyer would have paid 5.5M, and neither ever finds out. People abandon deals both sides wanted because neither will show a limit.
 
-[NAME] is a second-hand marketplace where the price stays blind. The seller puts a shop link (/@handle) in their Instagram or marketplace bio. Buyers browse listings with photos and no price. An AI assistant answers questions from the listing and public Q&A and never sees the price. Questions it can't answer go to the seller as public Q&A.
+[NAME] is a second-hand marketplace where the seller's real floor stays blind. The seller puts a shop link (/@handle) in their Instagram or marketplace bio. Buyers browse listings with photos and asking prices. An AI assistant answers questions from the listing and public Q&A and never sees the seller's floor. Questions it can't answer go to the seller as public Q&A.
 
 The seller seals a minimum once per listing. A buyer makes a blind offer, up to 10 offers per listing. Both numbers are encrypted in the browser to a key that exists only inside a TEE. Public, hash-pinned WASM on OutLayer checks the overlap and, if there is one, draws a random price inside it. Both sides see only "Deal at Rp X" or "No deal". The seller picks 1 to 3 rounds. Buyers can only raise.
 
@@ -56,7 +56,7 @@ A match reserves the item. The buyer pays into a NEAR escrow contract and chat o
 
 "Picture a student selling a used laptop. She asks 5 million rupiah. The buyer would have paid 5.5. Neither says it, the buyer offers 4, she says no, and both go home without a deal they wanted.
 
-[NAME] removes the first number. She puts her shop link in her Instagram bio. Buyers find her items with photos and no price. An AI assistant answers their questions about the item. It never sees the price. If it doesn't know, the question goes to her and the answer becomes public.
+[NAME] removes the haggle. She puts her shop link in her Instagram bio. Buyers find her items with photos and asking prices. An AI assistant answers their questions about the item. It never sees her floor. If it doesn't know, the question goes to her and the answer becomes public.
 
 She sealed her minimum once. He signs in with Google and types the most he would pay. Both phones show one answer: 'Deal at Rp 5.2 million' or 'No deal'. Nothing else.
 
