@@ -22,7 +22,7 @@ Each session edits only its own workstream section below.
 - **Artifacts:** style tiles https://claude.ai/artifact/N3gwoQ5biN7HzEoD2ZntvZ · design system (Abel owns) https://claude.ai/artifact/MZUADs1rMt3bbtCbXChzke
 
 ## Contracts & TEE
-- Owner: Ezra (ketutezraugm). Next: D1-04 contract stub, D1-08 OutLayer spike (2-3 h). In progress: none. Blockers: none.
+- Owner: Ezra (ketutezraugm). Next: D1-05 shared TS types, M1-05 WASM matching, then M1-01..M1-04 contract. Done: D1-08 spike (answers in DECISIONS.md; testnet account `spike-82nkvzn7.testnet` is throwaway; `outlayer` CLI v0.2.3 is a manual download), D1-04 stub. In progress: none. Blockers: none.
 
 ## Backend & integration
 - Owner: Harfi (SyuraMoons), also the integrator: runs /review-pr on every needs-review PR first. Next: D1-02 CI, D1-03 Render hello-world, D1-06, D1-09 relayer. In progress: D1-01 scaffold, in review. Blockers: none.

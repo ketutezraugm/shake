@@ -38,6 +38,9 @@ The contract is the source of truth; no Supabase.
 ## 2026-11-12 Scaffold pins and toolchain notes
 JS dependencies are pinned exactly in `package.json` (near-api-js 7.4.0 as decided). TypeScript is 6.0.3, not 7.x, because typescript-eslint 8.72.2 only supports `<6.1.0`; revisit when it does. `contract` takes near-sdk with the `unit-testing` feature as a dev-dependency, since near-sdk refuses a plain host build; as a result `cargo test -p contract` works on the host but `cargo check -p contract` does not, so D1-04's done-check needs `--target wasm32-unknown-unknown` (Ezra's call). `cargo update` was needed once on a stale local registry index; `Cargo.lock` is committed.
 
+## 2026-11-12 Contract stub (D1-04): interface notes
+Stub follows ARCHITECTURE.md (so `create_deal` takes `max_rounds`; the plan's D1-04 line predates private rounds). Done-check is `cargo check -p contract --target wasm32-unknown-unknown`, with clippy `-D warnings` and `cargo fmt --check` clean; a host check is impossible on Windows because near-sdk's unit-testing dependencies need NASM (aws-lc-sys). JSON shapes the frontend must match: `link_hash`, `commit` and the `Deal` commit lists are `[u8;32]`, so they arrive and leave as arrays of 32 numbers, and `ct` is a `Vec<u8>` number array; `price` is a `U128` string in yoctoNEAR; `State` serializes as its variant name; `get_deal`/`get_state` return `null` for an unknown id. `rp_per_near` is a fixed constant set in `new` (no parameter, no setter).
+
 ## 2026-11-11 Private rounds replace "one attempt"
 Team feedback: one attempt punishes misjudgment. Seller chooses 1-3 rounds per buyer (default 2); concessions are monotonic (buyer up, seller down), enforced in the TEE; each round leaks at most 1 bit; a deal ends the game. Laddering accepted as private haggling. "Close" hint dropped (leaks more). Contract: `max_rounds`, `round`, per-round ciphertexts, `Retry` state. (IDEAS.md, feedback section)
 

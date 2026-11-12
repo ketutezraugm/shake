@@ -8,7 +8,7 @@ Mirrors docs/plans/IMPLEMENTATION.md. Tick a box only after the task's done-chec
 - [x] **D1-01** Monorepo scaffold (RAP)
 - [ ] **D1-02** CI
 - [ ] **D1-03** Render hello-world
-- [ ] **D1-04** Contract stub (signatures)
+- [x] **D1-04** Contract stub (signatures) (EZ)
 - [ ] **D1-05** Shared TS contract types
 - [ ] **D1-06** Relayer API types
 - [ ] **D1-07** Design tokens CSS
