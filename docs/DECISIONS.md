@@ -35,6 +35,9 @@ The relayer proxies NEAR AI requests and adds the API key; prompts are E2EE from
 ## 2026-11-10 No database
 The contract is the source of truth; no Supabase.
 
+## 2026-11-12 Scaffold pins and toolchain notes
+JS dependencies are pinned exactly in `package.json` (near-api-js 7.4.0 as decided). TypeScript is 6.0.3, not 7.x, because typescript-eslint 8.72.2 only supports `<6.1.0`; revisit when it does. `contract` takes near-sdk with the `unit-testing` feature as a dev-dependency, since near-sdk refuses a plain host build; as a result `cargo test -p contract` works on the host but `cargo check -p contract` does not, so D1-04's done-check needs `--target wasm32-unknown-unknown` (Ezra's call). `cargo update` was needed once on a stale local registry index; `Cargo.lock` is committed.
+
 ## 2026-11-11 Private rounds replace "one attempt"
 Team feedback: one attempt punishes misjudgment. Seller chooses 1-3 rounds per buyer (default 2); concessions are monotonic (buyer up, seller down), enforced in the TEE; each round leaks at most 1 bit; a deal ends the game. Laddering accepted as private haggling. "Close" hint dropped (leaks more). Contract: `max_rounds`, `round`, per-round ciphertexts, `Retry` state. (IDEAS.md, feedback section)
 
@@ -65,3 +68,6 @@ Verified on testnet: `eciesjs` ciphertext decrypts inside an OutLayer execution,
 - **Build and deploy:** `cargo build --target wasm32-wasip2 --release`, then `outlayer upload` (FastFS, prints the sha256), `outlayer deploy <name> <url>`, `outlayer secrets set --project <acct/name> --profile production --generate PROTECTED_DEAL_MASTER_SECRET:hex32`. The secret is read by Project runs only.
 - **Gotchas:** (1) the `ecies` crate's `pure` feature needs the `critical-section` crate with feature `std`, or the link leaves a `critical_section_1_0_acquire` import that the host linker rejects and OutLayer would not satisfy. (2) `eciesjs` 0.5 returns a `Uint8Array`; hex-encode with `Buffer.from(x).toString("hex")`. (3) `near-cli-rs` does not build on Windows (openssl-sys); use `near-api-js` for scripts and the faucet at `helper.nearprotocol.com/account` for accounts. (4) Spike account `spike-82nkvzn7.testnet` is throwaway; its key stays out of the repo.
 - **Still open:** can a `PROTECTED_` ed25519 secret sign results (S-07)? Not tested here. The spike WASM's `decrypt` action echoes plaintext and must not ship; `run_match` returns only `{deal_id, matched, price}`.
+
+## 2026-11-12 Reduced motion via reveal tokens
+`tokens.css` adds `--reveal-lift`, `--reveal-swing`, `--reveal-lift-dur`, `--reveal-swing-dur`; under `prefers-reduced-motion` they drop the transforms and shorten the lift to `--dur-quick`, so the reveal becomes a 200 ms crossfade without redefining the base motion tokens. Fonts are self-hosted Latin-subset variable woff2 with Arial fallbacks metric-matched (size-adjust, ascent/descent overrides) to avoid layout shift.
