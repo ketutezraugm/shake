@@ -14,7 +14,7 @@ Mirrors docs/plans/IMPLEMENTATION.md. Tick a box only after the task's done-chec
 - [x] **D1-07** Design tokens CSS (RAP)
 - [x] **D1-08** OutLayer spike (2-3 h, time-boxed) (EZ)
 - [ ] **D1-09** Relayer spike
-- [ ] **D1-10** Frontend skeleton on mocks
+- [x] **D1-10** Frontend skeleton on mocks
 - [ ] **D1-11** Screens in Claude Design
 
 ## Day 2: 2026-11-11, Milestone M1 (demo slice)

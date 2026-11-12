@@ -1,4 +1,6 @@
 import { createRoot } from "react-dom/client";
+import "./design/tokens.css";
+import "./styles/base.css";
+import { Router } from "./routes";
 
-// Placeholder; D1-10 replaces it with the router and screens.
-createRoot(document.getElementById("root")!).render(<p>Blind deal</p>);
+createRoot(document.getElementById("root")!).render(<Router />);
