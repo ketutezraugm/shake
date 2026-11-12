@@ -43,7 +43,7 @@ Mirrors docs/plans/IMPLEMENTATION.md. Tick a box only after the task's done-chec
 - [ ] **S-02** AI negotiator (NEAR AI Cloud)
 - [ ] **S-03** Receipt page with tx links
 - [ ] **S-04** Bahasa/English
-- [ ] **S-05** Escrow edge cases and testnet redeploy
+- [x] **S-05** Escrow edge cases and testnet redeploy (EZ)
 - [ ] **S-06** Hosted deploy
 - [ ] **S-07** Enclave-signed results (only if spike showed PROTECTED_ can sign)
 - [ ] **S-08** Real deals

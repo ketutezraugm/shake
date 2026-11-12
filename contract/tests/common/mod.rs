@@ -39,8 +39,18 @@ pub fn at_time(predecessor: usize, deposit: u128, timestamp_ns: u64) {
 }
 
 pub fn new_contract() -> Contract {
+    new_contract_with_window(None)
+}
+
+/// A contract whose delivery window is `window_secs` instead of the 7-day default.
+pub fn new_contract_with_window(window_secs: Option<u64>) -> Contract {
     at(0, 0);
-    Contract::new(accounts(OUTLAYER), vec![2; 33], PROJECT.to_string())
+    Contract::new(
+        accounts(OUTLAYER),
+        vec![2; 33],
+        PROJECT.to_string(),
+        window_secs,
+    )
 }
 
 pub fn token_hash(token: &str) -> [u8; 32] {

@@ -2,6 +2,7 @@
 // Needs ACCOUNT_ID and PRIVATE_KEY (ed25519:...) of any funded testnet account, and
 // OUTLAYER_PROJECT (owner.testnet/name; default: that account's blind-deal).
 import { Account } from "near-api-js";
+import { RPC } from "./testnet.mjs";
 
 const accountId = process.env.ACCOUNT_ID;
 const key = process.env.PRIVATE_KEY;
@@ -9,7 +10,7 @@ if (!accountId || !key) throw new Error("set ACCOUNT_ID and PRIVATE_KEY");
 const project = process.env.OUTLAYER_PROJECT ?? `${accountId}/blind-deal`;
 const [secretsOwner] = project.split("/");
 
-const account = new Account(accountId, "https://rpc.testnet.near.org", key);
+const account = new Account(accountId, RPC, key);
 // The fee below is a generous deposit; OutLayer refunds what the run does not use.
 const out = await account.callFunction({
   contractId: "outlayer.testnet",

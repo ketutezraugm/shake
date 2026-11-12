@@ -22,7 +22,7 @@ Each session edits only its own workstream section below.
 - **Artifacts:** style tiles https://claude.ai/artifact/N3gwoQ5biN7HzEoD2ZntvZ · design system (Abel owns) https://claude.ai/artifact/MZUADs1rMt3bbtCbXChzke
 
 ## Contracts & TEE
-- Owner: Ezra (ketutezraugm). Next: lock the secret to the WASM build before the demo; help FE with M1-10/M1-11 wiring; S-items. Contract id, TEE pubkey and project are in DECISIONS.md (M1-06, M1-07). Done: D1-08 spike (answers in DECISIONS.md; testnet account `spike-82nkvzn7.testnet` is throwaway; `outlayer` CLI v0.2.3 is a manual download), D1-04 stub, D1-05 TS types, M1-05 matcher, M1-01 create_deal (vectors in tee/testvectors.json for FE M1-10). In progress: none. Blockers: none.
+- Owner: Ezra (ketutezraugm). The secret is locked to the WASM build (DECISIONS.md says how to move the lock on a redeploy). Next: at the freeze drop the test contract from the secret's `--via` readers; S-01 `attest` action once M1-11 is in; P-04 freeze checks. Live: demo contract `blind-deal-59xtyh4b.testnet`, TEE pubkey and project in DECISIONS.md (M1-06, S-05). Use `https://test.rpc.fastnear.com`, not the legacy RPC, and mind the faucet rate limit (S-05). Done: D1-08, D1-04, D1-05, M1-01..M1-07, S-05. In progress: none. Blockers: none.
 
 ## Backend & integration
 - Owner: Harfi (SyuraMoons), also the integrator: runs /review-pr on every needs-review PR first. Done: D1-01 scaffold (#11). Integration: merged #11, #9, #12, #7. Next: apply `supabase/migrations/0001_marketplace.sql` to the Supabase project, D1-02 CI, D1-03 Render hello-world, D1-09 `POST /accounts`. In progress: docs/DATA-MODEL.md (ERD, rewritten to match the deployed contract); merging the contract stack #13 to #24 and the hardening follow-up #27. Also built a throwaway test UI on mocks (D1-10, branch `fe/d1-10-routes`): landing, name step, sell form, deal page with buyer link; FE and design may rewrite it freely. Done since: MKT-01 marketplace API (listings, photos, slots, claim, sync, "my" views) on the relayer, tests with in-memory fakes (branch `bi/mkt-01-marketplace-api`); not yet run against a live Supabase (the migration is unapplied, MCP not connected). Blockers: Ezra to confirm the marketplace rule; migration to apply.
@@ -31,7 +31,7 @@ Each session edits only its own workstream section below.
 - Owner: Jose (ChristianoJ21). Next: D1-10 skeleton on mocks (after D1-05, D1-07). In progress: none. Blockers: none.
 
 ## Design & packaging (Abel)
-- Owner: Abel (rafaelaanabelpurba). Next: D1-07 tokens CSS, D1-11 screens in Claude Design (full brief arrives in Phase 7). In progress: none. Blockers: none.
+- Owner: Abel (rafaelaanabelpurba). Done: D1-07 tokens (PR #9); identity switched to direction G (#32 approved, PR #33); D1-11 drawn: 12 screens + demo split, phone and desktop, canvas https://claude.ai/artifact/2a84fxGdsY2sezcJvjVAaG page "Final screens (G)" (must be shared before others can open it; D1-11 tick waits on Jose confirming he can read it); M1-14 assets in PR #41 (9 stickers, 5 icons, app/src/design/assets/README.md; tick after FE merges). Design system: https://claude.ai/artifact/C52dyDv46uwPsNeJzL1Rgi. Next (marketplace pivot, #38): MK-30 screens in Claude Design, home, listing, profile first, reusing the G blind-offer, reveal, pay and proof frames; MK-31 seed photos (6 real items, team photos) by 11-13 afternoon. In progress: none. Blockers: none (canvas sharing is on Abel).
 
 ## Known bugs
 - none yet

@@ -4,7 +4,7 @@ import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
 
-export const RPC = "https://rpc.testnet.near.org";
+export const RPC = "https://test.rpc.fastnear.com"; // the legacy rpc.testnet.near.org rate-limits and is deprecated
 const CREDENTIALS = join(homedir(), ".near-credentials", "testnet");
 
 /** Creates a funded testnet account through the faucet and keeps its key outside the repo. */
