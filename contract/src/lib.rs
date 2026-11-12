@@ -1,4 +1,4 @@
-// Deal contract. Methods and storage: docs/ARCHITECTURE.md.
+// Deal contract. Methods and storage: docs/ARCHITECTURE.md, docs/DATA-MODEL.md.
 use near_sdk::json_types::U128;
 use near_sdk::serde::Deserialize;
 use near_sdk::serde_json::{self, json};

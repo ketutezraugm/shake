@@ -25,7 +25,7 @@ Each session edits only its own workstream section below.
 - Owner: Ezra (ketutezraugm). Next: lock the secret to the WASM build before the demo; help FE with M1-10/M1-11 wiring; S-items. Contract id, TEE pubkey and project are in DECISIONS.md (M1-06, M1-07). Done: D1-08 spike (answers in DECISIONS.md; testnet account `spike-82nkvzn7.testnet` is throwaway; `outlayer` CLI v0.2.3 is a manual download), D1-04 stub, D1-05 TS types, M1-05 matcher, M1-01 create_deal (vectors in tee/testvectors.json for FE M1-10). In progress: none. Blockers: none.
 
 ## Backend & integration
-- Owner: Harfi (SyuraMoons), also the integrator: runs /review-pr on every needs-review PR first. Next: D1-02 CI, D1-03 Render hello-world, D1-06, D1-09 relayer. In progress: D1-01 scaffold, in review. Blockers: none.
+- Owner: Harfi (SyuraMoons), also the integrator: runs /review-pr on every needs-review PR first. Done: D1-01 scaffold (#11). Integration: merged #11, #9, #12, #7. Next: D1-02 CI, D1-03 Render hello-world, D1-06, D1-09 relayer. In progress: docs/DATA-MODEL.md (ERD, rewritten to match the deployed contract); merging the contract stack #13 to #24 and the hardening follow-up #27. Blockers: none.
 
 ## Frontend
 - Owner: Jose (ChristianoJ21). Next: D1-10 skeleton on mocks (after D1-05, D1-07). In progress: none. Blockers: none.

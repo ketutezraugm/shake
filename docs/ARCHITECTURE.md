@@ -46,14 +46,14 @@ struct Deal {
   deadline_ns: Option<u64>,                    // set when Funded
 }
 ```
-**Units:** users enter Rupiah. Prices go into the TEE in Rupiah (integer string). The contract converts at a fixed demo rate set in `new` (`rp_per_near`, default 100,000,000, so a Rp 4.2M deal escrows 0.042 testnet NEAR; small on purpose because faucet limits are unverified), shown in the UI as "test rate". No oracle.
-Storage keys: `deals: LookupMap<u64, Deal>` (prefix `d`), `next_id: u64`, `tee_pubkey: Vec<u8>`, `outlayer: AccountId` (set in `new`; no later setter, so no admin).
+**Units:** users enter Rupiah. Prices go into the TEE in Rupiah (integer string). The contract converts once, at Matched, at a fixed demo rate (`RP_PER_NEAR` = 100,000,000, written to `rp_per_near` by `new`; not a parameter, so a Rp 4.2M deal escrows 0.042 testnet NEAR; small on purpose because faucet limits are unverified), shown in the UI as "test rate". No oracle.
+Storage keys: `deals: LookupMap<u64, Deal>` (prefix `d`), `next_id: u64`, `tee_pubkey: Vec<u8>`, `outlayer: AccountId`, `project_id: String`, `rp_per_near: u128` (all set in `new`; no later setter, so no admin). Entity diagram and state table: docs/DATA-MODEL.md.
 
 | Method | Signature | Access | Deposit |
 |---|---|---|---|
 | new | `(outlayer: AccountId, tee_pubkey: Vec<u8>, project_id: String)` init (`project_id` = OutLayer `owner/name`; the secret lives under the owner's account, profile `production`) | once | 0 |
 | create_deal | `(title, description, link_hash, max_rounds: u8) -> u64` | any; `max_rounds` in 1..=3 | 0 |
-| submit_limit | `(deal_id, ct: Vec<u8>, commit: [u8;32], link_token: Option<String>)` | round 1: seller first, buyer only with a token whose hash matches (first buyer binds the link); later rounds: either side, once per round, only in `Retry`/`Waiting` | the call that completes a round attaches the OutLayer fee (0.0021 NEAR covers one execution, unused part refunded to that caller); other calls attach nothing |
+| submit_limit | `(deal_id, ct: Vec<u8>, commit: [u8;32], link_token: Option<String>)` | round 1: seller first, buyer only with a token whose hash matches (first buyer binds the link); later rounds: either side, once per round, only in `Retry`/`Waiting` | the call that completes a round must attach a nonzero OutLayer fee (0.0021 NEAR covers one execution, unused part refunded to that caller); other calls attach nothing. `ct` at most 512 bytes |
 | on_outlayer_result | `(deal_id) -> ()` private callback, reads `promise_result(0)` | self, after predecessor check | 0 |
 | deposit | `(deal_id)` payable | buyer, state Matched | exactly `price` |
 | confirm_received | `(deal_id)` | buyer, state Funded | 0 |

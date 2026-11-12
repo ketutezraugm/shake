@@ -9,6 +9,7 @@ First time on a machine: **`/onboard`**. Then every session: run **`/inbox`** fi
 
 ## Doc map
 - `docs/ARCHITECTURE.md`: read before touching the contract, enclave code, relayer or their interfaces.
+- `docs/DATA-MODEL.md`: ERD, what data lives where, state table. Read before adding any stored field or type.
 - `docs/DECISIONS.md`: read before changing any behaviour; add an entry when you make a decision.
 - `docs/IDENTITY.md`: the visual spec (tokens, type, motion). Read before any UI work.
 - `docs/PRD.md`: scope (Must / Should / Could / Won't) and acceptance criteria.

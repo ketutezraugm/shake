@@ -66,6 +66,9 @@ Deal contract deployed at `blind-deal-8fjw0art.testnet` (312 KB, `new(outlayer.t
 ## 2026-11-12 Contract hardening after integration review
 `submit_limit` rejects a ciphertext over 512 bytes (an ECIES limit is about 200), because the contract pays storage for whatever it stores. The call that completes a round must attach a nonzero fee: without one OutLayer refuses and the round would silently end as a no-deal. The D1-04 stub's blanket `allow(dead_code, unused_variables)` is gone. Storage layout is unchanged, so a code-only redeploy to the same account is enough. Not changed: a deal can still stick in Computing if the callback itself panics; the M1-07 round trip landed the callback within about 5 s on 20 Tgas, so a timeout escape is left to Contracts & TEE.
 
+## 2026-11-12 Data model follows the contract as built
+docs/DATA-MODEL.md maps every piece of data to its one store; still no database, no relayer table, no deal index ("my deals" would be an optional read-only indexer, recorded here first). Its first draft proposed `Cancelled`/`Expired` states, a `price_rp`/`price_yocto` split and `rp_per_near` as a `new` argument; the contract shipped and deployed without them, so the page now documents the code instead: cancel and expire end in NoDeal, `price` is yoctoNEAR only (the app shows `price / 1e16` as Rupiah), and the rate is a constant.
+
 ## 2026-11-11 Private rounds replace "one attempt"
 Team feedback: one attempt punishes misjudgment. Seller chooses 1-3 rounds per buyer (default 2); concessions are monotonic (buyer up, seller down), enforced in the TEE; each round leaks at most 1 bit; a deal ends the game. Laddering accepted as private haggling. "Close" hint dropped (leaks more). Contract: `max_rounds`, `round`, per-round ciphertexts, `Retry` state. (IDEAS.md, feedback section)
 
