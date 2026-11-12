@@ -96,19 +96,19 @@
   --ease-in: cubic-bezier(0.7, 0, 0.84, 0);
   --ease-std: cubic-bezier(0.2, 0, 0, 1);
 
-  /* The reveal: the clipped-tags sticker drops in and settles once, then the price fades in. */
-  --reveal-lift: translateY(-24px);
-  --reveal-swing: rotate(-6deg);
-  --reveal-lift-dur: var(--dur-reveal);
-  --reveal-swing-dur: 300ms;
+  /* The shake, the brand's signature: stickers pop in with a damped wiggle; a deal ends with one vertical handshake. */
+  --dur-pop: 640ms;
+  --ease-pop: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --pop-stagger: 90ms;
+  --dur-handshake: 560ms;
+  --ease-handshake: cubic-bezier(0.3, 0.6, 0.3, 1);
+  --handshake-delay: 520ms;
 }
 
-/* Reduced motion: drop and swing collapse to a 200 ms crossfade; components keep their opacity transition. */
+/* Reduced motion: stickers fade in over --dur-quick with no wiggle, and the handshake is skipped. */
 @media (prefers-reduced-motion: reduce) {
   :root {
-    --reveal-lift: none;
-    --reveal-swing: none;
-    --reveal-lift-dur: var(--dur-quick);
-    --reveal-swing-dur: 0ms;
+    --dur-pop: var(--dur-quick);
+    --dur-handshake: 0ms;
   }
 }
