@@ -26,5 +26,7 @@ export interface Store {
   /** The buyer's existing slot, a newly claimed one, or null when the listing is full. */
   claim(id: string, buyer: string): Promise<ClaimRes | null>;
   negotiationsOf(buyer: string): Promise<Negotiation[]>;
-  setStatus(id: string, status: ListingStatus): Promise<void>;
+  /** `reservedDeal` is the deal holding a reservation, and null otherwise. */
+  setStatus(id: string, status: ListingStatus, reservedDeal?: number | null): Promise<void>;
+  reservedDealOf(id: string): Promise<number | null>;
 }

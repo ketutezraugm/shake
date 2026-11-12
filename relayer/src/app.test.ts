@@ -182,17 +182,61 @@ describe("claim", () => {
 });
 
 describe("sync", () => {
-  it("marks the listing sold once a deal is funded, and not before", async () => {
+  async function listingWithDeals(count: number) {
     const seller = person("ann.test");
     const listing = await newListing(seller);
-    near.deals.set(1, chainDeal(1, "ann.test", "tok1"));
-    await call(seller, "POST", `/listings/${listing.id}/slots`, { slots: [{ dealId: 1, linkToken: "tok1" }] });
+    for (let id = 1; id <= count; id++) near.deals.set(id, chainDeal(id, "ann.test", `tok${id}`));
+    const slots = Array.from({ length: count }, (_, i) => ({ dealId: i + 1, linkToken: `tok${i + 1}` }));
+    await call(seller, "POST", `/listings/${listing.id}/slots`, { slots });
+    return listing;
+  }
+  const sync = async (listing: Listing) => (await call(null, "POST", `/listings/${listing.id}/sync`)).json.status;
+  const setDeal = (id: number, patch: Partial<ChainDeal>) => near.deals.set(id, chainDeal(id, "ann.test", `tok${id}`, { buyer: "bob.test", ...patch }));
 
-    near.deals.set(1, chainDeal(1, "ann.test", "tok1", { state: "Matched", buyer: "bob.test" }));
-    expect((await call(null, "POST", `/listings/${listing.id}/sync`)).json.status).toBe("open");
-
-    near.deals.set(1, chainDeal(1, "ann.test", "tok1", { state: "Funded", buyer: "bob.test" }));
-    expect((await call(null, "POST", `/listings/${listing.id}/sync`)).json.status).toBe("sold");
+  it("reserves the listing once a deal is matched, and not before", async () => {
+    const listing = await listingWithDeals(1);
+    setDeal(1, { state: "Waiting" });
+    expect(await sync(listing)).toBe("open");
+    setDeal(1, { state: "Matched" });
+    expect(await sync(listing)).toBe("reserved");
     expect((await call(null, "GET", "/listings")).json.listings).toHaveLength(0);
+  });
+
+  it("sells the listing once a deal is released", async () => {
+    const listing = await listingWithDeals(1);
+    setDeal(1, { state: "Matched" });
+    await sync(listing);
+    setDeal(1, { state: "Released" });
+    expect(await sync(listing)).toBe("sold");
+  });
+
+  it("reopens the listing when the reserving deal expires or is refunded", async () => {
+    const listing = await listingWithDeals(1);
+    setDeal(1, { state: "Funded" });
+    expect(await sync(listing)).toBe("reserved");
+    setDeal(1, { state: "NoDeal", matched_at_ns: 5 });
+    expect(await sync(listing)).toBe("open");
+    setDeal(1, { state: "Funded" });
+    await sync(listing);
+    setDeal(1, { state: "Refunded", matched_at_ns: 5 });
+    expect(await sync(listing)).toBe("open");
+  });
+
+  it("keeps the first reservation when a second deal also matches", async () => {
+    const listing = await listingWithDeals(2);
+    setDeal(2, { state: "Matched" });
+    await sync(listing);
+    setDeal(1, { state: "Matched" });
+    await sync(listing);
+    expect(store.reservedDeals.get(listing.id)).toBe(2);
+    setDeal(2, { state: "NoDeal", matched_at_ns: 5 });
+    expect(await sync(listing)).toBe("open");
+  });
+
+  it("refuses claims unless the listing is open", async () => {
+    const listing = await listingWithDeals(2);
+    setDeal(1, { state: "Matched" });
+    await sync(listing);
+    expect((await call(person("carol.test"), "POST", `/listings/${listing.id}/claim`)).status).toBe(409);
   });
 });

@@ -3,7 +3,7 @@
 export const CATEGORIES = ["electronics", "fashion", "home", "vehicles", "hobbies", "other"] as const;
 export type Category = (typeof CATEGORIES)[number];
 
-export type ListingStatus = "open" | "sold" | "closed";
+export type ListingStatus = "open" | "reserved" | "sold" | "closed";
 
 export const PHOTO_TYPES = ["image/jpeg", "image/png", "image/webp"] as const;
 export type PhotoType = (typeof PHOTO_TYPES)[number];

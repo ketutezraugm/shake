@@ -149,8 +149,13 @@ export function supabaseStore(url: string, serviceKey: string): Store {
       );
     },
 
-    async setStatus(id, status) {
-      check(await db.from("listings").update({ status }).eq("id", id));
+    async setStatus(id, status, reservedDeal = null) {
+      check(await db.from("listings").update({ status, reserved_deal_id: reservedDeal }).eq("id", id));
+    },
+
+    async reservedDealOf(id) {
+      const row = check(await db.from("listings").select("reserved_deal_id").eq("id", id).single<{ reserved_deal_id: number | null }>());
+      return row.reserved_deal_id;
     },
   };
 }

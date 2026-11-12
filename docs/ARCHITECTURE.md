@@ -113,7 +113,7 @@ Built in PR #35:
 | POST /listings/:id/slots | seller | `{slots:[{dealId, linkToken}]}`, max 10 per listing (409 above); listing must be open; each deal verified on chain: the seller's, `Waiting`, no buyer, same `max_rounds`, token hashes to `link_hash` |
 | POST /listings/:id/claim | signed buyer | `{dealId, linkToken}`; the same slot on repeat; 409 when none is free or the listing is not open; 403 for the seller |
 | POST /listings/:id/close | seller | Ends an open listing |
-| POST /listings/:id/sync | none | Re-reads the slot deals and updates the listing status (rules in docs/DATA-MODEL.md). As built it only marks `sold` on Funded or Released; Revision B adds `reserved` and the way back to `open` (MK-12) |
+| POST /listings/:id/sync | none | Re-reads the slot deals and updates the listing status (rules in docs/DATA-MODEL.md). Matched or Funded reserves, Released sells, an expired or refunded reservation reopens |
 | GET /me/listings | signed | The seller's listings with `slots: [{dealId, buyerAccount}]` (no link tokens) |
 | GET /me/negotiations | signed | The buyer's claimed deals with link tokens |
 
