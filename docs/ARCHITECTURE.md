@@ -51,14 +51,14 @@ Storage keys: `deals: LookupMap<u64, Deal>` (prefix `d`), `next_id: u64`, `tee_p
 
 | Method | Signature | Access | Deposit |
 |---|---|---|---|
-| new | `(outlayer: AccountId, tee_pubkey: Vec<u8>)` init | once | 0 |
+| new | `(outlayer: AccountId, tee_pubkey: Vec<u8>, project_id: String)` init (`project_id` = OutLayer `owner/name`; the secret lives under the owner's account, profile `production`) | once | 0 |
 | create_deal | `(title, description, link_hash, max_rounds: u8) -> u64` | any; `max_rounds` in 1..=3 | 0 |
-| submit_limit | `(deal_id, ct: Vec<u8>, commit: [u8;32], link_token: Option<String>)` | round 1: seller first, buyer only with a token whose hash matches (first buyer binds the link); later rounds: either side, once per round, only in `Retry`/`Waiting` | attach for OutLayer fee on second call (UNVERIFIED amount; spike) |
+| submit_limit | `(deal_id, ct: Vec<u8>, commit: [u8;32], link_token: Option<String>)` | round 1: seller first, buyer only with a token whose hash matches (first buyer binds the link); later rounds: either side, once per round, only in `Retry`/`Waiting` | the call that completes a round attaches the OutLayer fee (0.0021 NEAR covers one execution, unused part refunded to that caller); other calls attach nothing |
 | on_outlayer_result | `(deal_id) -> ()` private callback, reads `promise_result(0)` | self, after predecessor check | 0 |
 | deposit | `(deal_id)` payable | buyer, state Matched | exactly `price` |
 | confirm_received | `(deal_id)` | buyer, state Funded | 0 |
 | refund | `(deal_id)` | buyer or anyone, state Funded and now > deadline | 0 |
-| cancel | `(deal_id)` | seller, state Created or SellerIn | 0 |
+| cancel | `(deal_id)` | seller, state Created or Waiting; ends as NoDeal | 0 |
 | expire | `(deal_id)` | anyone, state Matched and unfunded > 24 h after `matched_at_ns` | 0 |
 | get_deal / get_state | views | any | 0 |
 

@@ -47,6 +47,9 @@ The `match` request now also carries `seller_commits` and `buyer_commits` (hex, 
 ## 2026-11-12 Contract host tests on Windows (M1-01)
 `cargo test -p contract` builds near-sdk's unit-testing dependencies, and `aws-lc-sys` wants NASM on Windows. Setting `AWS_LC_SYS_PREBUILT_NASM=1` uses its prebuilt objects instead, so no NASM install is needed (`export AWS_LC_SYS_PREBUILT_NASM=1` in bash, `$env:AWS_LC_SYS_PREBUILT_NASM=1` in PowerShell). Limits: title 1-100 bytes, description at most 1000 bytes; deal ids start at 0.
 
+## 2026-11-12 submit_limit, rounds and cancel (M1-02)
+`new` takes a third argument, `project_id` (OutLayer `owner/name`): the contract must name the project to run, and the secret is read from the owner's account under profile `production`. The call that completes a round attaches the OutLayer fee and the contract forwards all of it to `request_execution` with the caller as `payer_account_id`, so the unused fee is refunded to whoever paid; any other call must attach nothing. Gas is 200 TGas for the OutLayer call and 20 TGas for the callback, both guesses to tune at M1-07. A failed OutLayer call does not undo the submit (the promise is dropped, not returned). `cancel` ends a deal as `NoDeal` (no separate Cancelled state) and works only for the seller in Created or Waiting. `on_outlayer_result` handles only the no-deal paths so far (Retry while rounds remain, else NoDeal); M1-03 adds the matched path and `cancel_blocked_once_matched`.
+
 ## 2026-11-11 Private rounds replace "one attempt"
 Team feedback: one attempt punishes misjudgment. Seller chooses 1-3 rounds per buyer (default 2); concessions are monotonic (buyer up, seller down), enforced in the TEE; each round leaks at most 1 bit; a deal ends the game. Laddering accepted as private haggling. "Close" hint dropped (leaks more). Contract: `max_rounds`, `round`, per-round ciphertexts, `Retry` state. (IDEAS.md, feedback section)
 
