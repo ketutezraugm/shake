@@ -8,7 +8,7 @@ For Abel and her Claude. **Abel owns every visual decision.** This brief separat
 - **Avoid list:** `docs/PLAYBOOK.md` section 6 lists looks the research says judges have seen too often (dark neon crypto, cream-and-serif editorial, stock landing-page structures, library icons). Treat it as advice; override it when you have a reason.
 
 ## The product in 60 seconds *(Fixed; changed 2026-11-12 by the marketplace pivot)*
-A second-hand marketplace where no listing shows a price. A seller puts their shop link (`/@handle`) in their Instagram or marketplace bio. Buyers land on the shop, open a listing (photos, details), ask an AI assistant about the item or ask the seller publicly, then make a blind offer: the seller sealed a minimum when listing, the buyer types a maximum, and a sealed machine (a TEE) compares them. On an overlap the deal closes at a random price inside it; otherwise the buyer sees "no deal" and learns nothing else. The seller picks 1-3 rounds per buyer; after a no-deal the buyer may only raise. A match reserves the item; the buyer pays into escrow; chat opens; the money releases when the buyer taps "Received" and the item shows Sold.
+A second-hand marketplace where every listing shows an asking price but nobody can see how low the seller would go (changed 2026-11-13). A seller puts their shop link (`/@handle`) in their Instagram or marketplace bio. Buyers land on the shop, open a listing (photos, details), ask an AI assistant about the item or ask the seller publicly, then make a blind offer: the seller sealed a minimum when listing, the buyer types a maximum, and a sealed machine (a TEE) compares them. On an overlap the deal closes at a random price inside it; otherwise the buyer sees "no deal" and learns nothing else. The seller picks 1-3 rounds per buyer; after a no-deal the buyer may only raise. A match reserves the item; the buyer pays into escrow; chat opens; the money releases when the buyer taps "Received" and the item shows Sold.
 
 **Who and where:** people selling used things (students first), both non-crypto, on a phone, arriving from an Instagram or marketplace bio. Browsing is minutes; an offer is 1-3 minutes. Mistakes cost real money, so the number entry and the confirm step must be unmistakable. Second audience: judges on a laptop or projector, starting from the seeded shop `/@demo`.
 
@@ -16,14 +16,14 @@ A second-hand marketplace where no listing shows a price. A seller puts their sh
 Build order for Frontend: 1, 4, 3 first (task MK-30 in docs/plans/IMPLEMENTATION.md).
 | # | Screen | Purpose | Must show | States |
 |---|---|---|---|---|
-| 1 | Home | Browse open listings | Grid of listing cards (photo, title, city, condition, "Blind offer" badge, no price), search, category filter | first visit, results, no results, loading |
+| 1 | Home | Browse open listings | Grid of listing cards (photo, title, asking price, city, "Blind offer" badge), search, category filter | first visit, results, no results, loading |
 | 2 | Sign in + handle | Google or email link (NEAR account made behind it), or "Connect NEAR wallet" for people who have one; then pick a shop handle | Both sign-in options, handle field | email sent, wallet connecting, wallet rejected, taken handle, creating account, error |
 | 3 | Seller profile `/@handle` | The bio link destination | Avatar, name, bio, city, sold count, active listings (Reserved badge) | own profile (edit), visitor, not found, empty shop |
-| 4 | Listing | Decide whether to offer | Up to 5 photos, title, details, seller card, "N of 10 offers used", AI assistant, public Q&A, "Make a blind offer" | Open, Reserved, Sold, Closed, offers full, own listing |
+| 4 | Listing | Decide whether to offer | Up to 4 photos, title, asking price, details, seller card, "N of 10 offers used", AI assistant, public Q&A, "Make a blind offer" | Open, Reserved, Sold, Closed, offers full, own listing |
 | 5 | AI assistant | Answer questions about this item | Question box, answer, "the seller didn't say" + "Ask the seller" | thinking, answer, unknown, rate-limited, error |
 | 6 | Public Q&A | Questions and the seller's answers | Answered questions; seller sees unanswered with an answer field | none yet, pending (asker and seller only) |
-| 7 | Create listing | Seller lists an item | Photos (up to 5), title, description, category, condition, city, rounds (1/2/3, default 2), sealed minimum with "only you see this" | empty, filled, uploading, sealing, submitting, error |
-| 8 | Blind offer | Buyer sets a maximum privately | Item, Rupiah amount, round x of y, "only you see this", confirm step | empty, typing, invalid, confirm, encrypting, offers full, waiting for the seller (round 2+), wallet approval (wallet users) |
+| 7 | Create listing | Seller lists an item | Photos (up to 4), title, description, category, city, asking price (public), rounds (1/2/3, default 2), lowest price you'd accept (sealed, at or below the asking price) with "only you see this" | empty, filled, uploading, sealing, submitting, error |
+| 8 | Blind offer | Buyer sets a maximum privately, up to the asking price | Item, asking price as the cap, Rupiah amount, round x of y, "only you see this", confirm step | empty, typing, invalid, confirm, encrypting, offers full, waiting for the seller (round 2+), wallet approval (wallet users) |
 | 9 | Reveal: deal | The magic moment | Deal price, "neither of you sees the other's number" | deal, another buyer got there first (no pay button) |
 | 10 | Reveal: no deal | Rounds left | "No deal this round", rounds left, raise | rounds left, final no deal |
 | 11 | Pay + handover | Buyer funds escrow, then confirms | Price in Rp and test NEAR, pay; later "Received", deadline, refund note | paying, paid, released, refunded, expired |
@@ -40,7 +40,7 @@ The reveal (9) is the one moment that should feel like an event. Everything else
 - Enter limit (seller): "The lowest you'd accept. Only you will ever see this number."
 - Enter limit (buyer): "The most you'd pay. Only you will ever see this number."
 - Confirm: "Lock Rp 4.000.000? You can't change it this round."
-- Listing badge: "Blind offer. No price here: make your offer privately."
+- Listing badge: "Blind offer. Offer the asking price and you'll pay it or less. Offer less and the seller never learns your number."
 - Assistant unknown: "The seller didn't mention that. Ask them? Their answer will show here for everyone."
 - Chat locked: "Chat opens once you have a deal."
 - Deal: "Deal: Rp 4.200.000. Neither of you will see the other's number."

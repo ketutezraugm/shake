@@ -2,6 +2,9 @@
 
 Date: 2026-11-12. Owner: Ezra (lead). Status: approved in conversation; this doc feeds the rewrite of PRD, ARCHITECTURE, DATA-MODEL, IMPLEMENTATION and TEAM.
 
+## Revision C (2026-11-13): asking price
+Every listing shows a required asking price; the seller's floor (sealed minimum) is at or below it and stays sealed; the app caps offers at the ask, so offering the ask always matches at a price between floor and ask. Wins over "no price" anywhere below. Details: DECISIONS.md 2026-11-13.
+
 ## Revision B (2026-11-12, after PR #35): slots and two sign-ins. This section wins over anything below it.
 
 Harfi built the marketplace backend on the **existing contract** (PR #35, merged): many buyers per listing work through pre-created deals ("slots"). Ezra chose it over the contract v2 rewrite, and wants both Google/email sign-in and NEAR wallet login. So:

@@ -13,7 +13,7 @@ Second-hand sellers already have an audience: they put a link in their Instagram
 
 ## User stories
 1. As a seller, I put one profile link in my bio, so buyers arrive at my shop and I do not quote a price in a DM.
-2. As a seller, I list an item with photos and a sealed minimum, so no listing shows a price.
+2. As a seller, I list an item with photos and an asking price, and seal my real floor below it, so buyers can browse by budget without learning how low I would go.
 3. As a buyer or seller, I sign in with Google or an email link, or with my NEAR wallet.
 4. As a buyer, I browse and search open listings and ask the assistant about an item without talking to the seller.
 5. As a buyer, I ask the seller a question when the assistant does not know, and see the answer on the listing.
@@ -25,18 +25,18 @@ Second-hand sellers already have an audience: they put a link in their Instagram
 11. As a judge, I open a seeded demo shop without two devices.
 
 ## Magic moment
-A buyer taps the bio link and lands in the seller's shop, not on a price tag. Later both phones show the same reveal at the same time: "Deal at Rp X", or "No deal", with no other number shown.
+A buyer taps the bio link and lands in the seller's shop, where every item has an asking price and nobody can see how low the seller would go. Later both phones show the same reveal at the same time: "Deal at Rp X", or "No deal", with no other number shown.
 
 ## Scope (from the design doc, Revision B)
 **Must (by the freeze, 2026-11-14 00:00 UTC):**
 1. Sign-in with Google or email, or a NEAR wallet. Google or email creates a profile and, behind it, `handle.<parent>.testnet` funded by the relayer. A wallet login uses the user's own NEAR account.
 2. Seller profile at `/@handle`: avatar, display name, bio, city, active listings, sold count. This is the bio link.
-3. Create listing: title, description, up to 4 photos, category, rounds (1-3, default 2), sealed minimum. No price field shown publicly. The app creates up to 10 slots (pre-created deals) for it.
-4. Public browse: home grid of open listings, text search, category filter.
-5. Listing page: photos, details, seller card, "Blind offer" badge, free-slots counter, AI assistant, public Q&A.
+3. Create listing: title, description, up to 4 photos, category, rounds (1-3, default 2), a required asking price (shown publicly) and a sealed minimum at or below it (never shown). The app creates up to 10 slots (pre-created deals) for it.
+4. Public browse: home grid of open listings with their asking prices, text search, category filter.
+5. Listing page: photos, details, asking price, seller card, "Blind offer" badge, free-slots counter, AI assistant, public Q&A.
 6. AI product assistant (NEAR AI Cloud via the relayer): answers from the listing and its public Q&A only; when unsure it says so and offers "Ask the seller".
 7. Public Q&A: signed-in buyers ask; only the seller answers; answered questions show on the listing.
-8. Blind offer: the buyer claims a slot, enters a maximum (encrypted in the browser to the TEE key), up to the listing's rounds, raising only. Later rounds need the seller's resubmission. Reveal shows "Deal at Rp X" or "No deal".
+8. Blind offer: the buyer claims a slot, enters a maximum up to the asking price (encrypted in the browser to the TEE key), up to the listing's rounds, raising only. Offering the asking price always matches, at a price between the seller's floor and the ask. Later rounds need the seller's resubmission. Reveal shows "Deal at Rp X" or "No deal".
 9. On a match the listing becomes reserved; buyer pays into escrow; "Received" releases to the seller and the listing becomes sold. When the reserving deal expires or is refunded, the listing is open again.
 10. Chat per deal, opened at Matched, between the two parties only, through relayer endpoints.
 11. Seeded demo shop with several listings (the team's own photos of real items) and slots: one Released deal with a short chat, one NoDeal, the rest open.
@@ -55,10 +55,10 @@ Anti-goals (a failure even if it works): any path where a buyer sees or infers t
 |---|---|
 | 1 | Google or email: signing in gives a Supabase session, and `POST /accounts` with that JWT returns `{accountId}` within 15 s; the account exists on testnet with the browser key as full-access key. No JWT returns 401; a second account for the same user or a taken handle returns 409; the per-IP limit returns 429; the secret key is never sent to the relayer. Wallet: sign-in yields a function-call access key on the deal contract; a relayer request signed with that key is accepted, one signed with an unknown key gets 401. A `profiles` row exists for either path, keyed by NEAR account id. |
 | 2 | A signed-out visitor to `/@handle` (`GET /profiles/:handle`) sees avatar, display name, bio, city, active listings and sold count; an unknown handle shows "not found". Sold count equals the seller's listings with status `sold`. `PUT /me/profile` changes only the caller's row. |
-| 3 | Creating a listing with 4 photos succeeds and a 5th returns 409. `maxRounds` outside 1..=3 is refused. `POST /listings/:id/slots` accepts a slot only when the deal is on chain, belongs to the caller, is `Waiting` with no buyer, has the listing's `max_rounds`, and the link token hashes to `link_hash`; otherwise 400. An 11th slot returns 409. No price or minimum appears in the page, the Supabase row, a response or the photo metadata. |
-| 4 | The home grid, signed out, shows only listings with status `open`. A search term matches title or description; the category filter narrows the grid; both work together. |
-| 5 | The listing page shows photos, details, seller card, the "Blind offer" badge and `freeSlots`. At 0 free slots it shows "Offers full" and the offer button is disabled. |
-| 6 | An answer present in the listing text or an answered Q&A is returned. A question not covered returns `{unknown:true}` and the app shows "Ask the seller". A question about price, offers or the minimum is declined. A unit test shows the prompt context built by the relayer holds only listing text and answered Q&A. The 21st request in an hour from one account returns 429. |
+| 3 | Creating a listing with 4 photos succeeds and a 5th returns 409. `maxRounds` outside 1..=3 is refused. `POST /listings/:id/slots` accepts a slot only when the deal is on chain, belongs to the caller, is `Waiting` with no buyer, has the listing's `max_rounds`, and the link token hashes to `link_hash`; otherwise 400. An 11th slot returns 409. `askingPrice` is required, whole Rupiah, nonzero (else 400). The app refuses a minimum above the asking price before any request. No minimum appears in the page, the Supabase row, a response or the photo metadata. |
+| 4 | The home grid, signed out, shows only listings with status `open`, each with its asking price. A search term matches title or description; the category filter narrows the grid; both work together. |
+| 5 | The listing page shows photos, details, the asking price, seller card, the "Blind offer" badge and `freeSlots`. The offer field refuses a number above the asking price. At 0 free slots it shows "Offers full" and the offer button is disabled. |
+| 6 | An answer present in the listing text or an answered Q&A is returned. A question not covered returns `{unknown:true}` and the app shows "Ask the seller". The assistant may repeat the asking price; a question about offers, discounts or the seller's minimum is declined. A unit test shows the prompt context built by the relayer holds only listing text and answered Q&A. The 21st request in an hour from one account returns 429. |
 | 7 | A signed-in buyer can post a question (`POST /listings/:id/questions`); an unsigned request gets 401. Only the listing's seller can answer (`POST /questions/:id/answer`); anyone else gets 403. `GET /listings/:id/questions` returns answered questions only. |
 | 8 | `POST /listings/:id/claim` returns the caller's slot, and the same slot on repeat; 409 when none is free; 409 unless the listing is `open`; 403 for the seller. Ciphertext over 512 bytes is rejected by the contract. A lowered buyer round gives a no-deal from the TEE. Seller_min <= buyer_max gives `matched=true` and a price within [min, max]; otherwise `matched=false`, price absent. Unit tests in `tee/` run offline. A callback from any account other than `outlayer.testnet` is rejected. After a no-deal with rounds left, the buyer sees "waiting for the seller" until the seller resubmits (the seller's inbox shows "Round 2 requested"); the buyer cannot complete round 2 alone. Both clients show the same state within 5 s of the callback and the reveal shows only the price or "no deal". |
 | 9 | A match sets the deal to Matched, and `POST /listings/:id/sync` sets the listing `reserved`; the seller's app then cancels unclaimed and still-Waiting slots. A second buyer whose deal also matched sees "Another buyer got there first" and no pay button. `deposit` of exactly `price` by the buyer within 24 h moves the deal to Funded; later it panics. `confirm_received` by the buyer pays the seller; sync sets the listing `sold`. When the reserving deal ends (`expire`, or `refund`), sync sets the listing back to `open`. Every wrong caller or state call panics; no owner-only method exists. |
