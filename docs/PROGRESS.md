@@ -14,7 +14,7 @@ Mirrors docs/plans/IMPLEMENTATION.md (marketplace plan, Revision B: slots and tw
 ## Block A: 2026-11-12 evening
 - [x] **MK-04** Client crypto, real contract client, slot helper (EZ)
 - [ ] **MK-10** Supabase: apply 0001, add 0002 (BI)
-- [ ] **MK-30** Marketplace screens in Claude Design (DP)
+- [x] **MK-30** Marketplace screens in Claude Design (DP): 32 frames, `docs/design/shake-marketplace-screens.html` (#77), linked in #70
 
 ## Block B: 2026-11-13 00:00-12:00 UTC
 - [ ] **MK-07** Marketplace round trip on testnet (CT): chain half passes (EZ); Supabase half waits on MK-10 and MK-12
@@ -28,15 +28,15 @@ Mirrors docs/plans/IMPLEMENTATION.md (marketplace plan, Revision B: slots and tw
 - [ ] **MK-23** Listing page: assistant and Q&A (FE): page, assistant and public Q&A in PR; assistant needs MK-05, offer button waits on MK-24, seller answering waits on MK-25 inbox
 
 ## Asking price (decided 2026-11-13)
-- [ ] **MK-15** Asking price in the API (BI)
+- [ ] **MK-15** Asking price in the API (BI): code, tests and migration 0003 written by CT (PR); the migration is not yet applied to the hosted project
 - [ ] **MK-26** Asking price in the screens (FE): sell form, cards and shop done in PR; offer-field cap waits on MK-24; real `askingPrice` field waits on MK-15
-- [ ] **MK-32** Asking price in the frames (DP)
+- [x] **MK-32** Asking price in the frames (DP)
 
 ## Block C: 2026-11-13 12:00-24:00 UTC
 - [x] **MK-05** AI product assistant (CT): `POST /assistant` live-model checks pass; the asking price joins the prompt once MK-15 lands
 - [ ] **MK-24** Offer flow (FE): flow and screens in PR, logic unit-tested; two-browser testnet run waits on MK-20 and a deployed relayer
 - [ ] **MK-25** Chat and inbox (FE): screens and logic in PR (stacked on MK-24); live run waits on MK-20 and a deployed relayer
-- [ ] **MK-31** Seed photos (DP)
+- [x] **MK-31** Seed photos (DP): `seed/` with 6 freely licensed photos, listings and sources
 - [ ] **MK-14** Seed: demo shop (BI)
 - [ ] **MK-40** End-to-end happy path (BI)
 - [ ] **S-06** Hosted deploy (BI)
