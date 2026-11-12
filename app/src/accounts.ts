@@ -3,6 +3,7 @@ import { clearWalletSession } from "./walletSigner";
 import { RelayerError } from "./relayer";
 
 const STORAGE_KEY = "blind-deal:account";
+const HANDLE_KEY = "blind-deal:handle";
 // Parent account name is not chosen yet (DECISIONS.md, App account); M1-11 swaps this mock for the relayer call.
 const PARENT = "blind-deal.testnet";
 
@@ -83,7 +84,18 @@ export function importBackup(backup: string, storage: Storage = localStorage): s
   return account;
 }
 
+export function saveHandle(handle: string, storage: Storage = localStorage): void {
+  storage.setItem(HANDLE_KEY, handle);
+}
+
+/** A wallet account id says nothing about the shop handle chosen at sign-up, so the handle is stored beside it. */
+export function currentHandle(storage: Storage = localStorage): string | null {
+  const account = currentAccount(storage);
+  return account && (storage.getItem(HANDLE_KEY) ?? account.split(".")[0] ?? null);
+}
+
 export function signOut(storage: Storage = localStorage): void {
   storage.removeItem(STORAGE_KEY);
+  storage.removeItem(HANDLE_KEY);
   clearWalletSession(storage);
 }

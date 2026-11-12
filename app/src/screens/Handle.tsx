@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from "react";
-import { createAccount, currentAccount, handleSuggestions, isHandleTaken, isValidHandle, openAccount } from "../accounts";
+import { createAccount, currentAccount, currentHandle, handleSuggestions, isHandleTaken, isValidHandle, openAccount, saveHandle } from "../accounts";
 import { loadSession } from "../auth";
 import { authConfig, relayerUrl } from "../config";
 import backIcon from "../design/assets/icons/back.svg";
@@ -19,7 +19,7 @@ export function Handle() {
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    if (signedUp) navigate(`/@${signedUp.split(".")[0]}`);
+    if (signedUp) navigate(`/@${currentHandle()}`);
     else if (!walletSession && !login) navigate("/signin");
   }, [signedUp, walletSession, login]);
 
@@ -40,7 +40,9 @@ export function Handle() {
     setError(null);
     setTaken(null);
     try {
-      navigate(`/@${await create()}`);
+      const saved = await create();
+      saveHandle(saved);
+      navigate(`/@${saved}`);
     } catch (e) {
       if (isHandleTaken(e)) setTaken(handle);
       else setError((e as Error).message);

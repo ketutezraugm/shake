@@ -1,5 +1,5 @@
 import { useState, type FormEvent, type ReactNode } from "react";
-import { currentAccount } from "../accounts";
+import { currentHandle } from "../accounts";
 import lockup from "../design/assets/logo/shake-lockup.svg";
 import { Link, navigate } from "../routes";
 import { AccountMenu } from "./AccountMenu";
@@ -55,8 +55,7 @@ const SHOP = (handle: string): Tab => ({
  * On a wide screen (frames "Desktop 1-9"): a white header with the logo, a search field and the main links.
  */
 export function Shell({ path, children }: { path: string; children: ReactNode }) {
-  const account = currentAccount();
-  const handle = account?.split(".")[0];
+  const handle = currentHandle();
   const tabs = [BROWSE, SELL, INBOX, ...(handle ? [SHOP(handle)] : [])];
   const [draft, setDraft] = useState(() => new URLSearchParams(location.search).get("q") ?? "");
 

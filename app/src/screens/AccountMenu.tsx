@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { currentAccount } from "../accounts";
+import { currentAccount, currentHandle } from "../accounts";
 import { Link, navigate } from "../routes";
 import { leave } from "../session";
 
@@ -8,7 +8,7 @@ export function AccountMenu() {
   const [open, setOpen] = useState(false);
   const root = useRef<HTMLDivElement>(null);
   const accountId = currentAccount();
-  const handle = accountId?.split(".")[0];
+  const handle = currentHandle();
 
   useEffect(() => {
     if (!open) return;

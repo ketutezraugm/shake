@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { currentAccount, exportBackup, handleSuggestions, importBackup, isHandleTaken, isValidHandle, openAccount, signOut } from "./accounts";
+import { currentAccount, exportBackup, handleSuggestions, importBackup, isHandleTaken, isValidHandle, openAccount, saveHandle, signOut, currentHandle } from "./accounts";
 import { loadIdentity } from "./keys";
 
 function fakeStorage(): Storage {
@@ -89,5 +89,15 @@ describe("signOut", () => {
     signOut(storage);
     expect(currentAccount(storage)).toBeNull();
     expect(storage.getItem("blind-deal:wallet-session")).toBeNull();
+  });
+});
+
+describe("currentHandle", () => {
+  it("prefers the stored shop handle over the account id", () => {
+    const storage = fakeStorage();
+    storage.setItem("blind-deal:account", "harfi02.testnet");
+    expect(currentHandle(storage)).toBe("harfi02");
+    saveHandle("harfi", storage);
+    expect(currentHandle(storage)).toBe("harfi");
   });
 });
