@@ -33,6 +33,7 @@ Mirrors docs/plans/IMPLEMENTATION.md. Tick a box only after the task's done-chec
 - [ ] **M1-12** Seed script
 - [ ] **M1-13** End-to-end happy path (one test)
 - [ ] **M1-14** Hand screens and assets to frontend
+- [x] **MKT-01** Marketplace backend: Supabase schema, listings and slots API on the relayer (HA)
 - [x] **G1** Decision gate: end of 11-11 (owner: lead, CT reports): passed, no fallback needed
 - [x] **F-01** Fallback matcher (contingent): not needed, G1 passed
 
