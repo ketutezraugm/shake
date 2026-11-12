@@ -22,16 +22,16 @@ Each session edits only its own workstream section below.
 - **Artifacts:** style tiles https://claude.ai/artifact/N3gwoQ5biN7HzEoD2ZntvZ · design system (Abel owns) https://claude.ai/artifact/MZUADs1rMt3bbtCbXChzke
 
 ## Contracts & TEE
-- Owner: Ezra (ketutezraugm). Next: D1-04 contract stub (after the scaffold PR merges; its done-check needs `--target wasm32-unknown-unknown`), then M1-01. Done: D1-08 spike, answers in DECISIONS.md (testnet account `spike-82nkvzn7.testnet` is throwaway; `outlayer` CLI v0.2.3 is a manual download). In progress: none. Blockers: none.
+- Owner: Ezra (ketutezraugm). Next: lock the secret to the WASM build before the demo; help FE with M1-10/M1-11 wiring; S-items. Contract id, TEE pubkey and project are in DECISIONS.md (M1-06, M1-07). Done: D1-08 spike (answers in DECISIONS.md; testnet account `spike-82nkvzn7.testnet` is throwaway; `outlayer` CLI v0.2.3 is a manual download), D1-04 stub, D1-05 TS types, M1-05 matcher, M1-01 create_deal (vectors in tee/testvectors.json for FE M1-10). In progress: none. Blockers: none.
 
 ## Backend & integration
-- Owner: Harfi (SyuraMoons), also the integrator: runs /review-pr on every needs-review PR first. Done: D1-01 scaffold (#11). Integration: merged #11, #9, #12; #7 has changes requested. Next: D1-02 CI, D1-03 Render hello-world, D1-06, D1-09 relayer. In progress: docs/DATA-MODEL.md (ERD), waiting on Ezra to approve the contract changes it proposes. Blockers: none.
+- Owner: Harfi (SyuraMoons), also the integrator: runs /review-pr on every needs-review PR first. Done: D1-01 scaffold (#11). Integration: merged #11, #9, #12, #7. Next: D1-02 CI, D1-03 Render hello-world, D1-06, D1-09 relayer. In progress: docs/DATA-MODEL.md (ERD, rewritten to match the deployed contract); merging the contract stack #13 to #24 and the hardening follow-up #27. Blockers: none.
 
 ## Frontend
 - Owner: Jose (ChristianoJ21). Next: D1-10 skeleton on mocks (after D1-05, D1-07). In progress: none. Blockers: none.
 
 ## Design & packaging (Abel)
-- Owner: Abel (rafaelaanabelpurba). Done: D1-07 tokens CSS (PR open, `app/src/design/tokens.css`, fonts in `app/public/fonts/`). Next: D1-11 screens in Claude Design, then M1-14 assets. In progress: none. Blockers: none. Note: font URLs assume Vite serves `app/public/` at `/`; recheck once D1-01 lands.
+- Owner: Abel (rafaelaanabelpurba). Next: D1-07 tokens CSS, D1-11 screens in Claude Design (full brief arrives in Phase 7). In progress: none. Blockers: none.
 
 ## Known bugs
 - none yet

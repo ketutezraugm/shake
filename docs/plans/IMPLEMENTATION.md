@@ -14,7 +14,7 @@
 
 - Today 2026-11-10. Freeze 2026-11-13 12:00 UTC. Submit by 2026-11-14 12:00 UTC. M1 hard stop noon 11-12.
 - Testnet only. No admin key; `outlayer` is set in `new`, no setter. Callback accepted only from `outlayer.testnet`.
-- Rate `rp_per_near` default 100,000,000, set in `new`. Limits are decimal strings in Rupiah. Same bytes hashed on client and TEE: `sha256(limit, salt)`.
+- Rate `rp_per_near` is 100,000,000, a contract constant (no parameter, no setter). Limits are decimal strings in Rupiah. Same bytes hashed on client and TEE: `sha256(limit, salt)`.
 - Plaintext in each ciphertext: `{"deal_id","side","round","limit","salt"}`; WASM rejects deal_id or side mismatch with `{"deal_id":N,"error":"invalid"}`.
 - Relayer: 3 accounts per IP per hour, global daily cap, 503 when low; never sees limits or secret keys.
 - Motion: only `transform`/`opacity`, tokens from IDENTITY.md; no icon, illustration or animation libraries; fonts self-hosted woff2.
@@ -67,7 +67,7 @@ D1-08 (OutLayer spike) -> M1-05/06 (WASM + deploy) -> M1-07 (contract on testnet
 ### D1-04 Contract stub (signatures)
 - **Owner:** CT. **Deps:** D1-01.
 - **Files:** `contract/src/lib.rs` with `State`, `Deal`, and every method from ARCHITECTURE.md as `unimplemented!()` bodies.
-- **Produces:** `new(outlayer, tee_pubkey, rp_per_near)`, `create_deal(title, description, link_hash, max_rounds) -> u64`, `submit_limit(deal_id, ct, commit, link_token)`, `on_outlayer_result(deal_id)`, `deposit`, `confirm_received`, `refund`, `cancel`, `expire`, `get_deal`, `get_state`.
+- **Produces:** `new(outlayer, tee_pubkey, project_id)`, `create_deal(title, description, link_hash, max_rounds) -> u64`, `submit_limit(deal_id, ct, commit, link_token)`, `on_outlayer_result(deal_id)`, `deposit`, `confirm_received`, `refund`, `cancel`, `expire`, `get_deal`, `get_state`.
 - **Done:** `cargo check -p contract --target wasm32-unknown-unknown` exits 0.
 
 ### D1-05 Shared TS contract types

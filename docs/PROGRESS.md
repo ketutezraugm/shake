@@ -8,8 +8,8 @@ Mirrors docs/plans/IMPLEMENTATION.md. Tick a box only after the task's done-chec
 - [x] **D1-01** Monorepo scaffold (HA)
 - [ ] **D1-02** CI
 - [ ] **D1-03** Render hello-world
-- [ ] **D1-04** Contract stub (signatures)
-- [ ] **D1-05** Shared TS contract types
+- [x] **D1-04** Contract stub (signatures) (EZ)
+- [x] **D1-05** Shared TS contract types (EZ)
 - [ ] **D1-06** Relayer API types
 - [x] **D1-07** Design tokens CSS (RAP)
 - [x] **D1-08** OutLayer spike (2-3 h, time-boxed) (EZ)
@@ -19,13 +19,13 @@ Mirrors docs/plans/IMPLEMENTATION.md. Tick a box only after the task's done-chec
 
 ## Day 2: 2026-11-11, Milestone M1 (demo slice)
 
-- [ ] **M1-01** Contract: `new` + `create_deal` (TDD)
-- [ ] **M1-02** Contract: `submit_limit`, link token, rounds (TDD)
-- [ ] **M1-03** Contract: `on_outlayer_result` (TDD)
-- [ ] **M1-04** Contract: escrow (TDD)
-- [ ] **M1-05** WASM matching + commitment (TDD)
-- [ ] **M1-06** WASM: `get_pubkey`, build, deploy to OutLayer
-- [ ] **M1-07** Contract on testnet + OutLayer round trip
+- [x] **M1-01** Contract: `new` + `create_deal` (TDD) (EZ)
+- [x] **M1-02** Contract: `submit_limit`, link token, rounds (TDD) (EZ)
+- [x] **M1-03** Contract: `on_outlayer_result` (TDD) (EZ)
+- [x] **M1-04** Contract: escrow (TDD) (EZ)
+- [x] **M1-05** WASM matching + commitment (TDD) (EZ)
+- [x] **M1-06** WASM: `get_pubkey`, build, deploy to OutLayer (EZ)
+- [x] **M1-07** Contract on testnet + OutLayer round trip (EZ)
 - [ ] **M1-08** Relayer with rate limits
 - [ ] **M1-09** Frontend flow on mocks
 - [ ] **M1-10** Frontend ECIES + commitment
@@ -33,8 +33,8 @@ Mirrors docs/plans/IMPLEMENTATION.md. Tick a box only after the task's done-chec
 - [ ] **M1-12** Seed script
 - [ ] **M1-13** End-to-end happy path (one test)
 - [ ] **M1-14** Hand screens and assets to frontend
-- [ ] **G1** Decision gate: end of 11-11 (owner: lead, CT reports)
-- [ ] **F-01** Fallback matcher (contingent)
+- [x] **G1** Decision gate: end of 11-11 (owner: lead, CT reports): passed, no fallback needed
+- [x] **F-01** Fallback matcher (contingent): not needed, G1 passed
 
 ## Day 3: 2026-11-12 (Should items; M1 must be done by noon)
 
