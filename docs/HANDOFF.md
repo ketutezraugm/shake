@@ -25,7 +25,7 @@ Each session edits only its own workstream section below.
 - Owner: Ezra (ketutezraugm). Next: D1-04 contract stub, D1-08 OutLayer spike (2-3 h). In progress: none. Blockers: none.
 
 ## Backend & integration
-- Owner: Harfi (SyuraMoons), also the integrator: runs /review-pr on every needs-review PR first. Next: D1-01 scaffold, D1-02 CI, D1-03 Render hello-world, D1-06, D1-09 relayer. In progress: none. Blockers: none.
+- Owner: Harfi (SyuraMoons), also the integrator: runs /review-pr on every needs-review PR first. Next: D1-01 scaffold, D1-02 CI, D1-03 Render hello-world, D1-06, D1-09 relayer. In progress: docs/DATA-MODEL.md (ERD) on `bi/data-model`, waiting on Ezra to approve the contract changes it proposes. Blockers: none.
 
 ## Frontend
 - Owner: Jose (ChristianoJ21). Next: D1-10 skeleton on mocks (after D1-05, D1-07). In progress: none. Blockers: none.

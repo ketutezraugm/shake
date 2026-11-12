@@ -14,8 +14,8 @@
 
 - Today 2026-11-10. Freeze 2026-11-13 12:00 UTC. Submit by 2026-11-14 12:00 UTC. M1 hard stop noon 11-12.
 - Testnet only. No admin key; `outlayer` is set in `new`, no setter. Callback accepted only from `outlayer.testnet`.
-- Rate `rp_per_near` default 10,000,000. Limits are decimal strings in Rupiah. Same bytes hashed on client and TEE: `sha256(limit, salt)`.
-- Plaintext in each ciphertext: `{"deal_id","side","limit","salt"}`; WASM rejects deal_id or side mismatch with `{"deal_id":N,"error":"invalid"}`.
+- Rate `rp_per_near` default 100,000,000, set in `new`. Limits are decimal strings in Rupiah. Same bytes hashed on client and TEE: `sha256(limit, salt)`.
+- Plaintext in each ciphertext: `{"deal_id","side","round","limit","salt"}`; WASM rejects deal_id or side mismatch with `{"deal_id":N,"error":"invalid"}`.
 - Relayer: 3 accounts per IP per hour, global daily cap, 503 when low; never sees limits or secret keys.
 - Motion: only `transform`/`opacity`, tokens from IDENTITY.md; no icon, illustration or animation libraries; fonts self-hosted woff2.
 - Never commit private keys, `.env`, OutLayer payment key. Commit `.env.example` only.
@@ -67,8 +67,8 @@ D1-08 (OutLayer spike) -> M1-05/06 (WASM + deploy) -> M1-07 (contract on testnet
 ### D1-04 Contract stub (signatures)
 - **Owner:** CT. **Deps:** D1-01.
 - **Files:** `contract/src/lib.rs` with `State`, `Deal`, and every method from ARCHITECTURE.md as `unimplemented!()` bodies.
-- **Produces:** `new(outlayer, tee_pubkey)`, `create_deal(title, description, link_hash) -> u64`, `submit_limit(deal_id, ct, commit, link_token)`, `on_outlayer_result(deal_id)`, `deposit`, `confirm_received`, `refund`, `cancel`, `expire`, `get_deal`, `get_state`.
-- **Done:** `cargo check -p contract` exits 0.
+- **Produces:** `new(outlayer, tee_pubkey, rp_per_near)`, `create_deal(title, description, link_hash, max_rounds) -> u64`, `submit_limit(deal_id, ct, commit, link_token)`, `on_outlayer_result(deal_id)`, `deposit`, `confirm_received`, `refund`, `cancel`, `expire`, `get_deal`, `get_state`.
+- **Done:** `cargo check -p contract --target wasm32-unknown-unknown` exits 0.
 
 ### D1-05 Shared TS contract types
 - **Owner:** CT. **Deps:** D1-04.
@@ -119,7 +119,7 @@ D1-08 (OutLayer spike) -> M1-05/06 (WASM + deploy) -> M1-07 (contract on testnet
 
 ### M1-02 Contract: `submit_limit`, link token, rounds (TDD)
 - **Owner:** CT. **Deps:** M1-01.
-- **Tests first:** `seller_first_moves_to_seller_in`, `buyer_needs_matching_token_hash`, `second_buyer_submit_fails`, `used_link_rejected`, `max_rounds_outside_1_to_3_rejected`, `nodeal_with_rounds_left_moves_to_retry`, `nodeal_on_last_round_is_final`, `one_submit_per_side_per_round`, `buyer_submit_moves_to_computing_and_calls_outlayer` (checks promise to `outlayer`), `cancel_blocked_once_matched`.
+- **Tests first:** `seller_first_moves_to_waiting`, `buyer_needs_matching_token_hash`, `second_buyer_submit_fails`, `used_link_rejected`, `max_rounds_outside_1_to_3_rejected`, `nodeal_with_rounds_left_moves_to_retry`, `nodeal_on_last_round_is_final`, `one_submit_per_side_per_round`, `buyer_submit_moves_to_computing_and_calls_outlayer` (checks promise to `outlayer`), `cancel_blocked_once_matched`.
 - **Done:** `cargo test -p contract submit_limit` all pass; `cargo test -p contract cancel` passes.
 
 ### M1-03 Contract: `on_outlayer_result` (TDD)

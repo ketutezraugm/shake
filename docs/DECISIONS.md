@@ -35,6 +35,9 @@ The relayer proxies NEAR AI requests and adds the API key; prompts are E2EE from
 ## 2026-11-10 No database
 The contract is the source of truth; no Supabase.
 
+## 2026-11-12 Data model and ERD (proposed until Ezra approves)
+docs/DATA-MODEL.md maps every piece of data to its one store; still no database, no relayer table, no deal index. Proposed contract changes, since shared interfaces #1 and #4 are Ezra's: drop `SellerIn` in favour of `Waiting`; add `Cancelled` and `Expired` states for `cancel` and `expire`; split `price` into `price_rp` and `price_yocto`; add `rp_per_near` (default 100,000,000) to `new` and storage; `create_deal` takes `max_rounds`; the plaintext carries `round`. A "my deals" list would be an optional read-only indexer, recorded here first.
+
 ## 2026-11-11 Private rounds replace "one attempt"
 Team feedback: one attempt punishes misjudgment. Seller chooses 1-3 rounds per buyer (default 2); concessions are monotonic (buyer up, seller down), enforced in the TEE; each round leaks at most 1 bit; a deal ends the game. Laddering accepted as private haggling. "Close" hint dropped (leaks more). Contract: `max_rounds`, `round`, per-round ciphertexts, `Retry` state. (IDEAS.md, feedback section)
 
