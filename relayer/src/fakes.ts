@@ -22,6 +22,7 @@ export class FakeNear implements NearReader {
 export class FakeStore implements Store {
   readonly listings: Listing[] = [];
   readonly slots: Slot[] = [];
+  readonly reservedDeals = new Map<string, number>();
 
   private free(id: string) {
     return this.slots.filter((slot) => slot.listingId === id && slot.buyer === null).length;
@@ -92,8 +93,14 @@ export class FakeStore implements Store {
       });
   }
 
-  async setStatus(id: string, status: Listing["status"]) {
+  async setStatus(id: string, status: Listing["status"], reservedDeal: number | null = null) {
     const listing = this.listings.find((l) => l.id === id);
     if (listing) listing.status = status;
+    if (reservedDeal === null) this.reservedDeals.delete(id);
+    else this.reservedDeals.set(id, reservedDeal);
+  }
+
+  async reservedDealOf(id: string) {
+    return this.reservedDeals.get(id) ?? null;
   }
 }

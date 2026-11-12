@@ -19,8 +19,7 @@ export type Deps = {
 const PAGE_SIZE = 20;
 const REQUESTS_PER_MINUTE = 120;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
-// A deal that has taken the buyer's money ends the listing; the other states can still fall through.
-const SOLD_STATES = new Set(["Funded", "Released"]);
+const HOLDING_STATES = new Set(["Matched", "Funded"]);
 
 export function createApp({ store, near, allowedOrigin, now = Date.now }: Deps) {
   const app = new Hono();
@@ -140,13 +139,29 @@ export function createApp({ store, near, allowedOrigin, now = Date.now }: Deps) 
     return c.json({ ...listing, status: "closed" });
   });
 
+  // One item, one sale: the first matched deal reserves the listing, a release sells it, and an expired or refunded reservation reopens it.
   app.post("/listings/:id/sync", async (c) => {
     const listing = await findListing(c.req.param("id"));
-    if (listing.status !== "open") return c.json(listing);
-    const deals = await Promise.all((await store.slotsOf(listing.id)).map((slot) => near.getDeal(slot.dealId)));
-    if (!deals.some((deal) => deal && SOLD_STATES.has(deal.state))) return c.json(listing);
-    await store.setStatus(listing.id, "sold");
-    return c.json({ ...listing, status: "sold" });
+    if (listing.status === "sold" || listing.status === "closed") return c.json(listing);
+    const deals = (await Promise.all((await store.slotsOf(listing.id)).map((slot) => near.getDeal(slot.dealId)))).filter((deal) => deal !== null);
+
+    const released = deals.find((deal) => deal.state === "Released");
+    if (released) {
+      await store.setStatus(listing.id, "sold");
+      return c.json({ ...listing, status: "sold" });
+    }
+    if (listing.status === "open") {
+      const holding = deals.find((deal) => HOLDING_STATES.has(deal.state));
+      if (!holding) return c.json(listing);
+      await store.setStatus(listing.id, "reserved", holding.id);
+      return c.json({ ...listing, status: "reserved" });
+    }
+    const reservedId = await store.reservedDealOf(listing.id);
+    const reserving = deals.find((deal) => deal.id === reservedId);
+    const ended = !reserving || reserving.state === "Refunded" || (reserving.state === "NoDeal" && reserving.matched_at_ns != null);
+    if (!ended) return c.json(listing);
+    await store.setStatus(listing.id, "open");
+    return c.json({ ...listing, status: "open" });
   });
 
   app.get("/me/listings", async (c) => {
