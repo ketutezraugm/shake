@@ -25,7 +25,16 @@ function randomBetween(min: number, max: number): number {
 
 /** In-memory stand-in for the deal contract, shared by every mock client so two sides can meet. */
 export class MockChain {
-  private deals: Deal[] = [];
+  constructor(private deals: Deal[] = []) {}
+
+  /** Plain copy of every deal, for persisting the chain between tabs. */
+  dump(): Deal[] {
+    return structuredClone(this.deals);
+  }
+
+  restore(deals: Deal[]): void {
+    this.deals = deals;
+  }
 
   find(id: number): Deal {
     const deal = this.deals[id];
@@ -49,13 +58,21 @@ function expectState(deal: Deal, ...allowed: State[]): void {
   if (!allowed.includes(deal.state)) throw new Error(`deal ${deal.id} is ${deal.state}`);
 }
 
+/** True if every round's limit kept moving one way: `ok(previous, next)` holds for each step. */
+function monotonic(limits: number[], ok: (previous: number, next: number) => boolean): boolean {
+  return limits.every((limit, i) => i === 0 || ok(limits[i - 1]!, limit));
+}
+
 /** Matching the TEE does, minus the crypto: a random price inside the overlap, else retry or no deal. */
 function settleRound(deal: Deal): void {
-  const i = deal.round - 1;
-  const min = decodeMockLimit(deal.seller_cts[i]!);
-  const max = decodeMockLimit(deal.buyer_cts[i]!);
+  const sellerLimits = deal.seller_cts.map(decodeMockLimit);
+  const buyerLimits = deal.buyer_cts.map(decodeMockLimit);
+  const min = sellerLimits.at(-1)!;
+  const max = buyerLimits.at(-1)!;
+  // Like the TEE: a seller who raised or a buyer who lowered makes the round a plain no-deal.
+  const conceded = monotonic(sellerLimits, (a, b) => b <= a) && monotonic(buyerLimits, (a, b) => b >= a);
 
-  if (min <= max) {
+  if (conceded && min <= max) {
     deal.state = "Matched";
     deal.price = (BigInt(randomBetween(min, max)) * YOCTO_PER_RP).toString();
     deal.matched_at_ns = Date.now() * 1e6;

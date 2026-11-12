@@ -1,8 +1,10 @@
 import { useState, type FormEvent } from "react";
 import { createAccount, isValidName } from "../accounts";
 
+type Props = { onReady: (accountId: string) => void; storage?: Storage };
+
 /** Walletless sign-up: a name and a key made in this browser, nothing to remember. */
-export function AccountStep({ onReady }: { onReady: (accountId: string) => void }) {
+export function AccountStep({ onReady, storage = localStorage }: Props) {
   const [name, setName] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -12,7 +14,7 @@ export function AccountStep({ onReady }: { onReady: (accountId: string) => void 
     setBusy(true);
     setError(null);
     try {
-      onReady(await createAccount(name));
+      onReady(await createAccount(name, storage));
     } catch (e) {
       setError((e as Error).message);
       setBusy(false);

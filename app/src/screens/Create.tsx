@@ -17,7 +17,7 @@ export function Create() {
 function DealForm({ seller }: { seller: string }) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [rounds, setRounds] = useState(1);
+  const [rounds, setRounds] = useState(2);
   const [minimum, setMinimum] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -62,7 +62,7 @@ function DealForm({ seller }: { seller: string }) {
           Rounds
           <select value={rounds} onChange={(e) => setRounds(Number(e.target.value))}>
             <option value={1}>1: one shot</option>
-            <option value={2}>2 rounds</option>
+            <option value={2}>2 rounds (default)</option>
             <option value={3}>3 rounds</option>
           </select>
         </label>

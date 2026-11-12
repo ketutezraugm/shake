@@ -29,6 +29,24 @@ describe("mock client", () => {
     expect((await runDeal(5_000_000, 4_000_000, 2)).deal).toMatchObject({ state: "Retry", round: 2 });
   });
 
+  it("matches a later round only if neither side backed off (buyer up, seller down)", async () => {
+    const chain = new MockChain();
+    const seller = mockClient(chain, "seller.test");
+    const buyer = mockClient(chain, "buyer.test");
+    const play = async (rounds: [number, number][]) => {
+      const id = await seller.createDeal("Bike", "", await sha256("tok"), rounds.length);
+      for (const [min, max] of rounds) {
+        await seller.submitLimit(id, encodeMockLimit(min), NO_COMMIT, null);
+        await buyer.submitLimit(id, encodeMockLimit(max), NO_COMMIT, "tok");
+      }
+      return (await seller.getDeal(id))!.state;
+    };
+
+    expect(await play([[5_000_000, 4_000_000], [4_500_000, 4_600_000]])).toBe("Matched");
+    expect(await play([[5_000_000, 4_000_000], [3_000_000, 3_500_000]])).toBe("NoDeal"); // buyer lowered
+    expect(await play([[5_000_000, 4_000_000], [5_500_000, 6_000_000]])).toBe("NoDeal"); // seller raised
+  });
+
   it("rejects a buyer with the wrong link token", async () => {
     const chain = new MockChain();
     const seller = mockClient(chain, "seller.test");
