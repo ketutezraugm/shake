@@ -1,4 +1,4 @@
-import type { Category, Listing, ListingStatus } from "../../relayer/src/types";
+import type { Category, Listing, ListingStatus, Question } from "../../relayer/src/types";
 
 // Until MK-12 and MK-15 land these in relayer/src/types.ts: `reserved` status, `askingPrice` and the public shop shape.
 export type ShopListing = Omit<Listing, "status"> & { status: ListingStatus | "reserved"; askingPrice: string };
@@ -11,6 +11,10 @@ export type BrowseQuery = { q?: string; category?: Category; cursor?: string };
 export interface Market {
   browse(query: BrowseQuery): Promise<BrowsePage>;
   profile(handle: string): Promise<Shop | null>;
+  /** One listing in any status, or null when unknown. */
+  listing(id: string): Promise<ShopListing | null>;
+  /** The listing's answered questions: public, readable signed out. */
+  questions(listingId: string): Promise<Question[]>;
 }
 
 const PAGE_SIZE = 20;
@@ -38,14 +42,26 @@ export function httpMarket(baseUrl: string): Market {
       return page;
     },
     profile: (handle) => get<Shop>(`/profiles/${encodeURIComponent(handle)}`),
+    listing: (id) => get<ShopListing>(`/listings/${encodeURIComponent(id)}`),
+    async questions(listingId) {
+      return (await get<Question[]>(`/listings/${encodeURIComponent(listingId)}/questions`)) ?? [];
+    },
   };
 }
 
 const newestFirst = (a: ShopListing, b: ShopListing) => b.createdAt.localeCompare(a.createdAt);
 
 /** Same filtering and paging as the relayer's store, for building screens before it is deployed. */
-export function mockMarket(listings: ShopListing[], profiles: Profile[]): Market {
+export function mockMarket(listings: ShopListing[], profiles: Profile[], questions: Question[] = []): Market {
   return {
+    async listing(id) {
+      return listings.find((l) => l.id === id) ?? null;
+    },
+
+    async questions(listingId) {
+      return questions.filter((q) => q.listingId === listingId && q.answer !== null);
+    },
+
     async browse({ q, category, cursor }) {
       const needle = q?.toLowerCase();
       const matches = listings

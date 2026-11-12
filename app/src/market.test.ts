@@ -76,6 +76,27 @@ describe("mockMarket", () => {
   it("returns null for an unknown shop", async () => {
     expect(await market.profile("nobody")).toBeNull();
   });
+
+  it("finds one listing in any status, or null", async () => {
+    expect((await market.listing("bike"))?.status).toBe("reserved");
+    expect(await market.listing("missing")).toBeNull();
+  });
+
+  it("shows only answered questions for a listing", async () => {
+    const q = (id: number, listingId: string, answer: string | null) => ({
+      id,
+      listingId,
+      question: `Question ${id}`,
+      answer,
+      answeredAt: answer ? "2026-11-13T05:00:00.000Z" : null,
+      createdAt: "2026-11-13T04:00:00.000Z",
+    });
+    const withQuestions = mockMarket(listings, [profile], [q(1, "cam", "Yes"), q(2, "cam", null), q(3, "lens", "No")]);
+
+    const shown = await withQuestions.questions("cam");
+
+    expect(shown.map((x) => x.id)).toEqual([1]);
+  });
 });
 
 describe("httpMarket", () => {
@@ -92,6 +113,20 @@ describe("httpMarket", () => {
 
     expect(page).toEqual({ listings: [], nextCursor: null });
     expect(urls).toEqual(["http://relayer.test/listings?q=kamera+lama&category=electronics&cursor=2026-11-13T00%3A00%3A00.000Z"]);
+  });
+
+  it("reads one listing and its questions by id, with a 404 listing as null", async () => {
+    const urls: string[] = [];
+    vi.stubGlobal("fetch", async (url: string) => {
+      urls.push(url);
+      return url.endsWith("/listings/gone") ? Response.json({ error: "not found" }, { status: 404 }) : Response.json([]);
+    });
+    const market = httpMarket("http://relayer.test");
+
+    await market.questions("l1");
+
+    expect(urls).toEqual(["http://relayer.test/listings/l1/questions"]);
+    expect(await market.listing("gone")).toBeNull();
   });
 
   it("maps a 404 profile to null and other errors to the relayer's message", async () => {

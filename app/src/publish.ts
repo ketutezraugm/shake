@@ -1,5 +1,6 @@
 import { PHOTO_TYPES, type Category, type Listing, type PhotoRes, type PhotoType } from "../../relayer/src/types";
 import type { ContractClient } from "./contract";
+import { signedPost } from "./relayer";
 import type { Signer } from "./signer";
 import { createSlots } from "./slots";
 
@@ -57,22 +58,6 @@ function validate(input: PublishInput): void {
   if (!Number.isInteger(input.slotCount) || input.slotCount < 1 || input.slotCount > MAX_SLOTS) {
     throw new Error(`Make between 1 and ${MAX_SLOTS} offer slots`);
   }
-}
-
-async function signedPost<T>(relayerUrl: string, signer: Signer, path: string, payload: object, what: string): Promise<T> {
-  const body = JSON.stringify(payload);
-  const response = await fetch(relayerUrl + path, {
-    method: "POST",
-    headers: { "content-type": "application/json", ...(await signer.signRequest("POST", path, body)) },
-    body,
-  }).catch(() => {
-    throw new Error(`${what} failed: could not reach the relayer`);
-  });
-  if (!response.ok) {
-    const { error } = (await response.json().catch(() => ({}))) as { error?: string };
-    throw new Error(`${what} failed: ${error ?? `relayer answered ${response.status}`}`);
-  }
-  return (await response.json()) as T;
 }
 
 async function uploadPhoto(relayerUrl: string, signer: Signer, listingId: string, photo: Blob): Promise<void> {

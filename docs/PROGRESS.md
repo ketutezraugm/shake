@@ -25,7 +25,7 @@ Mirrors docs/plans/IMPLEMENTATION.md (marketplace plan, Revision B: slots and tw
 - [ ] **MK-06** NEAR wallet login (CT): code and live key checks pass (EZ); one real wallet session still open
 - [ ] **MK-21** Browse, search, seller profile (FE): logic and routes in PR, visuals wait on MK-30, live data on #47
 - [ ] **MK-22** Create listing (FE): flow and screen in PR, live run waits on MK-20 sign-in and a deployed relayer
-- [ ] **MK-23** Listing page: assistant and Q&A (FE)
+- [ ] **MK-23** Listing page: assistant and Q&A (FE): page, assistant and public Q&A in PR; assistant needs MK-05, offer button waits on MK-24, seller answering waits on MK-25 inbox
 
 ## Asking price (decided 2026-11-13)
 - [ ] **MK-15** Asking price in the API (BI)
