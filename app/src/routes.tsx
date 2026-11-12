@@ -5,6 +5,7 @@ import { Demo } from "./screens/Demo";
 import { Home } from "./screens/Home";
 import { Join } from "./screens/Join";
 import { Profile } from "./screens/Profile";
+import { Sell } from "./screens/Sell";
 
 export type Route =
   | { name: "home" }
@@ -99,7 +100,7 @@ export function Router() {
     case "listing":
       return <Pending title="Listing" task="MK-23" />;
     case "sell":
-      return <Pending title="Sell something" task="MK-22" />;
+      return <Sell />;
     case "offer":
       return <Pending title="Your offer" task="MK-24" />;
     case "inbox":
