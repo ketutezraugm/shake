@@ -4,6 +4,7 @@ import { DealPage } from "./screens/DealPage";
 import { Demo } from "./screens/Demo";
 import { Home } from "./screens/Home";
 import { Join } from "./screens/Join";
+import { Listing } from "./screens/Listing";
 import { Profile } from "./screens/Profile";
 import { Sell } from "./screens/Sell";
 
@@ -98,7 +99,7 @@ export function Router() {
     case "profile":
       return <Profile handle={route.handle} />;
     case "listing":
-      return <Pending title="Listing" task="MK-23" />;
+      return <Listing id={route.id} />;
     case "sell":
       return <Sell />;
     case "offer":
