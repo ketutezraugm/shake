@@ -12,7 +12,9 @@ import { market } from "../marketSource";
 import { claimSlot } from "../offer";
 import { Link, navigate } from "../routes";
 import { Assistant } from "./Assistant";
+import { OwnListing } from "./OwnListing";
 import { Questions } from "./Questions";
+import { ErrorState, NotFound } from "./States";
 
 type Loaded = { listing: ShopListing; questions: Question[] };
 
@@ -82,10 +84,13 @@ function Gallery({ photos, title }: { photos: string[]; title: string }) {
 export function Listing({ id }: { id: string }) {
   const [loaded, setLoaded] = useState<Loaded | null | undefined>(undefined);
   const [error, setError] = useState<string | null>(null);
+  // Bumped after the seller changes the listing (an answer, more slots, closing) or taps "Try again".
+  const [version, setVersion] = useState(0);
+
+  useEffect(() => setLoaded(undefined), [id]);
 
   useEffect(() => {
     let current = true;
-    setLoaded(undefined);
     setError(null);
     Promise.all([market.listing(id), market.questions(id)])
       .then(([listing, questions]) => current && setLoaded(listing ? { listing, questions } : null))
@@ -93,18 +98,11 @@ export function Listing({ id }: { id: string }) {
     return () => {
       current = false;
     };
-  }, [id]);
+  }, [id, version]);
 
-  if (error) return <main className="page"><p className="error" role="alert">{error}</p></main>;
+  if (error) return <main className="page"><ErrorState message={error} onRetry={() => setVersion((v) => v + 1)} /></main>;
   if (loaded === undefined) return <main className="page"><p className="muted">Loading…</p></main>;
-  if (loaded === null) {
-    return (
-      <main className="page">
-        <h1 className="headline">Listing not found</h1>
-        <p><Link to="/">Back to browse</Link></p>
-      </main>
-    );
-  }
+  if (loaded === null) return <NotFound title="Listing not found">It may have been removed by the seller.</NotFound>;
 
   const { listing, questions } = loaded;
   const handle = listing.sellerAccount.split(".")[0] ?? listing.sellerAccount;
@@ -144,6 +142,9 @@ export function Listing({ id }: { id: string }) {
         </span>
       </Link>
 
+      {isOwn ? (
+        <OwnListing listing={listing} onChanged={() => setVersion((v) => v + 1)} />
+      ) : (
       <section className="blind-box" aria-label="How offers work">
         <div className="blind-box-top">
           <img className="sticker" src={priceTag} alt="" />
@@ -156,9 +157,9 @@ export function Listing({ id }: { id: string }) {
           </div>
         </div>
         {note && <p role="status">{note}</p>}
-        {!note && !isOwn && <OfferButton listing={listing} />}
-        {isOwn && <p className="muted">This is your listing.</p>}
+        {!note && <OfferButton listing={listing} />}
       </section>
+      )}
 
       {!isOwn && <Assistant listingId={listing.id} />}
       <Questions questions={questions} />

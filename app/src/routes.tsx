@@ -11,6 +11,7 @@ import { Offer } from "./screens/Offer";
 import { Profile } from "./screens/Profile";
 import { Sell } from "./screens/Sell";
 import { Shell } from "./screens/Shell";
+import { NotFound } from "./screens/States";
 
 export type Route =
   | { name: "home" }
@@ -136,6 +137,6 @@ function Page({ route, query }: { route: Route; query: string }) {
     case "demo":
       return <Demo />;
     case "notFound":
-      return <main className="screen"><h1>Not found</h1></main>;
+      return <NotFound />;
   }
 }
