@@ -1,4 +1,5 @@
 import { exportSecretKey, importSecretKey, loadIdentity } from "./keys";
+import { clearWalletSession } from "./walletSigner";
 import { RelayerError } from "./relayer";
 
 const STORAGE_KEY = "blind-deal:account";
@@ -80,4 +81,9 @@ export function importBackup(backup: string, storage: Storage = localStorage): s
   importSecretKey(text.slice(cut + 1), storage);
   setCurrentAccount(account, storage);
   return account;
+}
+
+export function signOut(storage: Storage = localStorage): void {
+  storage.removeItem(STORAGE_KEY);
+  clearWalletSession(storage);
 }

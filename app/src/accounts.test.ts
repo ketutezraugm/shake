@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { currentAccount, exportBackup, handleSuggestions, importBackup, isHandleTaken, isValidHandle, openAccount } from "./accounts";
+import { currentAccount, exportBackup, handleSuggestions, importBackup, isHandleTaken, isValidHandle, openAccount, signOut } from "./accounts";
 import { loadIdentity } from "./keys";
 
 function fakeStorage(): Storage {
@@ -78,5 +78,16 @@ describe("accounts", () => {
 
   it("will not export before there is an account", () => {
     expect(() => exportBackup(fakeStorage())).toThrow("sign in first");
+  });
+});
+
+describe("signOut", () => {
+  it("forgets the account and the wallet session", () => {
+    const storage = fakeStorage();
+    storage.setItem("blind-deal:account", "alice.testnet");
+    storage.setItem("blind-deal:wallet-session", "{}");
+    signOut(storage);
+    expect(currentAccount(storage)).toBeNull();
+    expect(storage.getItem("blind-deal:wallet-session")).toBeNull();
   });
 });

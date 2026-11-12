@@ -32,3 +32,8 @@ export function createWalletProfile(relayerUrl: string, session: WalletSession, 
   const signer = keySigner(session.accountId, session.secretKey, chain);
   return signedPut(relayerUrl, signer, "/me/profile", { handle, displayName: handle, bio: "", city: "", avatarUrl: null }, "creating your shop");
 }
+
+/** Drops the wallet connection if one was opened this page load; the stored limited key goes with the session. */
+export async function disconnectWallet(): Promise<void> {
+  await connector?.disconnect().catch(() => undefined);
+}

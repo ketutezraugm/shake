@@ -2,6 +2,7 @@ import { useState, type FormEvent, type ReactNode } from "react";
 import { currentAccount } from "../accounts";
 import lockup from "../design/assets/logo/shake-lockup.svg";
 import { Link, navigate } from "../routes";
+import { AccountMenu } from "./AccountMenu";
 import { OfflineBanner } from "./States";
 
 type Tab = { to: string; label: string; icon: ReactNode };
@@ -65,16 +66,6 @@ export function Shell({ path, children }: { path: string; children: ReactNode })
     navigate(q ? `/?q=${encodeURIComponent(q)}` : "/");
   }
 
-  const chip = handle ? (
-    <Link to={`/@${handle}`} className="pill">
-      @{handle}
-    </Link>
-  ) : (
-    <Link to="/signin" className="pill">
-      Sign in
-    </Link>
-  );
-
   return (
     <div className="shell">
       <OfflineBanner />
@@ -98,7 +89,7 @@ export function Shell({ path, children }: { path: string; children: ReactNode })
             </Link>
           ))}
         </nav>
-        {chip}
+        <AccountMenu />
       </header>
       {children}
       <div className="tabs">
