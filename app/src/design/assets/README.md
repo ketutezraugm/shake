@@ -37,3 +37,16 @@ Rules:
 | `no-deal.svg` | no-deal line, always with words |
 
 `currentColor` works when the SVG is inlined (for example with `vite-plugin-svgr` or by pasting the markup into a component); as an `<img>`, the icon draws in black.
+
+## Logo (`logo/`)
+
+Option E, "tied together": a pink and a yellow price tag on one ink string, next to the outlined "shake" wordmark (Manrope ExtraBold, -0.04em, converted to paths). The name waits on the team's OK (#42).
+
+| File | Use |
+|---|---|
+| `shake-lockup.svg` | header and README on broken white or white |
+| `shake-lockup-on-ink.svg` | on the ink background |
+| `shake-mark.svg` | the mark alone: avatars, phone header, loading (32 px and up) |
+| `shake-wordmark.svg` | the word alone, where the mark is already on screen |
+
+The shadow is built into the files. Keep clear space of 40% of the mark's height on every side, and keep the lockup at least 120 px wide. The favicon (`app/public/favicon.svg`, `favicon-32.png`) drops the die-cut edge so it reads at 16 px; `apple-touch-icon.png` (180) and `icon-512.png` put the mark on the sky tint.
