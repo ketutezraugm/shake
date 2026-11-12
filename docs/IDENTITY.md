@@ -1,8 +1,8 @@
-# IDENTITY (locked 2026-11-10)
+# IDENTITY (direction G, approved 2026-11-12)
 
-The spec, not inspiration. Every design and build step reads this. Name: TBD (working title "Blind deal").
+The spec, not inspiration. Every design and build step reads this. Name: TBD (working title "Blind deal"). Replaces the 2026-11-10 marosok blue-and-yellow identity (Ezra approved the change in issue #32). Living reference with previews: the Blind deal design system artifact (https://claude.ai/artifact/C52dyDv46uwPsNeJzL1Rgi); screens: https://claude.ai/artifact/2a84fxGdsY2sezcJvjVAaG, page "New directions", row G.
 
-**Mix chosen by Abel:** layout and structure from direction B (*marosok*: sarong checks, ear-tag prices, cloth-lift reveal) in the colors of direction A (security-tint blue, carbon-copy yellow). Indigo-check sarongs are real cloth, so the world holds together.
+**Direction G, "broken white & ink":** a clean light app with one dark action colour, and fun reserved for the details (stickers, confetti dots, small tints).
 
 ## Context profile
 - Users: students and ordinary people selling or buying a used item; both sides non-crypto. Second audience: judges on a laptop or projector, split screen.
@@ -10,44 +10,52 @@ The spec, not inspiration. Every design and build step reads this. Name: TBD (wo
 - Session 1-3 min; one item, one number, one result. Mistakes cost real money: number entry unmistakable, confirm deliberate.
 - **Density:** low. **Motion budget:** measured, one expressive moment (the reveal). **Interaction:** touch-first, linear, one decision per screen.
 
-## World
-*Marosok*: the Minangkabau (West Sumatra) cattle-market practice where buyer and seller agree a price with finger touches hidden under a sarong or towel (source: raw/identity-checks.md). Materials: indigo-check sarong cloth, yellow plastic cattle ear tags numbered in marker, the handshake. We claim West Sumatra only.
-
 ## Color tokens
 | Token | Hex | Role | Contrast |
 |---|---|---|---|
-| `--ground` | `#2E4FA3` | page; dominant ~55% | ink 7.03:1 |
-| `--surface` | `#23408A` | panels, phone cards | ink 8.94:1 |
-| `--check` | `#1B2F66` | sarong check stripes (area); text on yellow | ink 11.81:1 |
-| `--line` | `#9DB0E0` | thin pattern lines, dividers; large text only | 3.52:1 on ground |
-| `--ink` | `#F4F6FB` | text, icons | |
-| `--ink-muted` | `#C9D4F0` | secondary text | 5.12:1 on ground |
-| `--tag` | `#F2D640` | ear tags, primary buttons; ~15% | 5.24:1 on ground; `--check` text on it 8.79:1 |
-| `--danger` | `#FFC9BF` | "No deal", errors (always with text, never color alone) | 5.20:1 on ground |
+| `--ground` | `#F7F6F2` | page background, a neutral broken white | ink 15.7:1 |
+| `--surface` | `#FFFFFF` | cards, sheets, sticker die-cut edge | |
+| `--line` | `#E8E6E0` | 1px card and pill borders (decoration only) | |
+| `--ink` | `#1D1C1A` | text, primary buttons, sticker outlines | 15.7:1 on ground |
+| `--ink-muted` | `#5E5B55` | secondary text, "Rp" units | 6.3:1 on ground, 6.8:1 on surface |
+| `--on-ink` | `#F7F6F2` | text on ink buttons | 15.7:1 |
+| `--deal` | `#2D6A4F` | the deal price and success text only | 6.4:1 on surface |
+| `--danger` | `#B42318` | "No deal", errors, always with words | 6.1:1 on ground |
+| `--sun` `--sky` `--coral` `--pink` `--mint` | `#FFD23F` `#8EC9F5` `#FF8A65` `#F7B8D2` `#D3E8DA` | sticker fills and confetti dots | never text |
+| `--sun-tint` `--sky-tint` `--pink-tint` | `#FFF1B8` `#DDEEFC` `#FCE1EC` | small chip and label grounds, ink text | ink 15.0 / 13.9:1 |
+| `--mint-ink` / `--sky-ink` | `#173B2B` / `#12406B` | text on mint / sky-tint | 9.6:1 / 9.0:1 |
 
-Area split: ground 55 / surface + checks 30 / tag 15. Yellow appears only for the user's own price, the deal price, and primary actions.
+Kept for code written against the first identity: `--tag` = `--ink` (primary action fill) and `--check` = `--ground` (field ground, text on ink). New code uses the role names above.
+
+Rule: the five detail colours never colour text, buttons or whole panels. A screen stays ground, surface and ink; colour appears only in stickers, dots and small tints.
 
 ## Typography
-- **Display:** Big Shoulders Display (Patric King, OFL, https://fonts.google.com/specimen/Big+Shoulders+Display). 900 for prices and headlines, 200 for the "Rp" unit and quiet numerals. Uppercase headlines. Why: tall condensed figures are marker numbers on ear tags.
-- **Text:** Familjen Grotesk (Familjen, OFL, https://fonts.google.com/specimen/Familjen+Grotesk). 400 body, 700 labels and buttons.
-- Self-host both as woff2 (`font-display: swap`, size-adjusted fallback to avoid layout shift). Numbers use `font-variant-numeric: tabular-nums`.
-- Scale (px): 13 · 16 · 20 · 28 · 48 · 96 · 160 (deal price on the demo screen). Phone: price 96, headline 48, body 16-20.
-- Line height: display 0.86-0.92, text 1.45.
+- **One family: Manrope** (Mikhail Sharanda, OFL, https://fonts.google.com/specimen/Manrope), self-hosted as a Latin variable woff2 (400-800) in `app/public/fonts/` with its licence, `font-display: swap` and a metric-matched Arial fallback.
+- Weights: 800 headings and amounts, 700 buttons, 600 labels, 400 text.
+- Scale (px): 13 · 14 · 16 · 17 · 20 · 28 · 40 · 48. Phone: title 40, heading 28, typed amount 40, deal price 48, body 16-17.
+- Headings: tracking -0.03em, leading 1.05, sentence case. Text leading 1.55. Numbers use `font-variant-numeric: tabular-nums`, Rupiah with dots (Rp 4.200.000).
 
 ## Space, shape
 - Spacing scale (px): 4 · 8 · 12 · 16 · 24 · 32 · 48 · 64. Phone gutter 20.
-- Radius: buttons 3; panels and phone cards 20; **ear tag** = 8 top corners, 40 bottom corners, plus a punched hole (circle 16 px in `--surface`).
-- No shadows. Depth comes from the cloth layer sitting over the tags.
+- Radius: buttons and chips fully round (`--radius-button` 999px); fields 12; cards 20; the one hero card per screen 24.
+- Cards are `--surface` with a 1px `--line` border. No shadows except stickers.
 - Touch targets ≥ 48 px.
 
+## Stickers (the illustration system)
+Nine literal objects: price tag (your number), clipped tags (deal), hand under a cloth (sealed), four-finger hand sign (your offer), sealed-machine chip (proof), escrow box with coin (pay), scratch card (reveal), price pin (fair price), balance scale (fair).
+- One thick `--ink` outline, `--sticker-outline` = 9 units on the 120-unit grid (7.5% of the width); inner details and gaps use the same width; round joins and caps.
+- Flat fills from the detail colours and white, one main colour each, no text or numbers inside.
+- White die-cut edge (`--sticker-edge`, 6 units) and `--shadow-sticker` (two drop-shadow filters). Stickers are the only shadowed elements.
+- One to three per screen, tilted −10° to 10°, never over text or on a button, never below 44 px. Scale the whole drawing.
+- Exported as SVG into `app/src/assets/` with a one-line source note.
+
 ## Signature move
-Prices are ear tags on cloth. Each side's own tag hangs on its half of a sarong-check field; the other side's half is plain cloth with no tag, so nothing is shown. The deal result is two tags clipped together showing one price. Every screen is built around the tag: entry screen = writing on your tag; waiting = your tag under the cloth; result = the joined tags.
+Your number goes on a tag only you can see; the deal is two tags clipped together showing one price. The reveal screen is one white hero card holding the clipped-tags sticker, "It's a deal", and the price in `--deal` green, with up to four confetti dots.
 
 ## Signature motion: the reveal
-1. Both sides confirmed: the cloth over the shared area lifts (`translateY(-100%)`, 600 ms, `--ease-out`).
-2. Tags fade in already joined (`opacity`, 200 ms), then swing once (`rotate(-4deg)` → `0`, 300 ms, `--ease-out`, origin = the punched hole). No overshoot.
-3. The price is shown whole; it does not count up.
-4. "No deal": the cloth stays down, one line of `--danger` text appears (200 ms fade). Nothing else moves.
+1. Both sides confirmed: the clipped-tags sticker drops in from `--reveal-lift` (24 px) and swings once from `--reveal-swing` to 0 (600 ms / 300 ms, `--ease-out`). No overshoot.
+2. The price fades in (`opacity`, 200 ms); it is shown whole and does not count up.
+3. "No deal": no sticker, one line of `--danger` text fades in (200 ms). Nothing else moves.
 
 ## Motion tokens
 | Token | Value | Use |
@@ -55,24 +63,21 @@ Prices are ear tags on cloth. Each side's own tag hangs on its half of a sarong-
 | `--dur-instant` | 100 ms | press, hover, toggles |
 | `--dur-quick` | 200 ms | state changes, fades |
 | `--dur-deliberate` | 400 ms | screen changes |
-| `--dur-reveal` | 600 ms | cloth lift (the only long move) |
+| `--dur-reveal` | 600 ms | the reveal drop (the only long move) |
 | `--ease-out` | `cubic-bezier(0.16, 1, 0.3, 1)` | entering |
 | `--ease-in` | `cubic-bezier(0.7, 0, 0.84, 0)` | leaving |
 | `--ease-std` | `cubic-bezier(0.2, 0, 0, 1)` | on-screen moves |
 
-Rules: animate only `transform` and `opacity`; no springs; nothing blocks input; a repeated action skips its animation. `prefers-reduced-motion`: the cloth lift and tag swing become a 200 ms crossfade; nothing loops.
+Rules: animate only `transform` and `opacity`; no springs; nothing blocks input; a repeated action skips its animation. `prefers-reduced-motion`: the drop and swing become a 200 ms crossfade; nothing loops.
 
 ## Icon language
-24 px grid, filled flat shapes, 3 px corner radius, literal objects (ear tag, hidden hand, item, two clipped tags, escrow box). One color per icon. Drawn in Claude Design; no libraries.
-
-## Art direction
-Bold flat shapes: check patterns built from our own stripes (rendered as real CSS/SVG patterns, not textures), tag silhouettes, hands as simple shapes. No photos, no paper grain, no faked fabric texture.
+UI icons (back, lock, share): 24 px line icons, 2-2.2 px `--ink` stroke, round caps, always labelled. Stickers are illustration, not icons. Drawn in Claude Design; no icon libraries.
 
 ## Voice
-Short, friendly market talk; Bahasa where it's natural. "Cocok!" on a deal. Examples: *"Shake on it. Nobody sees."* / *"Your number stays under the cloth. Even we can't lift it."* / *"No deal: your ranges didn't meet. Neither of you learns more than that."*
+Short, friendly, plain; Bahasa where it's natural ("Cocok!" on a deal). Examples: *"Agree on a price without showing yours."* / *"Only you will ever see this number."* / *"No deal this round. Your numbers didn't meet, and neither of you learns more than that."* Never say TEE, enclave, wallet or gas in the main flow.
 
 ## Not this
-- Default (a): near-black navy, neon glow, padlocks, shields, glassmorphism, Space Grotesk or Inter.
-- Default (b): cream ground, italic serif, terracotta, wax seals, broadsheet hairlines and tracked mono labels.
-- Rejected: direction A's envelope-window layout and Anybody type; direction B's green and maroon palette; direction C (answer sheet) entirely.
+- Cream ground with a serif display and terracotta; near-black with one acid accent; purple-blue gradients.
+- Full-colour screens (the first identity's all-blue ground was hard to read for long).
+- Detail colours on text, buttons or large panels; shadows on cards or buttons; emoji; padlock-and-shield security clichés as illustrations.
 - Anything from PLAYBOOK section 6.

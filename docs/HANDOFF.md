@@ -31,7 +31,7 @@ Each session edits only its own workstream section below.
 - Owner: Jose (ChristianoJ21). Next: D1-10 skeleton on mocks (after D1-05, D1-07). In progress: none. Blockers: none.
 
 ## Design & packaging (Abel)
-- Owner: Abel (rafaelaanabelpurba). Next: D1-07 tokens CSS, D1-11 screens in Claude Design (full brief arrives in Phase 7). In progress: none. Blockers: none.
+- Owner: Abel (rafaelaanabelpurba). Done: D1-07 tokens (PR #9), identity switched to direction G (issue #32, this PR). Design system: https://claude.ai/artifact/C52dyDv46uwPsNeJzL1Rgi; screens canvas: https://claude.ai/artifact/2a84fxGdsY2sezcJvjVAaG (page "New directions", row G). Next: D1-11 all screens in direction G, then M1-14 sticker SVGs into app/src/assets/. In progress: none. Blockers: none.
 
 ## Known bugs
 - none yet

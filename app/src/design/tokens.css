@@ -1,67 +1,68 @@
-/* Design tokens. Source of truth: docs/IDENTITY.md (locked 2026-11-10). */
+/* Design tokens. Source of truth: docs/IDENTITY.md (direction G, approved 2026-11-12 in issue #32). */
 
 @font-face {
-  font-family: "Big Shoulders Display";
-  src: url("/fonts/big-shoulders-display-latin-var.woff2") format("woff2");
-  font-weight: 100 900;
+  font-family: "Manrope";
+  src: url("/fonts/manrope-latin-var.woff2") format("woff2");
+  font-weight: 400 800;
   font-style: normal;
   font-display: swap;
 }
 
+/* Arial resized to Manrope's average advance and vertical metrics, so the swap causes no layout shift. */
 @font-face {
-  font-family: "Familjen Grotesk";
-  src: url("/fonts/familjen-grotesk-latin-var.woff2") format("woff2");
-  font-weight: 400 700;
-  font-style: normal;
-  font-display: swap;
-}
-
-/* Arial resized to each face's average advance and vertical metrics, so the swap causes no layout shift. */
-@font-face {
-  font-family: "Big Shoulders Display Fallback";
+  font-family: "Manrope Fallback";
   src: local("Arial"), local("ArialMT");
-  size-adjust: 88%;
-  ascent-override: 111.8%;
-  descent-override: 24.2%;
-  line-gap-override: 0%;
-}
-
-@font-face {
-  font-family: "Familjen Grotesk Fallback";
-  src: local("Arial"), local("ArialMT");
-  size-adjust: 95%;
-  ascent-override: 107.9%;
-  descent-override: 23.7%;
+  size-adjust: 101.4%;
+  ascent-override: 105.2%;
+  descent-override: 29.6%;
   line-gap-override: 0%;
 }
 
 :root {
-  /* Color */
-  --ground: #2e4fa3;
-  --surface: #23408a;
-  --check: #1b2f66;
-  --line: #9db0e0;
-  --ink: #f4f6fb;
-  --ink-muted: #c9d4f0;
-  --tag: #f2d640;
-  --danger: #ffc9bf;
+  /* Base colour */
+  --ground: #f7f6f2;
+  --surface: #ffffff;
+  --line: #e8e6e0;
+  --ink: #1d1c1a;
+  --ink-muted: #5e5b55;
+  --on-ink: #f7f6f2;
+  --deal: #2d6a4f;
+  --danger: #b42318;
+
+  /* Detail colours: stickers, confetti and small tints only, never text or buttons. */
+  --sun: #ffd23f;
+  --sky: #8ec9f5;
+  --coral: #ff8a65;
+  --pink: #f7b8d2;
+  --mint: #d3e8da;
+  --mint-ink: #173b2b;
+  --sun-tint: #fff1b8;
+  --sky-tint: #ddeefc;
+  --sky-ink: #12406b;
+  --pink-tint: #fce1ec;
+
+  /* Names kept from the first identity so existing styles keep working (rename map in issue #32). */
+  --tag: var(--ink);
+  --check: var(--ground);
 
   /* Type */
-  --font-display: "Big Shoulders Display", "Big Shoulders Display Fallback", sans-serif;
-  --font-text: "Familjen Grotesk", "Familjen Grotesk Fallback", sans-serif;
-  --weight-display-heavy: 900;
-  --weight-display-light: 200;
+  --font-display: "Manrope", "Manrope Fallback", system-ui, sans-serif;
+  --font-text: "Manrope", "Manrope Fallback", system-ui, sans-serif;
+  --weight-display-heavy: 800;
+  --weight-label: 600;
   --weight-text: 400;
   --weight-text-bold: 700;
   --text-13: 0.8125rem;
+  --text-14: 0.875rem;
   --text-16: 1rem;
+  --text-17: 1.0625rem;
   --text-20: 1.25rem;
   --text-28: 1.75rem;
+  --text-40: 2.5rem;
   --text-48: 3rem;
-  --text-96: 6rem;
-  --text-160: 10rem;
-  --leading-display: 0.9;
-  --leading-text: 1.45;
+  --tracking-display: -0.03em;
+  --leading-display: 1.05;
+  --leading-text: 1.55;
 
   /* Space */
   --space-4: 4px;
@@ -76,11 +77,15 @@
   --touch-min: 48px;
 
   /* Shape */
-  --radius-button: 3px;
+  --radius-button: 999px;
+  --radius-field: 12px;
   --radius-panel: 20px;
-  --radius-tag: 8px 8px 40px 40px;
-  --tag-hole: 16px;
-  --radius-icon: 3px;
+  --radius-hero: 24px;
+
+  /* Stickers are the only shadowed elements; apply as a filter so the shadow follows the die-cut shape. */
+  --shadow-sticker: drop-shadow(0 1.5px 1px rgba(20, 20, 20, 0.22)) drop-shadow(0 8px 12px rgba(20, 20, 20, 0.14));
+  --sticker-outline: 7.5%;
+  --sticker-edge: 5%;
 
   /* Motion */
   --dur-instant: 100ms;
@@ -91,14 +96,14 @@
   --ease-in: cubic-bezier(0.7, 0, 0.84, 0);
   --ease-std: cubic-bezier(0.2, 0, 0, 1);
 
-  /* The reveal: cloth lift then one tag swing from the punched hole. */
-  --reveal-lift: translateY(-100%);
-  --reveal-swing: rotate(-4deg);
+  /* The reveal: the clipped-tags sticker drops in and settles once, then the price fades in. */
+  --reveal-lift: translateY(-24px);
+  --reveal-swing: rotate(-6deg);
   --reveal-lift-dur: var(--dur-reveal);
   --reveal-swing-dur: 300ms;
 }
 
-/* Reduced motion: lift and swing collapse to a 200 ms crossfade; components keep their opacity transition. */
+/* Reduced motion: drop and swing collapse to a 200 ms crossfade; components keep their opacity transition. */
 @media (prefers-reduced-motion: reduce) {
   :root {
     --reveal-lift: none;
