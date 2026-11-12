@@ -17,15 +17,30 @@ async function sha256(text: string): Promise<number[]> {
   return [...new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text)))];
 }
 
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+// The relayer checks the deal on chain right after we submit; an RPC node that is a block behind answers "not
+// yours" or "not waiting" for a deal that is fine. A live run hit this once, so retry those two briefly.
+const CHAIN_LAG = /is not yours|must be waiting/;
+const ATTEMPTS = 5;
+const RETRY_MS = 1500;
+
 async function registerSlot(relayerUrl: string, listingId: string, signer: Signer, slot: SlotInput): Promise<void> {
   const path = `/listings/${listingId}/slots`;
   const body = JSON.stringify({ slots: [slot] });
-  const response = await fetch(relayerUrl + path, {
-    method: "POST",
-    headers: { "content-type": "application/json", ...(await signer.signRequest("POST", path, body)) },
-    body,
-  });
-  if (!response.ok) throw new Error(`relayer refused the slot: ${response.status}`);
+  for (let attempt = 1; ; attempt++) {
+    const response = await fetch(relayerUrl + path, {
+      method: "POST",
+      headers: { "content-type": "application/json", ...(await signer.signRequest("POST", path, body)) },
+      body,
+    });
+    if (response.ok) return;
+    const { error } = (await response.json().catch(() => ({}))) as { error?: string };
+    if (response.status === 400 && CHAIN_LAG.test(error ?? "") && attempt < ATTEMPTS) {
+      await sleep(RETRY_MS);
+      continue;
+    }
+    throw new Error(`relayer refused the slot (${response.status}): ${error ?? "no reason given"}`);
+  }
 }
 
 export type CreateSlotsOptions = {

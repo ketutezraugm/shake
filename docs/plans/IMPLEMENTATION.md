@@ -97,12 +97,13 @@ D1-01 scaffold, D1-04/05 contract stub and TS types, D1-07 tokens and identity d
 # Block B: 2026-11-13 00:00-12:00 UTC
 
 ### MK-07 Marketplace round trip on testnet (gate evidence)
-- **Owner:** CT. **Deps:** MK-04, MK-10.
-- **Files:** `scripts/marketplace-roundtrip.mjs`.
-- **Done:** against the local relayer and the live Supabase project, `node scripts/marketplace-roundtrip.mjs` prints `listing open -> 2 slots registered -> buyer claimed slot -> Matched price in [4000000,4600000] -> sync reserved -> second claim 409`, then a second listing prints `NoDeal`.
+- **Owner:** CT. **Deps:** MK-04.
+- **Files:** `scripts/marketplace-roundtrip.mts` (run with `npx tsx`; it uses the app's own client code and the relayer in-process on an in-memory store, with the live contract, TEE and RPC).
+- **Done (chain half, passes):** `npx tsx scripts/marketplace-roundtrip.mts` prints `listing open -> 2 slots registered -> buyer claimed slot -> Matched price in [4000000,4600000] -> deposit Funded -> sync sold -> claim after sold 409`, then `state=NoDeal` for a second listing, then `RESULT: ok`. Needs funded accounts in `~/.near-credentials/testnet` (defaults in the script; override with `SELLER_ID` and `BUYER_ID`).
+- **Still open (after MK-10 and MK-12):** run the same script against the live Supabase store and expect `sync reserved` after the match, before the deposit.
 
 ### G2 Gate: 11-13 12:00 UTC (owner: lead)
-- **Pass:** MK-07 green. Proceed.
+- **Pass:** MK-07 chain half green (it is) and the Supabase half green after MK-10 and MK-12. Proceed.
 - **Fail:** Ezra and Harfi pair on it; all Should items are cut now; FE keeps building on the mock client.
 
 ### MK-11 `POST /accounts` with Supabase JWT
