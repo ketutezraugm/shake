@@ -1,60 +1,55 @@
 # Progress
 
-Mirrors docs/plans/IMPLEMENTATION.md. Tick a box only after the task's done-check passes; add the owner's initials.
+Mirrors docs/plans/IMPLEMENTATION.md (marketplace plan, 2026-11-12). Tick a box only after the task's done-check passes; add the owner's initials.
 
+## Done before the pivot
+- [x] D1-01 scaffold (HA) · D1-04/05 contract stub and TS types (EZ) · D1-07 tokens (RAP) · D1-08 OutLayer spike (EZ) · D1-10 test UI on mocks (HA)
+- [x] M1-01..M1-07 contract, WASM, deploy, round trip (EZ) · G1 passed · secret locked to the WASM build (EZ)
 
-## Day 1: 2026-11-10 (scaffold, shared contracts, spikes)
+## Still needed from the old plan
+- [ ] **D1-02** CI (BI)
+- [ ] **D1-03** Render hello-world (BI)
+- [ ] **D1-09 + M1-08** Relayer accounts with rate limits (BI)
 
-- [x] **D1-01** Monorepo scaffold (HA)
-- [ ] **D1-02** CI
-- [ ] **D1-03** Render hello-world
-- [x] **D1-04** Contract stub (signatures) (EZ)
-- [x] **D1-05** Shared TS contract types (EZ)
-- [ ] **D1-06** Relayer API types
-- [x] **D1-07** Design tokens CSS (RAP)
-- [x] **D1-08** OutLayer spike (2-3 h, time-boxed) (EZ)
-- [ ] **D1-09** Relayer spike
-- [x] **D1-10** Frontend skeleton on mocks
-- [ ] **D1-11** Screens in Claude Design
+## Block A: 2026-11-12 evening
+- [ ] **MK-04** Shared types v2, client crypto, mock chain v2 (CT)
+- [ ] **MK-10** Supabase schema, RLS, storage (BI)
+- [ ] **MK-13** Relayer and DB types (BI)
+- [ ] **MK-30** Marketplace screens in Claude Design (DP)
 
-## Day 2: 2026-11-11, Milestone M1 (demo slice)
+## Block B: 2026-11-13 00:00-12:00 UTC
+- [ ] **MK-01** Contract v2: listings and offers (CT)
+- [ ] **MK-02** TEE v2: listing-bound matching (CT)
+- [ ] **MK-11** Relayer: accounts bound to Supabase users (BI)
+- [ ] **MK-12** Relayer: listing sync and thread opening (BI)
+- [ ] **MK-20** Sign-in, handle, NEAR account, keys (BI)
+- [ ] **MK-21** Browse, search, seller profile (FE)
+- [ ] **MK-22** Create listing (FE)
+- [ ] **MK-23** Listing page: assistant and Q&A (FE)
 
-- [x] **M1-01** Contract: `new` + `create_deal` (TDD) (EZ)
-- [x] **M1-02** Contract: `submit_limit`, link token, rounds (TDD) (EZ)
-- [x] **M1-03** Contract: `on_outlayer_result` (TDD) (EZ)
-- [x] **M1-04** Contract: escrow (TDD) (EZ)
-- [x] **M1-05** WASM matching + commitment (TDD) (EZ)
-- [x] **M1-06** WASM: `get_pubkey`, build, deploy to OutLayer (EZ)
-- [x] **M1-07** Contract on testnet + OutLayer round trip (EZ)
-- [ ] **M1-08** Relayer with rate limits
-- [ ] **M1-09** Frontend flow on mocks
-- [ ] **M1-10** Frontend ECIES + commitment
-- [ ] **M1-11** Wire frontend to testnet
-- [ ] **M1-12** Seed script
-- [ ] **M1-13** End-to-end happy path (one test)
-- [ ] **M1-14** Hand screens and assets to frontend
-- [x] **G1** Decision gate: end of 11-11 (owner: lead, CT reports): passed, no fallback needed
-- [x] **F-01** Fallback matcher (contingent): not needed, G1 passed
+## Block C: 2026-11-13 12:00-24:00 UTC
+- [ ] **G2** Gate 12:00 UTC: MK-01 + MK-02 green (lead)
+- [ ] **MK-03** Redeploy v2 on testnet + real `nearClient` (CT)
+- [ ] **MK-05** AI product assistant (CT)
+- [ ] **MK-24** Offer flow wired to testnet (FE)
+- [ ] **MK-25** Chat and inbox (FE)
+- [ ] **MK-31** Seed photos (DP)
+- [ ] **MK-14** Seed: demo shop (BI)
+- [ ] **MK-40** End-to-end happy path (BI)
+- [ ] **S-06** Hosted deploy (BI)
+- [ ] **G3** Gate 20:00 UTC: MK-24 green on testnet (lead)
 
-## Day 3: 2026-11-12 (Should items; M1 must be done by noon)
-
+## Should (after G3)
+- [ ] **S-02** AI negotiator
 - [ ] **S-01** Verified panel
-- [ ] **S-02** AI negotiator (NEAR AI Cloud)
-- [ ] **S-03** Receipt page with tx links
-- [ ] **S-04** Bahasa/English
-- [ ] **S-05** Escrow edge cases and testnet redeploy
-- [ ] **S-06** Hosted deploy
-- [ ] **S-07** Enclave-signed results (only if spike showed PROTECTED_ can sign)
-- [ ] **S-08** Real deals
-- [ ] **S-09** Reveal and state polish
+- [ ] **S-10** Seller lowers the minimum
+- [ ] **S-11** Ratings, saved items, email notifications
+- [ ] **S-07** Enclave-signed results
+- [ ] **S-08** Real listings by real students
 
-## Day 4: 2026-11-13 (freeze 12:00 UTC) and packaging
-
+## 2026-11-14: freeze 00:00 UTC, submit by 12:00 UTC
+- [ ] **P-04** Freeze
 - [ ] **P-01** README on a clean clone
 - [ ] **P-02** Video and visuals
-- [ ] **P-03** X post draft and pitch text
-- [ ] **P-04** Freeze and final checks (12:00 UTC)
-
-## Day 5: 2026-11-14 (submit by 12:00 UTC)
-
+- [ ] **P-03** X post and pitch text
 - [ ] **P-05** Submit
