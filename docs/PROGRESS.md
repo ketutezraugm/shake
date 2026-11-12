@@ -5,13 +5,13 @@ Mirrors docs/plans/IMPLEMENTATION.md. Tick a box only after the task's done-chec
 
 ## Day 1: 2026-11-10 (scaffold, shared contracts, spikes)
 
-- [x] **D1-01** Monorepo scaffold (RAP)
+- [x] **D1-01** Monorepo scaffold (HA)
 - [ ] **D1-02** CI
 - [ ] **D1-03** Render hello-world
 - [x] **D1-04** Contract stub (signatures) (EZ)
 - [x] **D1-05** Shared TS contract types (EZ)
 - [ ] **D1-06** Relayer API types
-- [ ] **D1-07** Design tokens CSS
+- [x] **D1-07** Design tokens CSS (RAP)
 - [x] **D1-08** OutLayer spike (2-3 h, time-boxed) (EZ)
 - [ ] **D1-09** Relayer spike
 - [ ] **D1-10** Frontend skeleton on mocks
