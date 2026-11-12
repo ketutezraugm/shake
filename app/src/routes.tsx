@@ -79,10 +79,11 @@ export function Link({ to, className, current, children }: { to: string; classNa
   );
 }
 
+/** The current path plus its query string, so a search from the header re-renders the page. */
 function usePath(): string {
-  const [path, setPath] = useState(location.pathname);
+  const [path, setPath] = useState(location.pathname + location.search);
   useEffect(() => {
-    const onChange = () => setPath(location.pathname);
+    const onChange = () => setPath(location.pathname + location.search);
     addEventListener("popstate", onChange);
     return () => removeEventListener("popstate", onChange);
   }, []);
@@ -100,18 +101,18 @@ function Pending({ title, task }: { title: string; task: string }) {
 }
 
 export function Router() {
-  const path = usePath();
+  const [path = "/", query = ""] = usePath().split("?");
   return (
     <Shell path={path}>
-      <Page route={parseRoute(path)} />
+      <Page route={parseRoute(path)} query={query} />
     </Shell>
   );
 }
 
-function Page({ route }: { route: Route }) {
+function Page({ route, query }: { route: Route; query: string }) {
   switch (route.name) {
     case "home":
-      return <Home />;
+      return <Home key={query} initialQuery={new URLSearchParams(query).get("q") ?? ""} />;
     case "profile":
       return <Profile handle={route.handle} />;
     case "listing":
