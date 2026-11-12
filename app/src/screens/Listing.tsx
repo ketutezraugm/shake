@@ -1,10 +1,13 @@
 import { useEffect, useState } from "react";
 import type { Question } from "../../../relayer/src/types";
 import { currentAccount } from "../accounts";
+import { chainFor } from "../client";
+import { relayerUrl } from "../config";
 import { formatRp } from "../format";
 import type { ShopListing } from "../market";
 import { market } from "../marketSource";
-import { Link } from "../routes";
+import { claimSlot } from "../offer";
+import { Link, navigate } from "../routes";
 import { Assistant } from "./Assistant";
 import { Questions } from "./Questions";
 
@@ -17,6 +20,39 @@ function statusNote(listing: ShopListing): string | null {
   if (listing.status === "closed") return "The seller has closed this listing.";
   if (listing.freeSlots === 0) return "Offers full for now. Try again later.";
   return null;
+}
+
+/** Claims one of the listing's slots, then opens the buyer's offer screen on that deal. */
+function OfferButton({ listing }: { listing: ShopListing }) {
+  const account = currentAccount();
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  if (!account) return <p className="muted"><Link to="/signin">Sign in</Link> to make an offer.</p>;
+  if (!relayerUrl) return <p className="muted">Offers need VITE_RELAYER_URL in the app's environment.</p>;
+  const url = relayerUrl;
+
+  async function start() {
+    if (!account) return;
+    setBusy(true);
+    setError(null);
+    try {
+      const { dealId } = await claimSlot(url, chainFor(account).signer, listing);
+      navigate(`/deals/${dealId}`);
+    } catch (e) {
+      setError((e as Error).message);
+      setBusy(false);
+    }
+  }
+
+  return (
+    <>
+      <button className="primary" disabled={busy} onClick={() => void start()}>
+        Make a blind offer
+      </button>
+      {error && <p className="error" role="alert">{error}</p>}
+    </>
+  );
 }
 
 export function Listing({ id }: { id: string }) {
@@ -74,7 +110,7 @@ export function Listing({ id }: { id: string }) {
           matches. Chat opens once you have a deal.
         </p>
         {note && <p role="status">{note}</p>}
-        {!note && !isOwn && <button disabled>Make a blind offer</button>}
+        {!note && !isOwn && <OfferButton listing={listing} />}
         {isOwn && <p className="muted">This is your listing.</p>}
       </section>
 

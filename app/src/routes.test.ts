@@ -10,6 +10,8 @@ describe("parseRoute", () => {
     expect(parseRoute("/sell")).toEqual({ name: "sell" });
     expect(parseRoute("/deals/12")).toEqual({ name: "offer", dealId: 12 });
     expect(parseRoute("/inbox")).toEqual({ name: "inbox" });
+    expect(parseRoute("/chat/12")).toEqual({ name: "chat", dealId: 12 });
+    expect(parseRoute("/chat/abc")).toEqual({ name: "notFound" });
     expect(parseRoute("/signin")).toEqual({ name: "signin" });
   });
 
