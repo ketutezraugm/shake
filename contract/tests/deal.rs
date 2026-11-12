@@ -10,6 +10,7 @@ fn contract() -> Contract {
         accounts(0),
         vec![2; 33],
         "spike.testnet/blind-deal".to_string(),
+        None,
     )
 }
 
