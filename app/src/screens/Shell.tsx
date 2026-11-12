@@ -2,6 +2,7 @@ import { useState, type FormEvent, type ReactNode } from "react";
 import { currentAccount } from "../accounts";
 import lockup from "../design/assets/logo/shake-lockup.svg";
 import { Link, navigate } from "../routes";
+import { OfflineBanner } from "./States";
 
 type Tab = { to: string; label: string; icon: ReactNode };
 
@@ -76,6 +77,7 @@ export function Shell({ path, children }: { path: string; children: ReactNode })
 
   return (
     <div className="shell">
+      <OfflineBanner />
       <header className="topbar">
         <Link to="/" className="brand mobile-only">
           shake

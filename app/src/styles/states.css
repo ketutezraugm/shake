@@ -1,0 +1,114 @@
+/* Not found, error, offline, loading, empty and the seller's own-listing panel, from Abel's "Global states" and
+   "Your listing" frames. Tokens only; nothing here animates. */
+
+.state-card {
+  padding: 32px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-12);
+  text-align: center;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-hero);
+}
+
+.state-card.left {
+  align-items: flex-start;
+  padding: 20px;
+  text-align: left;
+  border-radius: var(--radius-panel);
+}
+
+.state-card .primary {
+  min-width: 200px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}
+
+.state-title {
+  font-weight: 700;
+}
+
+.empty-state {
+  padding: 24px;
+  border: 1px dashed var(--ink-muted);
+  border-radius: var(--radius-panel);
+  text-align: center;
+}
+
+.offline-banner {
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-12);
+  background: var(--ink);
+  color: var(--on-ink);
+  font-size: var(--text-14);
+}
+
+.offline-banner button {
+  min-height: 36px;
+  padding: 0 14px;
+  border: 1px solid var(--on-ink);
+  border-radius: var(--radius-button);
+  background: transparent;
+  color: var(--on-ink);
+  font: inherit;
+  font-weight: var(--weight-text-bold);
+  font-size: var(--text-13);
+}
+
+.skeleton {
+  pointer-events: none;
+}
+
+.skeleton-photo {
+  aspect-ratio: 1 / 1;
+  background: var(--line);
+}
+
+.skeleton-line {
+  display: block;
+  height: 12px;
+  border-radius: 6px;
+  background: var(--line);
+}
+
+.no-photo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+/* The card's photo rule stretches every image to the box; the sticker keeps its size. */
+.card-photo .no-photo img {
+  width: 52px;
+  height: 52px;
+  object-fit: contain;
+}
+
+.own-listing {
+  background: var(--surface);
+  border: 1px solid var(--line);
+}
+
+.own-listing .tag {
+  align-self: flex-start;
+}
+
+.own-note {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  font-size: var(--text-14);
+  color: var(--ink-muted);
+}
+
+.own-note img {
+  flex: none;
+}

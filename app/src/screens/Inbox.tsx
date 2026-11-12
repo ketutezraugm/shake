@@ -187,7 +187,7 @@ function RoundRequest({ request, onOpen }: RoundProps) {
 
 type AnswerProps = { title: string; question: string; onAnswer: (text: string) => Promise<void> };
 
-function AnswerQuestion({ title, question, onAnswer }: AnswerProps) {
+export function AnswerQuestion({ title, question, onAnswer }: AnswerProps) {
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);

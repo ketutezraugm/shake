@@ -1,4 +1,5 @@
 import { CATEGORY_LABELS } from "../categories";
+import scratchCard from "../design/assets/stickers/scratch-card.svg";
 import { formatRp } from "../format";
 import type { ShopListing } from "../market";
 import { Link } from "../routes";
@@ -19,7 +20,14 @@ export function ListingCard({ listing }: { listing: ShopListing }) {
   return (
     <li>
       <Link to={`/l/${listing.id}`} className="card">
-        <div className={`card-photo tint-${tintOf(listing.id)}`}>{photo ? <img src={photo} alt="" loading="lazy" /> : "Photo"}</div>
+        <div className={`card-photo tint-${tintOf(listing.id)}`}>{photo ? (
+            <img src={photo} alt="" loading="lazy" />
+          ) : (
+            <span className="no-photo">
+              <img className="sticker" src={scratchCard} alt="" width={52} height={52} style={{ transform: "rotate(-6deg)" }} />
+              No photo
+            </span>
+          )}</div>
         <div className="card-body">
           <span className="card-title">{listing.title}</span>
           <span className="card-price">{formatRp(listing.askingPrice)}</span>

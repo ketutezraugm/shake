@@ -5,6 +5,7 @@ import priceTag from "../design/assets/stickers/price-tag.svg";
 import type { ShopListing } from "../market";
 import { market } from "../marketSource";
 import { ListingCard } from "./ListingCard";
+import { CardSkeletons, EmptyState, ErrorState } from "./States";
 
 export function Home({ initialQuery = "" }: { initialQuery?: string }) {
   const [draft, setDraft] = useState(initialQuery);
@@ -14,6 +15,7 @@ export function Home({ initialQuery = "" }: { initialQuery?: string }) {
   const [cursor, setCursor] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
     // Drop answers to an older search that arrive after a newer one.
@@ -31,7 +33,7 @@ export function Home({ initialQuery = "" }: { initialQuery?: string }) {
     return () => {
       current = false;
     };
-  }, [q, category]);
+  }, [q, category, attempt]);
 
   function search(event: FormEvent) {
     event.preventDefault();
@@ -85,9 +87,14 @@ export function Home({ initialQuery = "" }: { initialQuery?: string }) {
         {listings && <span className="num muted">{listings.length} items</span>}
       </div>
 
-      {error && <p className="error" role="alert">{error}</p>}
-      {listings === null && !error && <p className="muted">Loading…</p>}
-      {listings?.length === 0 && <p className="muted">Nothing found.</p>}
+      {error && <ErrorState message={error} onRetry={() => setAttempt((a) => a + 1)} />}
+      {listings === null && !error && <CardSkeletons />}
+      {listings?.length === 0 &&
+        (q ? (
+          <EmptyState title={`No listings match "${q}"`}>Try another word or clear the category.</EmptyState>
+        ) : (
+          <EmptyState title="Nothing listed here yet">Check back soon, or list the first item.</EmptyState>
+        ))}
       {listings && listings.length > 0 && (
         <ul className="grid">
           {listings.map((listing) => (
