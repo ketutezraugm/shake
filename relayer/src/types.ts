@@ -62,6 +62,10 @@ export type Question = { id: number; listingId: string; question: string; answer
 export type AskReq = { question: string };
 export type AnswerReq = { answer: string };
 
+export type AssistantReq = { listingId: string; question: string };
+/** `unknown` means the listing and the seller's answers do not cover it: the app offers "Ask the seller". */
+export type AssistantRes = { answer: string } | { unknown: true };
+
 export type Message = { id: number; dealId: number; senderAccount: string; body: string; createdAt: string };
 export type SendMessageReq = { body: string };
 

@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import { Hono, type Context } from "hono";
 import { cors } from "hono/cors";
 import { openAccount, type AccountsDeps } from "./accounts.js";
+import { answerQuestion, quota, type Chat } from "./assistant.js";
 import { createAuthenticator } from "./auth.js";
 import { HttpError } from "./errors.js";
 import type { ChainDeal, NearReader } from "./near.js";
@@ -13,6 +14,7 @@ import {
   MAX_SLOTS,
   parseAnswer,
   parseAsk,
+  parseAssistantAsk,
   parseCategory,
   parseCreateListing,
   parseMessage,
@@ -27,6 +29,8 @@ export type Deps = {
   allowedOrigin: string;
   /** Absent when the relayer has no account-creating key; POST /accounts then answers 503. */
   accounts?: AccountsDeps;
+  /** Absent when there is no NEAR AI key; POST /assistant then answers 503. */
+  chat?: Chat;
   now?: () => number;
 };
 
@@ -34,14 +38,19 @@ const PAGE_SIZE = 20;
 const REQUESTS_PER_MINUTE = 120;
 const ACCOUNTS_PER_IP_PER_HOUR = 3;
 const HOUR_MS = 60 * 60 * 1000;
+const ASSISTANT_PER_ACCOUNT_PER_HOUR = 20;
+// Protects the $10 NEAR AI credit; a restart resets it.
+const ASSISTANT_PER_DAY = 1000;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 const HOLDING_STATES = new Set(["Matched", "Funded"]);
 // Chat and the inbox's matches open once a deal has matched; a NoDeal that kept `matched_at_ns` is an expired match.
 const MATCHED_STATES = new Set(["Matched", "Funded", "Released", "Refunded"]);
 
-export function createApp({ store, near, allowedOrigin, accounts, now = Date.now }: Deps) {
+export function createApp({ store, near, allowedOrigin, accounts, chat, now = Date.now }: Deps) {
   const app = new Hono();
   const authenticate = createAuthenticator(near, now);
+  const accountQuota = quota(ASSISTANT_PER_ACCOUNT_PER_HOUR, HOUR_MS, now);
+  const dailyQuota = quota(ASSISTANT_PER_DAY, 24 * HOUR_MS, now);
 
   app.use(
     cors({
@@ -239,6 +248,15 @@ export function createApp({ store, near, allowedOrigin, accounts, now = Date.now
     const listing = await findListing(c.req.param("id"));
     if (listing.sellerAccount === account) throw new HttpError(403, "sellers cannot ask on their own listing");
     return c.json(await store.addQuestion(listing.id, account, parseAsk(body).question), 201);
+  });
+
+  app.post("/assistant", async (c) => {
+    const { account, body } = await signed(c);
+    if (!chat) throw new HttpError(503, "assistant is not configured");
+    const { listingId, question } = parseAssistantAsk(body);
+    const listing = await findListing(listingId);
+    if (!accountQuota(account) || !dailyQuota("all")) throw new HttpError(429, "assistant limit reached, ask the seller instead");
+    return c.json(await answerQuestion(chat, listing, await store.answeredQuestions(listing.id), question));
   });
 
   app.post("/questions/:id/answer", async (c) => {

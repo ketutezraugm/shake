@@ -1,4 +1,5 @@
 import { serve } from "@hono/node-server";
+import { nearAiChat } from "./assistant.js";
 import { nearAccountCreator, nearToYocto } from "./accounts.js";
 import { createApp } from "./app.js";
 import { loadEnv } from "./env.js";
@@ -11,6 +12,7 @@ const app = createApp({
   store: supabaseStore(env.supabaseUrl, env.supabaseServiceKey),
   near: rpcNearReader(env.nearRpcUrl, env.contractId),
   allowedOrigin: env.allowedOrigin,
+  chat: env.nearAiApiKey ? nearAiChat(env.nearAiApiKey) : undefined,
   accounts: env.accounts
     ? {
         creator: nearAccountCreator(env.nearRpcUrl, env.accounts.parentId, env.accounts.privateKey),
