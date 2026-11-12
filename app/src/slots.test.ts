@@ -93,6 +93,38 @@ describe("createSlots", () => {
     expect(localStorage.getItem(`blind-deal:minimum:${listingId}`)).toContain(MINIMUM);
   });
 
+  it("retries a registration the relayer refused only because its RPC node was a block behind", async () => {
+    const answers = [
+      new Response(JSON.stringify({ error: "deal 100 must be waiting for its buyer: submit the seller's limit first" }), { status: 400 }),
+      new Response(JSON.stringify({ registered: 1 }), { status: 201 }),
+    ];
+    vi.stubGlobal("fetch", async (_url: string, init?: RequestInit) => {
+      bodies.push(String(init?.body));
+      return answers.shift()!;
+    });
+    const { client } = fakeClient();
+
+    const done = createSlots({
+      listingId: "66666666-6666-6666-6666-666666666666", count: 1, minimum: MINIMUM, maxRounds: 1, signer, client,
+      teePubkey: TEE_PUBKEY, relayerUrl: "https://relayer.example",
+    });
+
+    await expect(done).resolves.toHaveLength(1);
+    expect(bodies).toHaveLength(2);
+  });
+
+  it("does not retry a real refusal", async () => {
+    vi.stubGlobal("fetch", async () => new Response(JSON.stringify({ error: "wrong link token for deal 100" }), { status: 400 }));
+    const { client } = fakeClient();
+
+    await expect(
+      createSlots({
+        listingId: "77777777-7777-7777-7777-777777777777", count: 1, minimum: MINIMUM, maxRounds: 1, signer, client,
+        teePubkey: TEE_PUBKEY, relayerUrl: "https://relayer.example",
+      }),
+    ).rejects.toThrow(/wrong link token/);
+  });
+
   it("registers the slots it made when a later one fails, so the listing is still usable", async () => {
     const { client } = fakeClient();
     let calls = 0;
