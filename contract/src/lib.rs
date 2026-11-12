@@ -4,7 +4,12 @@
 
 use near_sdk::json_types::U128;
 use near_sdk::store::LookupMap;
-use near_sdk::{near, AccountId, PanicOnDefault};
+use near_sdk::{env, near, require, AccountId, PanicOnDefault};
+
+const MAX_TITLE_BYTES: usize = 100;
+const MAX_DESCRIPTION_BYTES: usize = 1000;
+/// Demo rate: Rp 4.2M escrows 0.042 testnet NEAR.
+const RP_PER_NEAR: u128 = 100_000_000;
 
 /// Waiting = one side has submitted this round; Retry = no deal this round, more rounds left.
 #[near(serializers = [json, borsh])]
@@ -60,7 +65,13 @@ pub struct Contract {
 impl Contract {
     #[init]
     pub fn new(outlayer: AccountId, tee_pubkey: Vec<u8>) -> Self {
-        unimplemented!()
+        Self {
+            deals: LookupMap::new(b"d"),
+            next_id: 0,
+            tee_pubkey,
+            outlayer,
+            rp_per_near: RP_PER_NEAR,
+        }
     }
 
     /// `max_rounds` must be in 1..=3.
@@ -71,7 +82,36 @@ impl Contract {
         link_hash: [u8; 32],
         max_rounds: u8,
     ) -> u64 {
-        unimplemented!()
+        require!(
+            !title.is_empty() && title.len() <= MAX_TITLE_BYTES,
+            "title must be 1-100 bytes"
+        );
+        require!(
+            description.len() <= MAX_DESCRIPTION_BYTES,
+            "description must be at most 1000 bytes"
+        );
+        let id = self.next_id;
+        self.next_id += 1;
+        let deal = Deal {
+            id,
+            seller: env::predecessor_account_id(),
+            buyer: None,
+            title,
+            description,
+            link_hash,
+            max_rounds,
+            round: 1,
+            seller_cts: vec![],
+            buyer_cts: vec![],
+            seller_commits: vec![],
+            buyer_commits: vec![],
+            state: State::Created,
+            price: None,
+            matched_at_ns: None,
+            deadline_ns: None,
+        };
+        self.deals.insert(id, deal);
+        id
     }
 
     /// The call that completes a round attaches the OutLayer fee.
@@ -115,7 +155,7 @@ impl Contract {
     }
 
     pub fn get_deal(&self, deal_id: u64) -> Option<Deal> {
-        unimplemented!()
+        self.deals.get(&deal_id).cloned()
     }
 
     pub fn get_state(&self, deal_id: u64) -> Option<State> {
