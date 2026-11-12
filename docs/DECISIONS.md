@@ -144,6 +144,9 @@ Ezra's rule change turns Blind deal into a public marketplace: sellers list item
 
 ## 2026-11-13 Asking price in the sell form and cards (MK-26)
 `publishListing` requires an `askingPrice` (whole Rupiah, canonical, fits u64) and refuses a minimum above it before any request or fee; the price goes in the `POST /listings` body, the minimum still never does. Cards and the shop show `formatRp(askingPrice)` (comma grouping like the other Rp displays). `ShopListing.askingPrice` is a local type until Harfi's MK-15 adds it to `relayer/src/types.ts`; seed data carries prices so the mock market looks right. The sell screen now gets its signer, client and TEE key from `chainFor(account)` (real or mock chain), so it runs on the mock chain without a deployed contract and only needs `VITE_RELAYER_URL`. The offer field's cap at the asking price belongs to the offer screen (MK-24), which does not exist yet.
+<<<<<<< HEAD
 
 ## 2026-11-13 Listing page, assistant and public Q&A (MK-23)
 `Market` gains `listing(id)` and `questions(listingId)` (answered questions only, as the relayer returns them), with a mock that follows the same rules and seed questions on the demo camera. `qa.ts` has `askAssistant` (`POST /assistant`, reply is `{answer}` or `{unknown:true}`; the type is local until MK-05 defines it) and `askSeller` (`POST /listings/:id/questions`, refuses an empty question before any request). The shared signed-POST helper moved from `publish.ts` to `relayer.ts` so both use it. The listing page shows the asking price, the blind-offer explainer ("offering the full ask always matches"), a status note for reserved, sold, closed and offers-full, and hides the assistant on the seller's own listing. "Make a blind offer" is a disabled button until the offer screen (MK-24). A signed-out visitor sees the seller's answers but is sent to sign in to ask. The seller answers from the inbox (MK-25).
+=======
+>>>>>>> origin/dev
