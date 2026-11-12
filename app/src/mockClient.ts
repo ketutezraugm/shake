@@ -1,16 +1,20 @@
+import { decrypt } from "eciesjs";
 import type { Bytes32, ContractClient, Deal, State } from "./contract";
+import { commitmentFor, type Side } from "./crypto";
+import type { Signer } from "./signer";
 
 // Same demo rate as the contract's RP_PER_NEAR: 1 NEAR = Rp 100,000,000.
 const YOCTO_PER_RP = 10n ** 16n;
+const DAY_MS = 86_400_000;
+const MAX_CT_BYTES = 512;
+const U64_MAX = 2n ** 64n - 1n;
 
-/** Mock only: the "ciphertext" carries the plaintext limit until M1-10 adds ECIES. */
-export function encodeMockLimit(limitRp: number): number[] {
-  return [...new TextEncoder().encode(String(limitRp))];
-}
-
-function decodeMockLimit(ct: number[]): number {
-  return Number(new TextDecoder().decode(Uint8Array.from(ct)));
-}
+/**
+ * TEST ONLY: the key behind tee/testvectors.json. The mock chain decrypts with it, so the app seals limits with
+ * `sealLimit` against MOCK_TEE_PUBLIC_KEY exactly as it does against the real TEE key.
+ */
+export const MOCK_TEE_SECRET_KEY = "2222222222222222222222222222222222222222222222222222222222222222";
+export const MOCK_TEE_PUBLIC_KEY = "02466d7fcae563e5cb09a0d1870bb580344804617879a14949cf22285f1bae3f27";
 
 export async function sha256(text: string): Promise<Bytes32> {
   const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
@@ -19,26 +23,44 @@ export async function sha256(text: string): Promise<Bytes32> {
 
 const sameBytes = (a: Bytes32, b: Bytes32) => a.length === b.length && a.every((x, i) => x === b[i]);
 
-function randomBetween(min: number, max: number): number {
-  return min + Math.floor(Math.random() * (max - min + 1));
-}
+/** A deal as the dev-server store keeps it: the public deal plus when the mock TEE answers. */
+type MockDeal = Deal & { settle_at_ms?: number };
+
+export type MockOptions = {
+  now?: () => number;
+  /** How long a completed round stays `Computing`, like the real OutLayer step. */
+  computeMs?: number;
+  /** The contract's `delivery_window_secs`, in ms (7 days on the demo contract). */
+  deliveryWindowMs?: number;
+};
 
 /** In-memory stand-in for the deal contract, shared by every mock client so two sides can meet. */
 export class MockChain {
-  constructor(private deals: Deal[] = []) {}
+  readonly now: () => number;
+  readonly computeMs: number;
+  readonly deliveryWindowMs: number;
+
+  constructor(
+    private deals: MockDeal[] = [],
+    { now = Date.now, computeMs = 2_000, deliveryWindowMs = 7 * DAY_MS }: MockOptions = {},
+  ) {
+    this.now = now;
+    this.computeMs = computeMs;
+    this.deliveryWindowMs = deliveryWindowMs;
+  }
 
   /** Plain copy of every deal, for persisting the chain between tabs. */
-  dump(): Deal[] {
+  dump(): MockDeal[] {
     return structuredClone(this.deals);
   }
 
-  restore(deals: Deal[]): void {
+  restore(deals: MockDeal[]): void {
     this.deals = deals;
   }
 
-  find(id: number): Deal {
+  find(id: number): MockDeal {
     const deal = this.deals[id];
-    if (!deal) throw new Error(`deal ${id} not found`);
+    if (!deal) throw new Error("no such deal");
     return deal;
   }
 
@@ -50,32 +72,76 @@ export class MockChain {
 
   get(id: number): Deal | null {
     const deal = this.deals[id];
-    return deal ? structuredClone(deal) : null;
+    if (!deal) return null;
+    const copy = structuredClone(deal);
+    delete copy.settle_at_ms;
+    return copy;
+  }
+
+  /** The mock TEE's answer lands once its time is up, like the callback does on testnet. */
+  async settleDue(): Promise<void> {
+    for (const deal of this.deals) {
+      if (deal.state === "Computing" && (deal.settle_at_ms ?? 0) <= this.now()) {
+        delete deal.settle_at_ms;
+        await settleRound(deal, this.now());
+      }
+    }
   }
 }
 
-function expectState(deal: Deal, ...allowed: State[]): void {
-  if (!allowed.includes(deal.state)) throw new Error(`deal ${deal.id} is ${deal.state}`);
+/** One limit as the TEE opens it: only if it is sealed for this deal, side and round and matches its commitment. */
+async function openLimit(deal: Deal, side: Side, round: number): Promise<bigint | null> {
+  const ct = (side === "seller" ? deal.seller_cts : deal.buyer_cts)[round - 1];
+  const commit = (side === "seller" ? deal.seller_commits : deal.buyer_commits)[round - 1];
+  if (!ct || !commit) return null;
+  try {
+    const plain = JSON.parse(new TextDecoder().decode(decrypt(MOCK_TEE_SECRET_KEY, Uint8Array.from(ct)))) as {
+      deal_id: number;
+      side: string;
+      round: number;
+      limit: string;
+      salt: string;
+    };
+    if (plain.deal_id !== deal.id || plain.side !== side || plain.round !== round) return null;
+    if (!/^[1-9]\d*$/.test(plain.limit) || BigInt(plain.limit) > U64_MAX) return null;
+    const expected = await commitmentFor(deal.id, side, round, plain.limit, plain.salt);
+    return sameBytes(expected, commit) ? BigInt(plain.limit) : null;
+  } catch {
+    return null;
+  }
 }
 
-/** True if every round's limit kept moving one way: `ok(previous, next)` holds for each step. */
-function monotonic(limits: number[], ok: (previous: number, next: number) => boolean): boolean {
-  return limits.every((limit, i) => i === 0 || ok(limits[i - 1]!, limit));
-}
+const monotonic = (limits: bigint[], ok: (previous: bigint, next: bigint) => boolean) =>
+  limits.every((limit, i) => i === 0 || ok(limits[i - 1]!, limit));
 
-/** Matching the TEE does, minus the crypto: a random price inside the overlap, else retry or no deal. */
-function settleRound(deal: Deal): void {
-  const sellerLimits = deal.seller_cts.map(decodeMockLimit);
-  const buyerLimits = deal.buyer_cts.map(decodeMockLimit);
-  const min = sellerLimits.at(-1)!;
-  const max = buyerLimits.at(-1)!;
-  // Like the TEE: a seller who raised or a buyer who lowered makes the round a plain no-deal.
-  const conceded = monotonic(sellerLimits, (a, b) => b <= a) && monotonic(buyerLimits, (a, b) => b >= a);
+/**
+ * What the WASM does: open every round, require buyer-up and seller-down, compare the latest round, and pick a
+ * price inside the overlap. The price comes from the commitments, not Math.random, so two tabs that settle the
+ * same deal agree.
+ */
+async function settleRound(deal: Deal, nowMs: number): Promise<void> {
+  const rounds = Array.from({ length: deal.round }, (_, i) => i + 1);
+  const sellerLimits = await Promise.all(rounds.map((r) => openLimit(deal, "seller", r)));
+  const buyerLimits = await Promise.all(rounds.map((r) => openLimit(deal, "buyer", r)));
+  const opened = [...sellerLimits, ...buyerLimits].every((limit) => limit !== null);
 
-  if (conceded && min <= max) {
+  let price: bigint | null = null;
+  if (opened) {
+    const sellers = sellerLimits as bigint[];
+    const buyers = buyerLimits as bigint[];
+    const min = sellers.at(-1)!;
+    const max = buyers.at(-1)!;
+    if (monotonic(sellers, (a, b) => b <= a) && monotonic(buyers, (a, b) => b >= a) && min <= max) {
+      const seed = await sha256([...deal.seller_commits, ...deal.buyer_commits].flat().join(","));
+      const draw = BigInt(`0x${seed.slice(0, 8).map((b) => b.toString(16).padStart(2, "0")).join("")}`);
+      price = min + (draw % (max - min + 1n));
+    }
+  }
+
+  if (price !== null) {
     deal.state = "Matched";
-    deal.price = (BigInt(randomBetween(min, max)) * YOCTO_PER_RP).toString();
-    deal.matched_at_ns = Date.now() * 1e6;
+    deal.price = (price * YOCTO_PER_RP).toString();
+    deal.matched_at_ns = nowMs * 1e6;
   } else if (deal.round < deal.max_rounds) {
     deal.state = "Retry";
     deal.round += 1;
@@ -84,10 +150,26 @@ function settleRound(deal: Deal): void {
   }
 }
 
+function require(condition: boolean, message: string): void {
+  if (!condition) throw new Error(message);
+}
+
+const bytes = (text: string) => new TextEncoder().encode(text).length;
+
+/** The deal contract's rules and panic messages (contract/src/lib.rs), over a MockChain. */
 export function mockClient(chain: MockChain, caller: string): ContractClient {
+  const state = (deal: Deal, ...allowed: State[]) => allowed.includes(deal.state);
+  const dealOf = async (id: number) => {
+    await chain.settleDue();
+    return chain.find(id);
+  };
+
   return {
     async createDeal(title, description, linkHash, maxRounds) {
-      if (maxRounds < 1 || maxRounds > 3) throw new Error("max_rounds must be 1..=3");
+      await chain.settleDue();
+      require(maxRounds >= 1 && maxRounds <= 3, "max_rounds must be 1-3");
+      require(bytes(title) >= 1 && bytes(title) <= 100, "title must be 1-100 bytes");
+      require(bytes(description) <= 1000, "description must be at most 1000 bytes");
       return chain.add({
         seller: caller,
         buyer: null,
@@ -108,72 +190,92 @@ export function mockClient(chain: MockChain, caller: string): ContractClient {
     },
 
     async submitLimit(dealId, ct, commit, linkToken) {
-      const deal = chain.find(dealId);
-      const i = deal.round - 1;
+      require(ct.length <= MAX_CT_BYTES, "ciphertext too large");
+      const deal = await dealOf(dealId);
+      require(state(deal, "Created", "Waiting", "Retry"), "deal is not accepting limits");
 
-      if (caller === deal.seller) {
-        expectState(deal, "Created", "Waiting", "Retry");
-        if (deal.seller_cts.length > i) throw new Error("seller already submitted this round");
-        deal.seller_cts.push(ct);
-        deal.seller_commits.push(commit);
-      } else {
-        expectState(deal, "Waiting", "Retry");
-        if (deal.buyer === null) {
-          if (linkToken === null || !sameBytes(await sha256(linkToken), deal.link_hash)) {
-            throw new Error("link token does not match");
-          }
-          deal.buyer = caller;
-        } else if (caller !== deal.buyer) {
-          throw new Error("link already used");
+      const isSeller = caller === deal.seller;
+      let binds = false;
+      if (!isSeller) {
+        if (deal.buyer !== null) {
+          require(deal.buyer === caller, "only the deal's buyer can submit");
+        } else {
+          require(deal.state === "Waiting", "the seller submits first");
+          require(linkToken !== null, "link token required");
+          require(sameBytes(await sha256(linkToken!), deal.link_hash), "invalid link token");
+          binds = true;
         }
-        if (deal.buyer_cts.length > i) throw new Error("buyer already submitted this round");
-        deal.buyer_cts.push(ct);
-        deal.buyer_commits.push(commit);
       }
+      const cts = isSeller ? deal.seller_cts : deal.buyer_cts;
+      require(cts.length < deal.round, "already submitted this round");
 
-      if (deal.seller_cts.length > i && deal.buyer_cts.length > i) settleRound(deal);
-      else deal.state = "Waiting";
+      if (binds) deal.buyer = caller;
+      cts.push(ct);
+      (isSeller ? deal.seller_commits : deal.buyer_commits).push(commit);
+      if (deal.seller_cts.length === deal.round && deal.buyer_cts.length === deal.round) {
+        deal.state = "Computing";
+        deal.settle_at_ms = chain.now() + chain.computeMs;
+      } else {
+        deal.state = "Waiting";
+      }
     },
 
     async deposit(dealId) {
-      const deal = chain.find(dealId);
-      expectState(deal, "Matched");
-      if (caller !== deal.buyer) throw new Error("only the buyer deposits");
-      deal.state = "Funded";
+      const deal = await dealOf(dealId);
+      require(deal.state === "Matched", "deal is not matched");
+      require(deal.buyer === caller, "only the buyer can deposit");
+      require(chain.now() * 1e6 <= deal.matched_at_ns! + DAY_MS * 1e6, "the funding window has passed");
+      deal.state = "Funded"; // the client attaches exactly the price, as nearClient does
+      deal.deadline_ns = chain.now() * 1e6 + chain.deliveryWindowMs * 1e6;
     },
 
     async confirmReceived(dealId) {
-      const deal = chain.find(dealId);
-      expectState(deal, "Funded");
-      if (caller !== deal.buyer) throw new Error("only the buyer confirms");
+      const deal = await dealOf(dealId);
+      require(deal.state === "Funded", "deal is not funded");
+      require(deal.buyer === caller, "only the buyer can confirm");
       deal.state = "Released";
     },
 
     async refund(dealId) {
-      const deal = chain.find(dealId);
-      expectState(deal, "Funded");
+      const deal = await dealOf(dealId);
+      require(deal.state === "Funded", "deal is not funded");
+      require(chain.now() * 1e6 > deal.deadline_ns!, "the deadline has not passed");
       deal.state = "Refunded";
     },
 
     async cancel(dealId) {
-      const deal = chain.find(dealId);
-      expectState(deal, "Created", "Waiting");
-      if (caller !== deal.seller) throw new Error("only the seller cancels");
+      const deal = await dealOf(dealId);
+      require(caller === deal.seller, "only the seller can cancel");
+      require(state(deal, "Created", "Waiting"), "too late to cancel");
       deal.state = "NoDeal";
     },
 
     async expire(dealId) {
-      const deal = chain.find(dealId);
-      expectState(deal, "Matched");
+      const deal = await dealOf(dealId);
+      require(deal.state === "Matched", "deal is not matched");
+      require(chain.now() * 1e6 > deal.matched_at_ns! + DAY_MS * 1e6, "too early to expire");
       deal.state = "NoDeal";
     },
 
     async getDeal(dealId) {
+      await chain.settleDue();
       return chain.get(dealId);
     },
 
     async getState(dealId) {
+      await chain.settleDue();
       return chain.get(dealId)?.state ?? null;
+    },
+  };
+}
+
+/** A Signer for screens in mock mode; the mock chain is reached through its ContractClient, never `call`. */
+export function mockSigner(accountId: string): Signer {
+  return {
+    accountId,
+    signRequest: async () => ({ "x-account-id": accountId }),
+    call: async () => {
+      throw new Error("the mock chain is used through its ContractClient, not call()");
     },
   };
 }

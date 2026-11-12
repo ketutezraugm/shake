@@ -3,12 +3,12 @@ import { currentAccount } from "../accounts";
 import { clientFor } from "../client";
 import type { Deal } from "../contract";
 import { rpFromYocto } from "../format";
-import { encodeMockLimit } from "../mockClient";
+import { MOCK_TEE_PUBLIC_KEY } from "../mockClient";
 import { AccountStep } from "./AccountStep";
 import { LimitForm } from "./LimitForm";
+import { sealLimit } from "../crypto";
 
 const POLL_MS = 3000;
-const NO_COMMIT = Array<number>(32).fill(0);
 
 export function Join({ id }: { id: number }) {
   // Mock only: the buyer's account is per tab so one browser can play seller and buyer side by side.
@@ -74,7 +74,10 @@ function BuyerDeal({ id, buyer, token }: { id: number; buyer: string; token: str
         buyer={buyer}
         busy={busy}
         onLimit={(limitRp) =>
-          act(() => client.submitLimit(id, encodeMockLimit(limitRp), NO_COMMIT, deal.buyer ? null : token))
+          act(async () => {
+            const sealed = await sealLimit(id, "buyer", deal.round, String(limitRp), MOCK_TEE_PUBLIC_KEY);
+            await client.submitLimit(id, sealed.ct, sealed.commit, deal.buyer ? null : token);
+          })
         }
         onDeposit={() => act(() => client.deposit(id))}
         onReceived={() => act(() => client.confirmReceived(id))}
