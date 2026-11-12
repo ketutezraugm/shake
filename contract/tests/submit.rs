@@ -1,26 +1,9 @@
 mod common;
 
 use common::*;
-use contract::{Contract, State};
+use contract::State;
 use near_sdk::mock::MockAction;
 use near_sdk::test_utils::get_created_receipts;
-
-/// A deal from the seller with link token "tok".
-fn deal(c: &mut Contract, max_rounds: u8) -> u64 {
-    at(SELLER, 0);
-    c.create_deal("bike".into(), "red".into(), token_hash("tok"), max_rounds)
-}
-
-fn submit(c: &mut Contract, id: u64, who: usize, deposit: u128, token: Option<&str>) {
-    at(who, deposit);
-    c.submit_limit(id, vec![1; 10], [9; 32], token.map(String::from));
-}
-
-/// Both sides submit; the buyer completes the round. The link token is only needed in round 1.
-fn play_round(c: &mut Contract, id: u64, token: Option<&str>) {
-    submit(c, id, SELLER, 0, None);
-    submit(c, id, BUYER, FEE, token);
-}
 
 mod submit_limit {
     use super::*;
@@ -264,5 +247,17 @@ mod cancel {
         at(SELLER, 0);
         panics_with("too late", || c.cancel(id));
         assert_eq!(c.get_deal(id).unwrap().state, State::Computing);
+    }
+
+    #[test]
+    fn cancel_blocked_once_matched() {
+        let mut c = new_contract();
+        let id = deal(&mut c, 2);
+        play_round(&mut c, id, Some("tok"));
+        callback_context(&matched(id, "4300000"));
+        c.on_outlayer_result(id);
+        at(SELLER, 0);
+        panics_with("too late", || c.cancel(id));
+        assert_eq!(c.get_deal(id).unwrap().state, State::Matched);
     }
 }
