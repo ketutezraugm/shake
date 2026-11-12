@@ -8,6 +8,11 @@ export function groupThousands(digits: string): string {
   return digits.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
 
+const U64_MAX = 2n ** 64n - 1n;
+
+/** Canonical Rupiah: digits only, no leading zero, nonzero, fits u64 like the TEE and contract. */
+export const isRupiah = (text: string): boolean => /^[1-9]\d*$/.test(text) && BigInt(text) <= U64_MAX;
+
 /** A Rupiah digit string as shown to people: "5000000" -> "Rp 5,000,000". */
 export function formatRp(digits: string): string {
   return `Rp ${groupThousands(digits)}`;

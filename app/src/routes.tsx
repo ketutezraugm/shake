@@ -1,10 +1,13 @@
 import { useEffect, useState, type MouseEvent, type ReactNode } from "react";
+import { Chat } from "./screens/Chat";
 import { Create } from "./screens/Create";
 import { DealPage } from "./screens/DealPage";
 import { Demo } from "./screens/Demo";
 import { Home } from "./screens/Home";
+import { Inbox } from "./screens/Inbox";
 import { Join } from "./screens/Join";
 import { Listing } from "./screens/Listing";
+import { Offer } from "./screens/Offer";
 import { Profile } from "./screens/Profile";
 import { Sell } from "./screens/Sell";
 
@@ -15,6 +18,7 @@ export type Route =
   | { name: "sell" }
   | { name: "offer"; dealId: number }
   | { name: "inbox" }
+  | { name: "chat"; dealId: number }
   | { name: "signin" }
   // Test UI from D1-10; the offer flow (MK-24) replaces these.
   | { name: "create" }
@@ -45,6 +49,9 @@ export function parseRoute(path: string): Route {
 
   const offer = /^\/deals\/(\d+)$/.exec(path);
   if (offer) return { name: "offer", dealId: Number(offer[1]) };
+
+  const chat = /^\/chat\/(\d+)$/.exec(path);
+  if (chat) return { name: "chat", dealId: Number(chat[1]) };
 
   const deal = /^\/d\/(\d+)(\/join)?$/.exec(path);
   if (deal) return { name: deal[2] ? "join" : "deal", id: Number(deal[1]) };
@@ -103,9 +110,11 @@ export function Router() {
     case "sell":
       return <Sell />;
     case "offer":
-      return <Pending title="Your offer" task="MK-24" />;
+      return <Offer dealId={route.dealId} />;
     case "inbox":
-      return <Pending title="Inbox" task="MK-25" />;
+      return <Inbox />;
+    case "chat":
+      return <Chat dealId={route.dealId} />;
     case "signin":
       return <Pending title="Sign in" task="MK-20" />;
     case "create":
