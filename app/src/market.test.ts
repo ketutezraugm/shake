@@ -11,6 +11,7 @@ function listing(overrides: Partial<ShopListing>): ShopListing {
     photoUrls: [],
     maxRounds: 2,
     status: "open",
+    reservedDealId: null,
     createdAt: "2026-11-13T00:00:00.000Z",
     freeSlots: 3,
     askingPrice: "1000000",

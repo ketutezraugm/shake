@@ -17,6 +17,8 @@ import {
 
 export const MAX_PHOTOS = 4;
 export const MAX_SLOTS = 10;
+// The database returns numbers to JSON clients, so keep the price exactly representable; the TEE's u64 is wider.
+const MAX_ASKING_PRICE = BigInt(Number.MAX_SAFE_INTEGER);
 
 const bytes = (text: string) => new TextEncoder().encode(text).length;
 const bad = (message: string) => new HttpError(400, message);
@@ -32,14 +34,17 @@ export function parseCategory(value: unknown): Category {
 }
 
 export function parseCreateListing(body: unknown): CreateListingReq {
-  const { title, description, category, maxRounds } = record(body);
+  const { title, description, category, maxRounds, askingPrice } = record(body);
   // Same bounds as the contract's create_deal, so a listing can always be backed by deals.
   if (typeof title !== "string" || bytes(title) < 1 || bytes(title) > 100) throw bad("title must be 1-100 bytes");
   if (typeof description !== "string" || bytes(description) > 1000) throw bad("description must be at most 1000 bytes");
   if (!Number.isInteger(maxRounds) || (maxRounds as number) < 1 || (maxRounds as number) > 3) {
     throw bad("maxRounds must be 1, 2 or 3");
   }
-  return { title, description, category: parseCategory(category), maxRounds: maxRounds as number };
+  if (typeof askingPrice !== "string" || !/^[1-9]\d*$/.test(askingPrice) || BigInt(askingPrice) > MAX_ASKING_PRICE) {
+    throw bad("askingPrice must be whole Rupiah as digits, nonzero");
+  }
+  return { title, description, category: parseCategory(category), maxRounds: maxRounds as number, askingPrice };
 }
 
 export function parseSlots(body: unknown): RegisterSlotsReq {
