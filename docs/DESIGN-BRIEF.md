@@ -17,18 +17,18 @@ Build order for Frontend: 1, 4, 3 first (task MK-30 in docs/plans/IMPLEMENTATION
 | # | Screen | Purpose | Must show | States |
 |---|---|---|---|---|
 | 1 | Home | Browse open listings | Grid of listing cards (photo, title, city, condition, "Blind offer" badge, no price), search, category filter | first visit, results, no results, loading |
-| 2 | Sign in + handle | Google or email link, then pick a shop handle; NEAR account made behind it | Sign-in options, handle field | email sent, taken handle, creating account, error |
+| 2 | Sign in + handle | Google or email link (NEAR account made behind it), or "Connect NEAR wallet" for people who have one; then pick a shop handle | Both sign-in options, handle field | email sent, wallet connecting, wallet rejected, taken handle, creating account, error |
 | 3 | Seller profile `/@handle` | The bio link destination | Avatar, name, bio, city, sold count, active listings (Reserved badge) | own profile (edit), visitor, not found, empty shop |
 | 4 | Listing | Decide whether to offer | Up to 5 photos, title, details, seller card, "N of 10 offers used", AI assistant, public Q&A, "Make a blind offer" | Open, Reserved, Sold, Closed, offers full, own listing |
 | 5 | AI assistant | Answer questions about this item | Question box, answer, "the seller didn't say" + "Ask the seller" | thinking, answer, unknown, rate-limited, error |
 | 6 | Public Q&A | Questions and the seller's answers | Answered questions; seller sees unanswered with an answer field | none yet, pending (asker and seller only) |
 | 7 | Create listing | Seller lists an item | Photos (up to 5), title, description, category, condition, city, rounds (1/2/3, default 2), sealed minimum with "only you see this" | empty, filled, uploading, sealing, submitting, error |
-| 8 | Blind offer | Buyer sets a maximum privately | Item, Rupiah amount, round x of y, "only you see this", confirm step | empty, typing, invalid, confirm, encrypting, busy (retrying) |
-| 9 | Reveal: deal | The magic moment | Deal price, "neither of you sees the other's number" | — |
+| 8 | Blind offer | Buyer sets a maximum privately | Item, Rupiah amount, round x of y, "only you see this", confirm step | empty, typing, invalid, confirm, encrypting, offers full, waiting for the seller (round 2+), wallet approval (wallet users) |
+| 9 | Reveal: deal | The magic moment | Deal price, "neither of you sees the other's number" | deal, another buyer got there first (no pay button) |
 | 10 | Reveal: no deal | Rounds left | "No deal this round", rounds left, raise | rounds left, final no deal |
 | 11 | Pay + handover | Buyer funds escrow, then confirms | Price in Rp and test NEAR, pay; later "Received", deadline, refund note | paying, paid, released, refunded, expired |
 | 12 | Chat | After a deal only | Messages between buyer and seller, the item | locked ("chat opens after a deal"), open, sending, error |
-| 13 | Inbox | Seller and buyer activity | New questions, matches, payments, chats; badge count | empty, unread |
+| 13 | Inbox | Seller and buyer activity | New questions, "Round 2 requested" with one-tap resubmit (same or lower minimum), matches, payments, chats; badge count | empty, unread |
 | 14 | Keys | Move the account to another device | Export key, import key | exported, imported, wrong key |
 | 15 | Proof panel (Should) | Show why it's private | What the TEE proved, code hash, on-chain links | verified, unavailable |
 | — | Global | | | offline, loading first paint, 404, very long titles, missing photo |

@@ -9,7 +9,7 @@ Blind deal (name TBD): a second-hand marketplace where no listing shows a price.
 Tag every track the project honestly fits (no cap, verified 2026-11-12). Proposal: `privacy`, `agents` (AI product assistant; negotiator if it ships), `realworld`. Final list at submission, by the team.
 
 ## Scope
-Full list with acceptance criteria: docs/PRD.md. **Must by the freeze (2026-11-14 00:00 UTC):** sign-in (Google or email) with a NEAR account behind it; seller profile `/@handle`; create listing with photos and a sealed minimum; public browse and search; listing page with AI assistant and public Q&A; blind offer with seller-chosen rounds (1-3), buyer only raises, 10 offers per listing; match reserves the listing, escrow, "Received" marks it Sold; chat after a match; in-app inbox; seeded demo shop; hosted demo + README.
+Full list with acceptance criteria: docs/PRD.md. **Must by the freeze (2026-11-14 00:00 UTC):** sign-in with Google or email (walletless NEAR account behind it) or a NEAR wallet; seller profile `/@handle`; create listing with photos and a sealed minimum; public browse and search; listing page with AI assistant and public Q&A; blind offer through up to 10 slots per listing, seller-chosen rounds (1-3), buyer only raises; match reserves the listing, escrow, "Received" marks it Sold; chat after a match; in-app inbox; seeded demo shop; hosted demo + README.
 **Should:** AI negotiator, Verified panel, seller lowers the minimum, ratings, saved items, email notifications, E2EE prompts, real listings by real students.
 **Could:** pay from another chain via 1Click; dispute flow; connect an existing wallet; Bahasa toggle.
 **Won't:** mainnet, real money, native app, shipping, payments outside escrow, account recovery beyond "export key".
@@ -19,7 +19,8 @@ Full list with acceptance criteria: docs/PRD.md. **Must by the freeze (2026-11-1
 - TEE logic: OutLayer WASM (Rust). Fallback if the OutLayer spike fails by end of 11-11: a matching service whose signing key is registered in the contract (trust stated in README), then commit-reveal.
 - Frontend: Vite + React + TypeScript SPA, near-api-js 7.4.0 (or near-kit 0.20.2: pick one in architecture). Mobile-first.
 - Relayer: small Node/TypeScript HTTP service: account creation behind a Supabase JWT, AI assistant proxy to NEAR AI Cloud, listing-state sync, chat opening. Rate limits per IP and per user.
-- Supabase (Auth, Postgres, Storage, Realtime) for descriptive marketplace data; the contract stays the source of truth for money, sealed limits and deals. (The need appeared with the pivot.)
+- Supabase (Auth, Postgres, Storage) for descriptive marketplace data, reached only through the relayer; the app uses it for Auth only. The deployed contract stays the source of truth for money, sealed limits and deals, unchanged: listings use pre-created deals ("slots", PR #35). (The need appeared with the pivot.)
+- Sign-in: Google/email (Supabase Auth, walletless NEAR account made by the relayer) or a NEAR wallet via NEAR Connect.
 - Deploy: Render (static site for the SPA, web service for the relayer). Keep up until 2026-11-25.
 - No icon/illustration/animation libraries; motion with CSS using IDENTITY.md tokens.
 
@@ -31,11 +32,11 @@ OutLayer unknowns (ECIES with PROTECTED_ secrets, testnet workers, fees); browse
 |---|---|
 | 11-10..11 | Done: identity, docs, OutLayer spike, contract + WASM end to end on testnet (G1 passed) |
 | 11-12 | Pivot planned; shared types v2, Supabase schema, screens in Claude Design |
-| 11-13 | Contract and TEE v2 (G2 12:00 UTC), redeploy, relayer, screens, assistant, seed, hosting (G3 20:00 UTC) |
+| 11-13 | Slot round trip on testnet (G2 12:00 UTC), relayer endpoints, both sign-ins, screens, assistant, seed, hosting (G3 20:00 UTC) |
 | 11-14 | **Feature freeze 00:00 UTC.** README, video, X post; submit by 12:00 UTC |
 
 ## Team (4 roles; the team assigns names)
-1. Contracts & TEE: Rust contract, OutLayer WASM, contract tests, TS contract client, AI assistant.
+1. Contracts & TEE: Rust contract, OutLayer WASM, contract tests, TS contract client, slot helper, NEAR wallet login, AI assistant.
 2. Backend & integration: Supabase, relayer, sign-in, deploy/CI, README reproducibility, demo seed.
 3. Frontend: React app implementing the Claude Design output faithfully, motion, states.
 4. Design & packaging (Abel): Claude Design screens and assets, video, X post visuals.

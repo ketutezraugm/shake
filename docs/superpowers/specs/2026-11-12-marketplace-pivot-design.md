@@ -2,6 +2,39 @@
 
 Date: 2026-11-12. Owner: Ezra (lead). Status: approved in conversation; this doc feeds the rewrite of PRD, ARCHITECTURE, DATA-MODEL, IMPLEMENTATION and TEAM.
 
+## Revision B (2026-11-12, after PR #35): slots and two sign-ins. This section wins over anything below it.
+
+Harfi built the marketplace backend on the **existing contract** (PR #35, merged): many buyers per listing work through pre-created deals ("slots"). Ezra chose it over the contract v2 rewrite, and wants both Google/email sign-in and NEAR wallet login. So:
+
+**Contract and TEE: unchanged.** Deployed demo contract `blind-deal-59xtyh4b.testnet` (v1 methods `create_deal`, `submit_limit`, `on_outlayer_result`, `deposit`, `confirm_received`, `refund`, `cancel`, `expire`, `get_deal`, `get_state`; 24 h funding window, 7-day delivery window), v1 commitments `blind-deal:v1`, WASM and secret lock as they are. No WASM rebuild, no redeploy. Everything under "Contract changes" and "TEE changes" below is dropped.
+
+**Slots (as built in #35).** The seller's app creates up to 10 deals for a listing (`create_deal` + the seller's round-1 `submit_limit`, so each is `Waiting`) and registers each `{dealId, linkToken}` with `POST /listings/:id/slots`; the relayer verifies each on chain. A buyer calls `POST /listings/:id/claim` and gets one slot (one per buyer per listing, 409 when none is free), then runs the unchanged buyer flow (`submit_limit` with the link token, attaching the OutLayer fee because it completes the round). "Offers full" means every slot is claimed; the seller can register more, up to 10 per listing.
+
+**Rounds need the seller again.** The contract takes one submission per side per round, so after a no-deal the seller must resubmit too. The seller's inbox shows "Round 2 requested"; one tap resubmits the same minimum (new salt) or a lower one. The buyer sees "waiting for the seller" until then. The seller's minimum and salts stay in the seller's browser, per listing. Rounds per listing: 1-3, default 2.
+
+**One item, one sale.** Listing status becomes `open | reserved | sold | closed`. `POST /listings/:id/sync`: any slot Matched or Funded makes it `reserved`, a Released slot makes it `sold`, and when the reserving deal ends (expired, so NoDeal with `matched_at_ns`, or Refunded) it goes back to `open`. Claims are refused unless `open`. On reservation the seller's app cancels its unclaimed and still-Waiting slots (`cancel` allows Created and Waiting). A second buyer whose deal also matched in that window sees "Another buyer got there first", with no pay button; their match expires unfunded after 24 h. Stated in the README.
+
+**Sign-in, two ways, one profile per NEAR account.**
+- **Google or email (Supabase Auth).** The app gets a Supabase session, then `POST /accounts` `{handle, publicKey}` with the Supabase JWT creates `handle.<parent>.testnet` with the browser key as full-access key and funds it. One NEAR account per Supabase user. The chain stays invisible.
+- **NEAR wallet (NEAR Connect: Meteor, HOT, MyNEAR; package and version verified at build).** Sign-in asks the wallet for a function-call access key on the deal contract. The browser keeps that key and signs relayer requests with it (#35's auth accepts any access key of the account) and non-payable contract calls (`create_deal`, seller `submit_limit`, `cancel`, `confirm_received`). Payable calls (the buyer's round-completing `submit_limit` with the fee, `deposit`) go through the wallet. The relayer funds nothing for wallet users.
+- **Profiles** keyed by NEAR account id: `handle` (unique), display name, avatar, bio, city, `auth` (`email` or `wallet`), `supabase_user_id` (null for wallet users). Linking a Google login to a wallet later: Should.
+
+**Supabase stays relayer-only**, as #35 built it: RLS on with no policies, grants revoked; the app uses the Supabase anon key for Auth only, never for tables. So questions, chat and the inbox are relayer endpoints, and the app polls (chat every 3 s, inbox every 10 s). No Realtime.
+
+**New tables (migration 0002):** `profiles`, `questions(id, listing_id, asker_account, question, answer, answered_at, created_at)`, `messages(id, deal_id, sender_account, body, created_at)`; `listings.status` gains `reserved`. Photos stay at most 4 per listing, categories as built (`electronics, fashion, home, vehicles, hobbies, other`).
+
+**New relayer endpoints** (signed with the account's key unless noted):
+- `POST /accounts`: Supabase JWT instead of a signature; `{handle, publicKey}` -> `{accountId}`; 401 without JWT, 409 for a second account or a taken handle.
+- `GET /profiles/:handle` (public) and `PUT /me/profile`.
+- `GET /listings/:id/questions` (public, answered only); `POST /listings/:id/questions` `{question}`; `POST /questions/:id/answer` `{answer}` (the listing's seller only).
+- `POST /assistant` `{listingId, question}` -> `{answer}` or `{unknown:true}`; 20 per account per hour plus a global daily cap.
+- `GET /deals/:dealId/messages?after=` and `POST /deals/:dealId/messages` `{body}`: the relayer reads the deal on chain; the caller must be its seller or buyer and the state Matched, Funded, Released or Refunded.
+- `GET /me/inbox`: unanswered questions on my listings, my slots waiting for my next round, matches, unread messages.
+
+**Unchanged from below:** intent, goals, non-goals, anti-goals, schedule (freeze 2026-11-14 00:00 UTC), no chat before a deal, AI assistant behaviour and public Q&A, in-app notifications only, scope Must/Should/Could/Won't (Must 1 now reads "sign-in with Google/email or a NEAR wallet"), tracks, the "one NEAR account per Supabase user" Sybil defence (plus wallet users pay their own fees).
+
+**Team split, revised.** Ezra: client crypto and real contract client on v1, slot creation helper, NEAR wallet login, AI assistant endpoint, marketplace round-trip script. Harfi: apply migrations, `POST /accounts` with JWT, profiles/questions/messages/inbox endpoints, `reserved` sync, Google/email sign-in screens, CI, Render, seed, e2e. Jose: marketplace screens and the offer flow. Abel: screens (reusing the direction G frames already drawn) and seed photos.
+
 ## Intent
 
 Blind deal was one link a seller pastes into a chat. It becomes a second-hand marketplace in the style of OLX: seller profiles, listings with photos, public browsing, Q&A and chat. The seller puts their profile link (`/@handle`) in the bio of their Instagram or marketplace profile, so buyers arrive at a shop, not a single deal. The blind price stays the way a sale happens: no listing shows a price, the seller's minimum is sealed to the TEE, and each buyer makes a blind offer.

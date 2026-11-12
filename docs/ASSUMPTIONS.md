@@ -29,6 +29,6 @@ Tag: `verified (source)` or `unverified (how to verify)`.
 - OutLayer governance is centralised; must be stated in README/pitch. — verified (per spike)
 - NEAR AI Cloud: documented E2EE (X25519/XChaCha20) and attestation at /v1/attestation/report; cannot run custom code. Browser E2EE flow works. — unverified (spike)
 - NEAR AI credits from NEAR Builders come as a separate API key with a $10 balance, claimed at nearbuilders.org/dashboard; they do not appear in cloud.near.ai. — verified 2026-11-12 (live HACKATHON.md Q-000)
-- Supabase free tier covers Auth (email link, Google), Postgres, Storage and Realtime for a demo of this size. — unverified (check the Supabase pricing page when creating the project, MK-10)
+- Supabase free tier covers Auth (email link, Google), Postgres and Storage for a demo of this size. — unverified (check the Supabase pricing page when creating the project, MK-10)
 - Fallbacks: (1) server key registered in contract, stated trust; (2) commit-reveal. — design decision
 - Testnet faucet amount and rate limit. — unverified (near-faucet.io claims conflict: 2 NEAR/claim vs 100 NEAR/30 min; docs.near.org faucet page 410). Verify by using it on day 1 (D1-09).

@@ -38,7 +38,7 @@ Haggling punishes whoever names a number first. A student selling a used laptop 
 
 The seller seals a minimum once per listing. A buyer makes a blind offer, up to 10 offers per listing. Both numbers are encrypted in the browser to a key that exists only inside a TEE. Public, hash-pinned WASM on OutLayer checks the overlap and, if there is one, draws a random price inside it. Both sides see only "Deal at Rp X" or "No deal". The seller picks 1 to 3 rounds. Buyers can only raise.
 
-A match reserves the item. The buyer pays into a NEAR escrow contract and chat opens. "Received" releases the funds and marks the item Sold. Sign-in is Google or email, with a NEAR account made behind it. Testnet only. Stated limits: OutLayer is centralised today, and the match bit leaks a little information.
+A match reserves the item. The buyer pays into a NEAR escrow contract and chat opens. "Received" releases the funds and marks the item Sold. Sign-in is Google or email, with a NEAR account made behind it, or an existing NEAR wallet. Testnet only. Stated limits: OutLayer is centralised today, and the match bit leaks a little information.
 
 **README-ready version**
 

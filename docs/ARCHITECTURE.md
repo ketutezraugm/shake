@@ -1,151 +1,168 @@
 # Architecture
 
-Two stores, split by what the data is. The contract holds money, sealed limits and deals. Supabase holds descriptive data (profiles, listings, photos, Q&A, chat). Neither holds what the other owns. Method names below are the shared contract; change only by PR. Design source: docs/superpowers/specs/2026-11-12-marketplace-pivot-design.md.
+Two stores, split by what the data is. The contract holds money, sealed limits and deals. Supabase holds descriptive data (listings, slots, profiles, Q&A, chat), reachable only through the relayer. Neither holds what the other owns. The contract and the TEE are the v1 ones, unchanged by the marketplace. Method names below are the shared contract; change only by PR. Design source: docs/superpowers/specs/2026-11-12-marketplace-pivot-design.md (Revision B).
 
 ## Components
-- **SPA** (Vite + React + TS): sign-in, shop and listing screens, key generation, ECIES encryption, polling, reveal UI, chat. Holds the user's ed25519 key in localStorage (per device; "export key" and "import key" move it). Talks to Supabase with the anon key and the user's session.
-- **Supabase** (hosted): Auth (Google or email link), Postgres (`profiles`, `listings`, `questions`, `threads`, `messages`, with RLS), Storage (bucket `listing-photos`), Realtime (chat and the in-app inbox). Never holds limits, salts or keys. Tables and RLS: docs/DATA-MODEL.md.
-- **Relayer** (Node/TS): creates and funds `handle.<parent>.testnet` behind a Supabase JWT, proxies the AI assistant, syncs listing state from the contract to Supabase, opens chat threads. Never sees limits or user keys (receives only the public key). Writes to Supabase with the service role.
-- **Deal contract** (Rust, near-sdk 5.30.1): listings with the sealed minimum, offers and deals, ciphertexts, commitments, OutLayer call and callback, escrow.
-- **OutLayer WASM** (Rust, wasm32-wasip2): decrypts, compares, draws price, returns `{deal_id, matched, price}`. Runs in TDX on `outlayer.testnet`.
+- **SPA** (Vite + React + TS): shop and listing screens, key handling, ECIES encryption, polling (chat 3 s, inbox 10 s), reveal UI. A **signer abstraction** hides the two sign-in paths: a browser ed25519 key (Google or email) or a NEAR wallet's function-call key (NEAR Connect). The signer signs relayer requests and non-payable contract calls; payable calls go through the browser key or the wallet. Holds the seller's per-listing minimum and salts in localStorage. Uses the Supabase anon key for Auth only, never for tables.
+- **Supabase** (hosted): Auth (Google or email link), Postgres (`listings`, `slots`, and from migration 0002 `profiles`, `questions`, `messages`), Storage (bucket `listing-photos`). RLS on with no policies, grants revoked: only the relayer (service role) reads or writes tables. No Realtime. Never holds limits, salts or user keys. Tables: docs/DATA-MODEL.md.
+- **Relayer** (Node/TS, Hono): creates and funds `handle.<parent>.testnet` behind a Supabase JWT, serves the marketplace API (listings, photos, slots, claims, sync), questions, profiles, chat messages, the inbox, and proxies the AI assistant. Never sees limits or user keys (receives only the public key); it does hold the per-slot link tokens. Writes to Supabase with the service role.
+- **Deal contract** (Rust, near-sdk 5.30.1, unchanged v1): deal state, ciphertexts, commitments, OutLayer call and callback, escrow. Demo contract `blind-deal-59xtyh4b.testnet`. One slot is one deal on it.
+- **OutLayer WASM** (Rust, wasm32-wasip2, unchanged v1): decrypts, compares, draws price, returns `{deal_id, matched, price}`. Runs in TDX on `outlayer.testnet`.
 - **NEAR AI Cloud** (Must): the product assistant, called only by the relayer. Should: browser-side E2EE chat completion that turns text into `{min}` or `{max}` (negotiator).
+- **NEAR Connect wallets** (Meteor, HOT, MyNEAR; package and version UNVERIFIED, verify at build): sign-in returns a function-call access key on the deal contract; payable calls are approved in the wallet.
 
 ## Sequence
+Account creation (Google or email path) happens once before the first step. Wallet users skip it.
 ```
-Seller SPA    Supabase     Relayer      Contract     OutLayer/WASM    Buyer SPA
- |-sign in--->|              |            |              |               |
- |-POST /accounts (JWT)----->|            |              |               |
- |            |<-near_account_id (service role)          |               |
- |-insert listing (uuid), upload photos->|                |               |
- |-create_listing(listing_id, enc(min), commit, max_rounds)->|           |
- |-POST /listings/:id/sync-->|-get_listing->|             |               |
- |            |<-chain_state = Open         |             |               |
- |       (profile link /@handle goes in the seller's bio)  |   open /@handle
- |            |------------ read shop, listing, Q&A ------------------>|
- |            |              |<--POST /assistant {listing_id, question}--|
- |            |<-listing + answered Q&A-|   |              |  answer or "unknown"
- |            |<------ "Ask the seller" inserts a question --------------|
- |-answer---->| (shows on the listing, assistant uses it)               |
- |            |              |   |<--make_offer(listing_id, enc(max), commit)+fee-|
- |            |              |   |--request_execution(seller_cts, buyer_cts)-->|
- |            |              |   |      decrypt, compare, random price   |
- |            |              |   |<--on_outlayer_result({deal_id,matched,price})--|
- |<--poll get_deal: Matched / Retry / NoDeal --------------poll get_deal-->|
- |            |              |<-POST /listings/:id/sync (listing Reserved)--|
- |            |              |<-POST /threads/:dealId/open (deal Matched)---|
- |            |<-threads.open = true----|             |               |
- |            |              |   |<--deposit(deal_id) from buyer---------|
- |<==== chat via Realtime (messages) =================================>|
- |            |              |   |<--confirm_received (buyer)------------|
- |<--price paid to seller----|---|                    |                 |
- |            |              |<-POST /listings/:id/sync (listing Sold)----|
- |            |   (or refund(deal_id) after deadline: listing back to Open)
+Seller SPA    Relayer     Supabase    Contract    OutLayer/WASM    Buyer SPA
+ |-sign in (Supabase Auth, or wallet key)-->|          |               |
+ |-POST /accounts (JWT, {handle, publicKey})->|-profile|              |
+ |<-accountId-|            |            |            |               |
+ |-POST /listings (signed)->|-insert--->|            |               |
+ |-POST /listings/:id/photos, PUT bytes to uploadUrl->|              |
+ |-get_pubkey (view/exec)------------------------>|-->|              |
+ |-create_deal x N, submit_limit(seller, enc(min), commit)->|  (each deal Waiting)
+ |-POST /listings/:id/slots {slots:[{dealId,linkToken}]}->|           |
+ |            |-get_deal per slot: verify on chain------>|           |
+ |      (profile link /@handle goes in the seller's bio)    open /@handle
+ |            |<-GET /listings/:id, /profiles/:handle, questions------|
+ |            |<-POST /assistant {listingId, question}----------------|
+ |            |  answer, or {unknown:true} -> "Ask the seller" posts a question
+ |-POST /questions/:id/answer->|           |            |             |
+ |            |<-POST /listings/:id/claim (signed)-------------------|
+ |            |--{dealId, linkToken}----------------------------->|
+ |            |            |  |<-submit_limit(buyer, enc(max), commit, linkToken)+fee-|
+ |            |            |  |-request_execution(both ct)->|          |
+ |            |            |  |   decrypt, compare, random price       |
+ |            |            |  |<-on_outlayer_result({deal_id,matched,price})-|
+ |<-poll get_deal: Matched / Retry / NoDeal ---------poll get_deal-->|
+ |-POST /listings/:id/sync-->|-slot deals->|  listing reserved        |
+ |-cancel unclaimed and Waiting slots------->|            |            |
+ |<==== chat: POST/GET /deals/:dealId/messages (relayer checks the deal on chain) ====>|
+ |            |            |  |<-deposit(deal_id) from buyer (within 24 h)-|
+ |            |            |  |<-confirm_received (buyer)--------------|
+ |<-price paid to seller------|--|            |            |            |
+ |-POST /listings/:id/sync-->|  listing sold                            |
+ |   (no deal with rounds left: seller's inbox "Round 2 requested", seller resubmits, buyer's call completes round 2)
+ |   (expire / refund: sync sets the listing back to open)
 ```
 
 ## Contract
+The v1 contract as deployed (`contract/src/lib.rs`), unchanged.
 ```rust
-enum ListingState { Open, Reserved, Sold, Closed }
-enum State { Computing, Retry, NoDeal, Matched, Funded, Released, Refunded }
-// Computing = OutLayer running for this round; Retry = no deal this round, more rounds left; NoDeal = final
-
-struct Listing {
-  seller: AccountId,
-  seller_cts: Vec<Vec<u8>>, seller_commits: Vec<[u8;32]>,   // one entry in Must; a vector so "lower the minimum" (Should) needs no migration
-  max_rounds: u8,                              // seller picks 1-3 (default 2)
-  offers_made: u8,                             // counts make_offer calls; cap 10
-  state: ListingState,
-}
+enum State { Created, Waiting, Computing, Retry, NoDeal, Matched, Funded, Released, Refunded }
+// Waiting = one side has submitted this round; Retry = no deal this round, more rounds left; NoDeal = final
 
 struct Deal {
-  id: u64, listing_id: String, buyer: AccountId,   // one deal per (listing, buyer)
-  round: u8,                                   // starts at 1
-  buyer_cts: Vec<Vec<u8>>, buyer_commits: Vec<[u8;32]>,     // one per round
+  id: u64, seller: AccountId, buyer: Option<AccountId>,
+  title: String, description: String,          // bounded length
+  link_hash: [u8;32],                          // sha256 of one-time token
+  max_rounds: u8, round: u8,                   // seller picks 1-3 (default 2); round starts at 1
+  seller_cts: Vec<Vec<u8>>, buyer_cts: Vec<Vec<u8>>,         // one per round
+  seller_commits: Vec<[u8;32]>, buyer_commits: Vec<[u8;32]>,
   state: State, price: Option<U128>,           // yoctoNEAR (see Units)
   matched_at_ns: Option<u64>,                  // set on Matched
   deadline_ns: Option<u64>,                    // set when Funded
 }
 ```
-`listing_id` is the Supabase listing uuid, chosen by the client before `create_listing` so the seller's ciphertext can bind to it. The contract no longer stores title, description or a link token; those live in Supabase. The seller is read from `Listing` at release. Created and Waiting are gone: a deal starts in Computing, because the seller's limit is already in.
+In the marketplace the app passes the listing title and description to `create_deal` or a short placeholder (builder's call); the real descriptive data lives in Supabase.
 
 **Units:** users enter Rupiah. Prices go into the TEE in Rupiah (integer string). The contract converts once, at Matched, at a fixed demo rate (`RP_PER_NEAR` = 100,000,000, written to `rp_per_near` by `new`; not a parameter, so a Rp 4.2M deal escrows 0.042 testnet NEAR; small on purpose because faucet limits are unverified), shown in the UI as "test rate". No oracle.
-Storage keys: `listings: LookupMap<String, Listing>`, `deals: LookupMap<u64, Deal>` (prefix `d`), `next_id: u64`, `tee_pubkey: Vec<u8>`, `outlayer: AccountId`, `project_id: String`, `rp_per_near: u128` (all but the maps set in `new`; no later setter, so no admin). How the contract finds the deal for a (listing, buyer) pair and which deal is Computing on a listing is the builder's call. Entity diagram and state tables: docs/DATA-MODEL.md.
+Storage keys: `deals: LookupMap<u64, Deal>` (prefix `d`), `next_id: u64`, `tee_pubkey: Vec<u8>`, `outlayer: AccountId`, `project_id: String`, `rp_per_near: u128`, plus the delivery window (all set in `new`; no later setter, so no admin). The contract account pays storage for every deal, up to 10 per listing, so fund it before the seed and the demo. Entity diagram and state table: docs/DATA-MODEL.md.
 
 | Method | Signature | Access | Deposit |
 |---|---|---|---|
-| new | `(outlayer: AccountId, tee_pubkey: Vec<u8>, project_id: String)` init (`project_id` = OutLayer `owner/name`; the secret lives under the owner's account, profile `production`) | once | 0 |
-| create_listing | `(listing_id: String, ct: Vec<u8>, commit: [u8;32], max_rounds: u8)` | any (caller becomes the seller); one per `listing_id`; `max_rounds` in 1..=3; `ct` at most 512 bytes | 0 |
-| make_offer | `(listing_id, ct: Vec<u8>, commit: [u8;32]) -> u64` (deal id) | any signed-in buyer except the seller; one deal per (listing, buyer); listing must be Open and `offers_made < 10`; no other deal on the listing in Computing, else panics "busy" and the app retries; starts round 1 and calls OutLayer at once | nonzero OutLayer fee (0.0021 NEAR covers one execution, unused part refunded to the caller). `ct` at most 512 bytes |
-| raise_offer | `(deal_id, ct: Vec<u8>, commit: [u8;32])` | the deal's buyer, state Retry, listing Open; same "busy" rule; next round | nonzero OutLayer fee, as above |
+| new | `(outlayer: AccountId, tee_pubkey: Vec<u8>, project_id: String, delivery_window_secs: Option<u64>)` init (`project_id` = OutLayer `owner/name`; the secret lives under the owner's account, profile `production`; the window is for test deployments, empty means 7 days) | once | 0 |
+| create_deal | `(title, description, link_hash, max_rounds: u8) -> u64` | any; `max_rounds` in 1..=3 | 0 |
+| submit_limit | `(deal_id, ct: Vec<u8>, commit: [u8;32], link_token: Option<String>)` | round 1: seller first, buyer only with a token whose hash matches (first buyer binds the link); later rounds: either side, once per round, only in `Retry`/`Waiting` | the call that completes a round must attach a nonzero OutLayer fee (0.0021 NEAR covers one execution, unused part refunded to that caller); other calls attach nothing. `ct` at most 512 bytes |
 | on_outlayer_result | `(deal_id) -> ()` private callback, reads `promise_result(0)` | self, after predecessor check | 0 |
-| deposit | `(deal_id)` payable | buyer, state Matched | exactly `price` |
-| confirm_received | `(deal_id)` | buyer, state Funded; deal Released, listing Sold | 0 |
-| refund | `(deal_id)` | buyer or anyone, state Funded and now > deadline; deal Refunded, listing Open | 0 |
-| expire | `(deal_id)` | anyone, state Matched and unfunded after the expiry window from `matched_at_ns`; deal NoDeal, listing Open | 0 |
-| close_listing | `(listing_id)` | seller, listing Open | 0 |
-| get_listing / get_deal | views | any | 0 |
+| deposit | `(deal_id)` payable | buyer, state Matched and within 24 h of `matched_at_ns` (later it panics) | exactly `price` |
+| confirm_received | `(deal_id)` | buyer, state Funded | 0 |
+| refund | `(deal_id)` | buyer or anyone, state Funded and now > deadline (`delivery_window_secs`, default 7 days) | 0 |
+| cancel | `(deal_id)` | seller, state Created or Waiting; ends as NoDeal | 0 |
+| expire | `(deal_id)` | anyone, state Matched and unfunded > 24 h after `matched_at_ns` | 0 |
+| get_deal / get_state | views | any | 0 |
 
-Listing transitions: `create_listing` gives Open. A match (`on_outlayer_result`, `matched: true`) gives Reserved. `confirm_received` gives Sold. `refund` and `expire` give Open again. `close_listing` gives Closed. At most one deal per listing is in Computing at a time, so two simultaneous matches on one item cannot happen. Other buyers' deals in Retry wait: `raise_offer` is refused unless the listing is Open, so they can continue if the reservation expires or is refunded.
-Escrow methods keep their rules, including the late-deposit and delivery-window changes in PR #30 (the expiry window and delivery window values are the builder's call; the contract rewrite builds on #30 and ships in the same redeploy). The contract is a fresh deploy to a new account because the storage layout changes; old deals are not migrated.
-Rounds: on `matched:false`, the contract moves the deal to `Retry` if `round < listing.max_rounds` (incrementing `round`), else `NoDeal`. If the result is malformed, the round counts as a no-deal and the attached fee is not refunded (OutLayer rule). Ciphertexts are public on-chain by design.
+Rounds: on `matched:false`, the contract moves to `Retry` if `round < max_rounds` (incrementing `round`), else `NoDeal`. The contract takes one submission per side per round, so in a later round the seller must submit too; the buyer's call completes it only if the seller went first, and attaches the fee. If the result is malformed, the round counts as a no-deal and the attached fee is not refunded (OutLayer rule). Ciphertexts are public on-chain by design.
 
-## OutLayer shapes (verified in the D1-08 spike; request and result envelope in DECISIONS.md; v2 below)
+## OutLayer shapes (verified in the D1-08 spike; request and result envelope in DECISIONS.md; v1, unchanged)
 Request `input_data`:
 ```json
-{ "action": "match", "listing_id": "<uuid>", "deal_id": 7, "buyer": "alice.app.testnet", "round": 2,
-  "seller_cts": ["<hex>"], "seller_commits": ["<hex>"],
-  "buyer_cts": ["<hex r1>", "<hex r2>"], "buyer_commits": ["<hex r1>", "<hex r2>"] }
+{ "action": "match", "deal_id": 7, "round": 2,
+  "seller_cts": ["<hex r1>", "<hex r2>"], "buyer_cts": ["<hex r1>", "<hex r2>"],
+  "seller_commits": ["<hex r1>", "<hex r2>"], "buyer_commits": ["<hex r1>", "<hex r2>"] }
 ```
-The commitments are the ones stored on-chain; the contract passes them so the WASM can check each ciphertext against them. The seller side has one entry in the Must build; the buyer side has exactly one ciphertext and commitment per round, and `round` equals that count. If `seller_cts` ever holds more than one entry (Should), which entry the TEE uses is the builder's call.
-Plaintexts inside the ciphertexts:
-- Seller: `{"listing_id":"<uuid>","side":"seller","limit":"4000000","salt":"<hex>"}`
-- Buyer: `{"listing_id":"<uuid>","buyer":"alice.app.testnet","side":"buyer","round":2,"limit":"4600000","salt":"<hex>"}`
-
-Commitments, over exactly those characters (`tee/src/commit.rs`; vectors in `tee/testvectors.json`):
-- Seller: `sha256("blind-deal:v2|listing|{listing_id}|seller|{limit}|{salt}")`
-- Buyer: `sha256("blind-deal:v2|offer|{listing_id}|{buyer}|{round}|{limit}|{salt}")`
-
-The buyer binds to its own account and the listing, not to a deal id it cannot know before `make_offer`. The WASM opens the seller's entry and every buyer round, checks every commitment and binding (listing id, buyer account, side, round), and checks that the buyer never lowered a limit across rounds (a violation makes the result a no-deal). It then compares only the latest buyer round with the seller's limit. `limit` is a canonical decimal string (digits only, no leading zero, nonzero, fits u64) to avoid float and u64 problems; hash the same bytes on client and TEE.
-Response: `{"deal_id":7,"matched":true,"price":"4300000"}` or `{"deal_id":7,"matched":false}`. Price is uniform in [seller_min, buyer_max] from TEE entropy. Also a `get_pubkey` action returning the deal public key derived from a `PROTECTED_` secret. Any binding or commitment mismatch returns `{"deal_id":7,"error":"invalid"}`, so a seller ciphertext cannot be replayed as a buyer's, into another listing, or under another buyer.
-The build changes the WASM, so it is rebuilt, redeployed and the secret's build lock is moved (DECISIONS.md procedure).
+The commitments are the ones stored on-chain; the contract passes them so the WASM can check each ciphertext against them. Exactly one ciphertext and commitment per round and side, and `round` equals that count.
+Plaintext inside each ciphertext: `{"deal_id":7,"side":"seller","round":2,"limit":"4000000","salt":"<hex>"}`. Commitment: `sha256("blind-deal:v1|{deal_id}|{side}|{round}|{limit}|{salt}")` over exactly those characters (`tee/src/commit.rs`; vectors in `tee/testvectors.json`). The WASM opens every round and checks across rounds that the buyer never lowered and the seller never raised their limit (monotonic concessions); a violation makes the result a no-deal. It then compares only the latest round. `limit` is a canonical decimal string (digits only, no leading zero, nonzero, fits u64) to avoid float and u64 problems; hash the same bytes on client and TEE. For a slot, the seller's round-1 limit is submitted at slot creation; a later round uses a new salt and the same or a lower minimum.
+Response: `{"deal_id":7,"matched":true,"price":"4300000"}` or `{"deal_id":7,"matched":false}`. Price is uniform in [seller_min, buyer_max] from TEE entropy. Also a `get_pubkey` action returning the deal public key derived from a `PROTECTED_` secret. The WASM checks commitments against the salts, and that each plaintext's `deal_id` equals the request's and `side` matches its slot (so a seller ciphertext can't be replayed as the buyer's, or into another deal); any mismatch returns `{"deal_id":7,"error":"invalid"}`.
 
 **Result trust (decided):** Must: the callback accepts results only via OutLayer's callback path (predecessor check per the template), and the README states that OutLayer's operator is currently centralised. Should, if the spike shows PROTECTED_ keys can sign: the WASM also signs `{deal_id, matched, price}` with an ed25519 key whose public half is fixed in the contract at `new`, and the contract verifies it.
 
 ## Relayer API
-| Endpoint | Request | Response | Limit |
-|---|---|---|---|
-| POST /accounts | Supabase JWT; `{handle, publicKey}` | `{accountId}` or 401/409/429/503; writes `profiles.near_account_id` | 3 per IP per hour, global daily cap; one account per user (409 on repeat) |
-| POST /assistant | Supabase JWT; `{listingId, question}` | `{answer}` or `{unknown:true}` | 20 per user per hour, global daily cap to protect the NEAR AI credit |
-| POST /listings/:id/sync | none | `{chainState}`; reads `get_listing`, writes `listings.chain_state` | builder's call |
-| POST /threads/:dealId/open | Supabase JWT | `{open:true}` or 409 when the deal is not Matched or later (Matched, Funded, Released, Refunded) | builder's call |
-| GET /health | none | `{ok:true}` | 60/min/IP |
+Types: `relayer/src/types.ts`. All endpoints: 120 requests/min/IP. Errors are `{error}` with 400/401/403/404/409/429/503. "Signed" means the request carries the account's signature (see Auth).
 
-Funding is a fixed small amount (set in env). The relayer account is funded from the faucet; if it runs low, `/accounts` returns 503. `POST /threads/:dealId/open` reads the deal from the contract and sets `threads.open = true` with the service role; the browser cannot open a chat by itself. Creating the `threads` row for a deal (relayer on first open, or the browser before) is the builder's call; the relayer path is the default here.
-The app calls `/listings/:id/sync` after every chain call that changes the listing (create, match, confirm, refund, expire, close). There is no indexer. An expired reservation shows as Reserved until the next sync, which is acceptable.
+Built in PR #35:
+
+| Endpoint | Auth | Purpose |
+|---|---|---|
+| GET /health | none | `{ok:true}` |
+| GET /listings?q=&category=&cursor= | none | Open listings, newest first, 20 per page; `nextCursor` is the last `createdAt` |
+| GET /listings/:id | none | One listing with `freeSlots` |
+| POST /listings | signed | `{title, description, category, maxRounds}` -> listing (201) |
+| POST /listings/:id/photos | seller | `{contentType}` (jpeg, png, webp) -> `{uploadUrl, photoUrl}`; PUT the bytes to `uploadUrl`; max 4, then 409; bucket limit 2 MB |
+| POST /listings/:id/slots | seller | `{slots:[{dealId, linkToken}]}`, max 10 per listing (409 above); listing must be open; each deal verified on chain: the seller's, `Waiting`, no buyer, same `max_rounds`, token hashes to `link_hash` |
+| POST /listings/:id/claim | signed buyer | `{dealId, linkToken}`; the same slot on repeat; 409 when none is free or the listing is not open; 403 for the seller |
+| POST /listings/:id/close | seller | Ends an open listing |
+| POST /listings/:id/sync | none | Re-reads the slot deals and updates the listing status (rules in docs/DATA-MODEL.md). As built it only marks `sold` on Funded or Released; Revision B adds `reserved` and the way back to `open` (MK-12) |
+| GET /me/listings | signed | The seller's listings with `slots: [{dealId, buyerAccount}]` (no link tokens) |
+| GET /me/negotiations | signed | The buyer's claimed deals with link tokens |
+
+Revision B, to build:
+
+| Endpoint | Auth | Purpose | Limit |
+|---|---|---|---|
+| POST /accounts | Supabase JWT | `{handle, publicKey}` -> `{accountId}`; creates `handle.<parent>.testnet` with the key as full-access key and funds it; writes the profile; 401 without JWT, 409 for a second account or a taken handle, 429, 503 when the relayer runs low (D1-09 not yet in `app.ts`; MK-11) | 3 per IP per hour, global daily cap; one account per Supabase user |
+| GET /profiles/:handle | none | Public profile: handle, display name, avatar, bio, city; 404 if unknown | default |
+| PUT /me/profile | signed | Updates the caller's profile row (CORS `allowMethods` must add PUT) | default |
+| GET /listings/:id/questions | none | Answered questions only | default |
+| POST /listings/:id/questions | signed | `{question}` | default |
+| POST /questions/:id/answer | seller | `{answer}`; only the listing's seller, else 403 | default |
+| POST /assistant | signed | `{listingId, question}` -> `{answer}` or `{unknown:true}` | 20 per account per hour, global daily cap to protect the NEAR AI credit |
+| GET /deals/:dealId/messages?after= | signed | Messages after a cursor; the relayer reads the deal on chain; caller must be its seller or buyer and the state Matched, Funded, Released or Refunded (403 or 409 otherwise) | default |
+| POST /deals/:dealId/messages | signed | `{body}`; same checks | default |
+| GET /me/inbox | signed | Unanswered questions on my listings, my slots waiting for my next round, matches, unread messages | default |
+
+Funding is a fixed small amount (set in env). The relayer account is funded from the faucet. Wallet users are not funded by the relayer. The app calls `/listings/:id/sync` after every chain call that changes the listing (match, deposit, confirm, refund, expire). There is no indexer.
+
+## Auth
+**Signed requests** (`relayer/src/auth.ts`). Headers: `x-account-id`, `x-public-key`, `x-timestamp` (ms), `x-signature` (base64 ed25519). The signature covers the exact string `blind-deal-relayer:v1|{METHOD}|{path}|{sha256 hex of the raw body}|{timestamp}`, path without query. The relayer rejects a timestamp more than 5 minutes off (`MAX_SKEW_MS`), checks the signature, then checks on chain that the key belongs to the account (any access key, full or function-call; cached 60 s). 401 on any failure.
+**Supabase JWT, `POST /accounts` only.** The Google or email user signs in with Supabase Auth; the app sends the access token as `Authorization: Bearer`. The relayer verifies it and maps the Supabase user to one NEAR account. The browser generates the ed25519 key and sends only the public key. After this, the user signs relayer requests like any account.
+**Wallet function-call key.** NEAR Connect sign-in asks the wallet to add a function-call access key on the deal contract for the account. The browser keeps that key and signs relayer requests with it (the relayer accepts any access key of the account) and non-payable contract calls (`create_deal`, the seller's `submit_limit`, `cancel`, `confirm_received`). Payable calls (the buyer's round-completing `submit_limit` with the fee, `deposit`) go through the wallet. No relayer call is needed for wallet users.
 
 ## AI assistant
-The relayer receives `{listingId, question}`, loads the listing and its answered Q&A from Supabase, and calls NEAR AI Cloud with a system prompt: answer only from the given listing text and Q&A; never discuss price, offers or the seller's minimum; when the answer is not there, reply with a fixed "unknown" marker. The app turns that marker into an "Ask the seller" button that creates a `questions` row. The seller's answer shows on the listing and the assistant uses it from then on. The model never receives the minimum, because nothing on the server has it. Which NEAR AI model and the prompt wording within these rules are the builder's call. The key is the $10 NEAR Builders credit from nearbuilders.org/dashboard: a separate key that does not show in cloud.near.ai.
+The relayer receives `{listingId, question}`, loads the listing and its answered Q&A from Supabase, and calls NEAR AI Cloud with a system prompt: answer only from the given listing text and Q&A; never discuss price, offers or the seller's minimum; when the answer is not there, reply with a fixed "unknown" marker. The app turns that marker into an "Ask the seller" button that posts a question. The seller's answer shows on the listing and the assistant uses it from then on. The model never receives the minimum, because nothing on the server has it. Which NEAR AI model and the prompt wording within these rules are the builder's call. The key is the $10 NEAR Builders credit from nearbuilders.org/dashboard: a separate key that does not show in cloud.near.ai.
 
 ## Keys and secrets
-Env vars (relayer): `RELAYER_ACCOUNT_ID`, `RELAYER_PRIVATE_KEY`, `APP_PARENT_ACCOUNT`, `NEAR_RPC_URL`, `FUND_AMOUNT`, `ALLOWED_ORIGIN`, `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` (server-side only), `NEAR_AI_API_KEY` (now Must). Build-time (app): `VITE_CONTRACT_ID`, `VITE_RELAYER_URL`, `VITE_TEE_PUBKEY`, `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`. OutLayer payment key. Never in the repo: private keys, `.env`, the service role key, payment key, `~/.near-credentials`. Commit `.env.example` only. User keys exist only in the browser; the relayer never holds them. A signed-in user on a device without the key can browse, ask and chat but must import the key to offer, list or pay.
+Env vars (relayer): `RELAYER_ACCOUNT_ID`, `RELAYER_PRIVATE_KEY`, `APP_PARENT_ACCOUNT`, `NEAR_RPC_URL`, `FUND_AMOUNT`, `ALLOWED_ORIGIN`, `PORT`, `CONTRACT_ID`, `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` (server-side only), `NEAR_AI_API_KEY` (now Must, server-side only). Build-time (app): `VITE_CONTRACT_ID`, `VITE_RELAYER_URL`, `VITE_TEE_PUBKEY`, `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` (Auth only; it reads and writes no table). OutLayer payment key. Never in the repo: private keys, `.env`, the service role key, payment key, `~/.near-credentials`. Commit `.env.example` only. User keys exist only in the browser or the wallet; the relayer never holds them. A Google or email user on a device without the key can browse, ask and chat but must import the key to list, offer or pay.
 
 ## Repo
 ```
-contract/  Rust deal contract + tests
-tee/       OutLayer WASM + offline unit tests
+contract/  Rust deal contract + tests (v1)
+tee/       OutLayer WASM + offline unit tests (v1)
 app/       Vite React SPA
-relayer/   Node/TS service
-supabase/migrations/  SQL schema, RLS, storage bucket
+relayer/   Node/TS service (Hono): marketplace API, accounts, assistant
+supabase/migrations/  SQL: 0001 listings and slots, 0002 profiles, questions, messages
 docs/      PRD, ARCHITECTURE, TEAM, DECISIONS, IDENTITY
 ```
 
 ## Environments, CI, deploy
 - Local: `cargo test`, `npm run dev` for app and relayer against testnet and the hosted Supabase project. No sandbox needed. Testnet only.
 - CI (GitHub Actions, on PR): `cargo test` (contract, tee), typecheck, lint, build (app, relayer).
-- Supabase: one hosted project; schema and RLS live in `supabase/migrations/`. How migrations are applied is the builder's call.
-- Render (unchanged): static site for `app/` (SPA rewrite to index.html, so `/@handle` resolves) and web service for `relayer/`, defined in `render.yaml`; secrets set with `sync: false`. Rollback: Render dashboard "Rollback" to the previous deploy; contract rollback is a new account redeploy plus env change (state is not migrated; acceptable for demo). Keep up until 2026-11-25.
+- Supabase: one hosted project; schema lives in `supabase/migrations/`. How migrations are applied is the builder's call.
+- Render: static site for `app/` (SPA rewrite to index.html, so `/@handle` resolves) and web service for `relayer/`, defined in `render.yaml`; secrets set with `sync: false`. Rollback: Render dashboard "Rollback" to the previous deploy; contract rollback is a new account redeploy plus env change (state is not migrated; acceptable for demo). Keep up until 2026-11-25.
 
 ## Seed and demo
-`npm run demo:seed` extends `scripts/roundtrip.mjs` and runs real testnet transactions through the TEE. It creates the demo shop `@demo` with several listings (the team's own photos of real items): one with a deal that is matched, funded and Released (seller_min 4M, buyer_max 4.6M), one with a NoDeal result (5M against 4M), and one left Open. Supabase rows and chain state agree after a sync.
+`npm run demo:seed` extends `scripts/roundtrip.mjs` and runs real testnet transactions through the TEE. It creates the demo shop `@demo` with several listings (the team's own photos of real items) and their slots: one listing with a deal that is matched, funded and Released (seller_min 4M, buyer_max 4.6M) and a short chat between the two accounts, one with a NoDeal result (5M against 4M), and the rest open with free slots. Supabase rows and chain state agree after a sync.
 
 ## Stack
 | Item | Version | Why | Rejected |
@@ -154,10 +171,11 @@ docs/      PRD, ARCHITECTURE, TEAM, DECISIONS, IDENTITY
 | cargo-near / near-cli-rs | 0.31.1 (cli) | Standard build/deploy | Hand-rolled wasm-opt |
 | OutLayer WASM | wasm32-wasip2 | Only TEE with a path from a contract; no infra | Shade Agent (3-6 h Docker/Phala setup) |
 | near-api-js | 7.4.0 | Verified current, widest examples; we need key gen, tx signing and view calls only | near-kit 0.20.2 (newer, fewer examples) |
+| NEAR Connect (wallet login) | UNVERIFIED package and version, verify at build | Meteor, HOT and MyNEAR wallets with a function-call key | Wallet selector variants not checked |
 | Vite + React + TS | UNVERIFIED version, pin at repo init | Matches brief | Next.js (no SSR need) |
 | eciesjs | UNVERIFIED version | Used by private-dao-example | Own crypto |
-| Supabase (hosted: Auth, Postgres, Storage, Realtime) | n/a | Sign-in, listings, photos, Q&A, chat and search as configuration | Relayer with SQLite on a Render disk (auth, upload, realtime and search hand-built); listings on-chain with photos on FastFS (RPC-view browse, storage deposit per listing) |
-| @supabase/supabase-js | UNVERIFIED version, pin at repo init | Official client for Auth, queries, Storage and Realtime | Hand-rolled REST |
-| Node/TS + small HTTP lib | UNVERIFIED | Relayer is a handful of endpoints | Serverless |
+| Supabase (hosted: Auth, Postgres, Storage) | n/a | Sign-in, listings, photos, Q&A and chat storage as configuration, behind the relayer | Relayer with SQLite on a Render disk; listings on-chain with photos on FastFS; Realtime (not needed, the app polls) |
+| @supabase/supabase-js | 2.119.0 (relayer); app version UNVERIFIED, pin at repo init | Official client; the app uses it for Auth only | Hand-rolled REST |
+| Hono + @hono/node-server | 4.13.18 + 2.1.8 | Relayer HTTP, as in `relayer/package.json` | Serverless |
 | Render | n/a | Per brief | Vercel |
 | NEAR AI Cloud | `cloud-api.near.ai/v1` | Assistant (Must); E2EE inference with attestation (Should) | Local template parser (fallback) |
