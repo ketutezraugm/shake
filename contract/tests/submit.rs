@@ -89,6 +89,31 @@ mod submit_limit {
     }
 
     #[test]
+    fn completing_call_without_fee_rejected() {
+        let mut c = new_contract();
+        let id = deal(&mut c, 2);
+        submit(&mut c, id, SELLER, 0, None);
+        panics_with("attach the OutLayer fee", || {
+            submit(&mut c, id, BUYER, 0, Some("tok"))
+        });
+        let d = c.get_deal(id).unwrap();
+        assert_eq!(d.state, State::Waiting);
+        assert_eq!(d.round, 1);
+    }
+
+    #[test]
+    fn oversized_ciphertext_rejected() {
+        let mut c = new_contract();
+        let id = deal(&mut c, 2);
+        at(SELLER, 0);
+        panics_with("ciphertext too large", || {
+            c.submit_limit(id, vec![1; 513], [9; 32], None)
+        });
+        c.submit_limit(id, vec![1; 512], [9; 32], None);
+        assert_eq!(c.get_deal(id).unwrap().seller_cts[0].len(), 512);
+    }
+
+    #[test]
     fn one_submit_per_side_per_round() {
         let mut c = new_contract();
         let id = deal(&mut c, 2);
