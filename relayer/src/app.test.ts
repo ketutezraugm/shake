@@ -390,3 +390,26 @@ describe("inbox", () => {
     expect((await call(seller, "GET", `/me/inbox?after=${forSeller.newMessages[0].id}`)).json.newMessages).toEqual([]);
   });
 });
+
+describe("assistant", () => {
+  it("answers a signed question from the listing, maps UNKNOWN, and stops at the account limit", async () => {
+    app = createApp({ store, near, allowedOrigin: "http://localhost:5173", chat: async (m) => (m[1]!.content === "box?" ? "UNKNOWN" : "Works fine.") });
+    const seller = person("seller.testnet");
+    const buyer = person("buyer.testnet");
+    const listing = await newListing(seller);
+
+    expect((await call(null, "POST", "/assistant", { listingId: listing.id, question: "ok?" })).status).toBe(401);
+    expect((await call(buyer, "POST", "/assistant", { listingId: listing.id, question: "" })).status).toBe(400);
+    expect((await call(buyer, "POST", "/assistant", { listingId: "nope", question: "ok?" })).status).toBe(404);
+    expect((await call(buyer, "POST", "/assistant", { listingId: listing.id, question: "ok?" })).json).toEqual({ answer: "Works fine." });
+    expect((await call(buyer, "POST", "/assistant", { listingId: listing.id, question: "box?" })).json).toEqual({ unknown: true });
+    for (let i = 0; i < 18; i++) await call(buyer, "POST", "/assistant", { listingId: listing.id, question: "ok?" });
+    expect((await call(buyer, "POST", "/assistant", { listingId: listing.id, question: "ok?" })).status).toBe(429);
+  });
+
+  it("answers 503 when no NEAR AI key is configured", async () => {
+    const buyer = person("buyer.testnet");
+    const listing = await newListing(person("seller.testnet"));
+    expect((await call(buyer, "POST", "/assistant", { listingId: listing.id, question: "ok?" })).status).toBe(503);
+  });
+});

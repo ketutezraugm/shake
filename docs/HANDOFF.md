@@ -24,8 +24,8 @@ Each session edits only its own workstream section below.
 ## Contracts & TEE
 - Owner: Ezra (ketutezraugm). The contract and TEE are unchanged for the marketplace (Revision B); live demo contract `blind-deal-59xtyh4b.testnet`, RPC `https://test.rpc.fastnear.com`.
 - **Done:** MK-04 client crypto, `Signer`, `nearClient`, `slots.ts` (#48); MK-07 chain half, `scripts/marketplace-roundtrip.mts` (#51); MK-06 wallet login, `walletSigner.ts` + `scripts/wallet-key-check.mts` (#59); mock chain v2, `chainFor`, `mockSigner` (#61); asking-price plan change (#62).
-- **In progress:** PR #66 `addSlots` on `ct/add-slots` (app/src/slots.ts), waiting for a merge. Nothing uncommitted.
-- **Next:** MK-05 AI assistant (`relayer/src/assistant*.ts`; needs the NEAR AI key from nearbuilders.org/dashboard in the relayer env, never in the repo; may repeat the asking price, never the floor, MK-15). Then the Supabase half of MK-07 once the migrations are confirmed (#67). Then P-04 freeze checks: drop `blind-deal-w49onlq9.testnet` from the secret's `--via` readers.
+- **In progress:** MK-05 on `ct/mk-05-assistant`: `POST /assistant` (relayer/src/assistant*.ts) is built and tested against a fake model; the four live-model checks run once `NEAR_AI_API_KEY` is set (`npm test -w relayer -- assistant`). #66 `addSlots` is merged.
+- **Next:** run MK-05's live checks with the NEAR AI key; the prompt does not yet include the asking price (waits on MK-15's `Listing.askingPrice`). Then the Supabase half of MK-07 once the migrations are confirmed (#67). Then P-04 freeze checks: drop `blind-deal-w49onlq9.testnet` from the secret's `--via` readers.
 - **Still needs a person:** one real wallet session on testnet (Meteor, Intear or Nightly) to close MK-06: the popup, the key it adds, a payment through the wallet.
 - **Blockers:** the NEAR AI key (Ezra, for MK-05). Asks: #67 to Harfi (migrations applied, how to run the relayer on the real Supabase), #68 to Jose (signer helper for wallet users).
 
