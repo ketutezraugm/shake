@@ -7,6 +7,8 @@ export type ChainDeal = {
   max_rounds: number;
   round: number;
   state: string;
+  /** Sealed limits submitted so far, one per round; the seller owes round N while this has fewer than N. */
+  seller_cts?: unknown[];
   /** Set when the deal matched; a NoDeal that still has it is an expired match. */
   matched_at_ns?: number | null;
 };

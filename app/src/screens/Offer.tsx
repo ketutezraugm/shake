@@ -3,6 +3,11 @@ import { currentAccount } from "../accounts";
 import { chainFor } from "../client";
 import { relayerUrl } from "../config";
 import type { Deal } from "../contract";
+import chatIcon from "../design/assets/icons/chat.svg";
+import clippedTags from "../design/assets/stickers/clipped-tags.svg";
+import escrowBox from "../design/assets/stickers/escrow-box.svg";
+import handUnderCloth from "../design/assets/stickers/hand-under-cloth.svg";
+import sealedMachine from "../design/assets/stickers/sealed-machine.svg";
 import { digitsOnly, formatRp, groupThousands, rpFromYocto } from "../format";
 import { market } from "../marketSource";
 import { lastOffer, loadNegotiation, offerView, submitOffer, syncListing, type Negotiation, type OfferView } from "../offer";
@@ -15,7 +20,7 @@ export function Offer({ dealId }: { dealId: number }) {
   const negotiation = loadNegotiation(dealId);
   if (!account) {
     return (
-      <main className="screen">
+      <main className="page">
         <h1 className="headline">Your offer</h1>
         <p className="muted"><Link to="/signin">Sign in</Link> to see your offer.</p>
       </main>
@@ -23,7 +28,7 @@ export function Offer({ dealId }: { dealId: number }) {
   }
   if (!negotiation) {
     return (
-      <main className="screen">
+      <main className="page">
         <h1 className="headline">Your offer</h1>
         <p className="muted">Open the listing and tap "Make a blind offer" to start one on this device.</p>
         <p><Link to="/">Back to browse</Link></p>
@@ -67,16 +72,21 @@ function OfferDeal({ dealId, account, negotiation }: { dealId: number; account: 
     }
   }
 
-  if (error && deal === undefined) return <main className="screen"><p className="error" role="alert">{error}</p></main>;
-  if (deal === undefined) return <main className="screen"><p className="muted">Loading…</p></main>;
-  if (deal === null) return <main className="screen"><h1 className="headline">Offer not found</h1><p><Link to="/">Back to browse</Link></p></main>;
+  if (error && deal === undefined) return <main className="page"><p className="error" role="alert">{error}</p></main>;
+  if (deal === undefined) return <main className="page"><p className="muted">Loading…</p></main>;
+  if (deal === null) return <main className="page"><h1 className="headline">Offer not found</h1><p><Link to="/">Back to browse</Link></p></main>;
 
   const view = offerView(deal, account, { reservedDealId });
 
   return (
-    <main className="screen">
-      <h1 className="headline">{negotiation.title}</h1>
-      <p className="muted">Asking {formatRp(negotiation.askingPrice)}</p>
+    <main className="page offer-layout">
+      <div className="item-line">
+        <div className="thumb-box" aria-hidden="true" />
+        <div>
+          <strong>{negotiation.title}</strong>
+          <p>Asking {formatRp(negotiation.askingPrice)}</p>
+        </div>
+      </div>
 
       <OfferStep
         view={view}
@@ -105,8 +115,23 @@ type StepProps = {
   onReceived: () => void;
 };
 
+const Amount = ({ rp }: { rp: string }) => (
+  <>
+    <small>Rp</small> {rp}
+  </>
+);
+
 function OfferStep({ view, deal, negotiation, busy, onOffer, onPay, onReceived }: StepProps) {
-  const more = <p><Link to="/">See similar items</Link> · <Link to={`/l/${negotiation.listingId}`}>Back to the listing</Link></p>;
+  const more = (
+    <p>
+      <Link to="/">See similar items</Link> · <Link to={`/l/${negotiation.listingId}`}>Back to the listing</Link>
+    </p>
+  );
+  const message = (
+    <Link to={`/chat/${deal.id}`} className="link-button">
+      <img src={chatIcon} alt="" width={20} height={20} /> Message the seller
+    </Link>
+  );
 
   switch (view.kind) {
     case "enter":
@@ -124,26 +149,29 @@ function OfferStep({ view, deal, negotiation, busy, onOffer, onPay, onReceived }
       );
     case "computing":
       return (
-        <section className="panel" role="status">
+        <section className="flow-card" role="status">
+          <img className="sticker" src={sealedMachine} alt="" style={{ alignSelf: "center" }} />
           <p>Sealed on your phone.</p>
-          <p>Comparing in the sealed machine…</p>
+          <h2>Comparing in the sealed machine…</h2>
           <p className="muted">This can take a few dozen seconds. You can leave; the result will be here when you come back.</p>
         </section>
       );
     case "waitingSeller":
       return (
-        <section className="panel" role="status">
+        <section className="flow-card" role="status">
+          <img className="sticker" src={handUnderCloth} alt="" style={{ alignSelf: "center" }} />
+          <span className="eyebrow">Round {view.round} of {view.rounds}</span>
           <h2>Waiting for the seller</h2>
+          <p>Your offer is sealed. The seller needs to open round {view.round} before it's compared.</p>
           <p>
-            Your offer is sealed. The seller needs to open round {view.round} before it's compared. Your offer: {formatRp(lastOffer(deal.id) ?? "0")}{" "}
-            <span className="muted">· only you see this</span>
+            Your offer: <strong className="num">{formatRp(lastOffer(deal.id) ?? "0")}</strong> <span className="muted">· only you see this</span>
           </p>
           {more}
         </section>
       );
     case "noDeal":
       return (
-        <section className="panel">
+        <section className="flow-card">
           <h2>No deal</h2>
           <p>That was your last round on this item. Neither of you learns more than that.</p>
           {more}
@@ -151,14 +179,15 @@ function OfferStep({ view, deal, negotiation, busy, onOffer, onPay, onReceived }
       );
     case "expired":
       return (
-        <section className="panel">
+        <section className="flow-card">
           <p>The deal ran out before payment. The item is open again.</p>
           {more}
         </section>
       );
     case "beaten":
       return (
-        <section className="panel" role="status">
+        <section className="flow-card" role="status">
+          <span className="eyebrow">Reserved by someone else</span>
           <h2>Another buyer got there first</h2>
           <p>
             Your offer met the seller's price, but another buyer's deal reserved the item a moment earlier. You pay nothing, and your number stays
@@ -170,38 +199,70 @@ function OfferStep({ view, deal, negotiation, busy, onOffer, onPay, onReceived }
       );
     case "matched":
       return (
-        <section className="panel">
-          <p>Cocok!</p>
-          <h2>It's a deal</h2>
-          <p className="price-input">Rp {rpFromYocto(view.price)}</p>
-          <p className="muted">Neither of you will see the other's number. The item is reserved for you. Pay within 24 hours to keep it.</p>
-          <button className="primary" disabled={busy} onClick={onPay}>
-            Pay Rp {rpFromYocto(view.price)}
+        <>
+          <section className="reveal reveal-card" aria-live="polite">
+            <span className="confetti a" aria-hidden="true" />
+            <span className="confetti b" aria-hidden="true" />
+            <span className="confetti c" aria-hidden="true" />
+            <span className="confetti d" aria-hidden="true" />
+            <img className="reveal-sticker" src={clippedTags} alt="" />
+            <p className="cocok">Cocok!</p>
+            <h1>It's a deal</h1>
+            <p className="big-amount deal-price num">
+              <Amount rp={rpFromYocto(view.price)} />
+            </p>
+            <p className="note muted">Neither of you will see the other's number. The item is reserved for you. Pay within 24 hours to keep it.</p>
+          </section>
+          <button className="primary big" disabled={busy} onClick={onPay}>
+            {busy ? "Paying…" : `Pay ${formatRp(rpFromYocto(view.price))}`}
           </button>
-          <p><Link to={`/chat/${deal.id}`}>Message the seller</Link></p>
-        </section>
+          {message}
+        </>
       );
     case "funded":
       return (
-        <section className="panel">
-          <h2>Payment is held</h2>
-          <p>Rp {rpFromYocto(view.price)} goes to the seller when you tap Received.</p>
-          <p className="muted">
-            Got the item? Tap Received once it's in your hands. If it never arrives, you get your money back after the deadline
-            {view.deadlineNs !== null && `: ${new Date(view.deadlineNs / 1e6).toLocaleDateString()}`}.
-          </p>
-          <button className="primary" disabled={busy} onClick={onReceived}>
+        <>
+          <section className="flow-card">
+            <img className="sticker corner-sticker" src={escrowBox} alt="" />
+            <span className="eyebrow">Deal price</span>
+            <p className="big-amount deal-price num">
+              <Amount rp={rpFromYocto(view.price)} />
+            </p>
+            <p>Payment is held. It goes to the seller when you tap Received.</p>
+          </section>
+          <ol className="steps-row" aria-label="Payment steps">
+            <li className="done">Paid</li>
+            <li className="now">Held</li>
+            <li>Received</li>
+          </ol>
+          <div className="info-card">
+            <b>Got the item?</b>
+            <p>Tap Received once it's in your hands. If it never arrives, you get your money back after the deadline.</p>
+            {view.deadlineNs !== null && <p className="num">Deadline: {new Date(view.deadlineNs / 1e6).toLocaleDateString()}</p>}
+          </div>
+          <button className="primary big" disabled={busy} onClick={onReceived}>
             Received
           </button>
-          <p><Link to={`/chat/${deal.id}`}>Message the seller</Link></p>
-        </section>
+          {message}
+        </>
       );
     case "released":
-      return <section className="panel"><p>Rp {rpFromYocto(view.price)} sent to the seller. Enjoy it.</p>{more}</section>;
+      return (
+        <section className="flow-card">
+          <h2>Paid out</h2>
+          <p>{formatRp(rpFromYocto(view.price))} sent to the seller. Enjoy it.</p>
+          {more}
+        </section>
+      );
     case "refunded":
-      return <section className="panel"><p>Your payment came back to you.</p>{more}</section>;
+      return (
+        <section className="flow-card">
+          <p>Your payment came back to you.</p>
+          {more}
+        </section>
+      );
     case "notYours":
-      return <section className="panel"><p>This offer belongs to another account.</p></section>;
+      return <section className="flow-card"><p>This offer belongs to another account.</p></section>;
   }
 }
 
@@ -228,49 +289,57 @@ function OfferForm({ round, rounds, retry, askingPrice, floor, busy, onLock }: F
 
   if (confirming) {
     return (
-      <section className="panel">
+      <section className="flow-card">
+        <span className="eyebrow">Round {round} of {rounds}</span>
         <h2>Lock this offer?</h2>
-        <p className="price-input">{formatRp(limit)}</p>
+        <p className="big-amount num">
+          <Amount rp={groupThousands(limit)} />
+        </p>
         <p className="muted">You can't change it this round. If there's a deal, you pay this or less.</p>
-        <button className="primary" disabled={busy} onClick={() => onLock(limit)}>
-          Lock {formatRp(limit)}
+        <button className="primary big" disabled={busy} onClick={() => onLock(limit)}>
+          {busy ? "Sealing…" : `Lock ${formatRp(limit)}`}
         </button>
-        <button disabled={busy} onClick={() => setConfirming(false)}>Change the amount</button>
+        <button className="link-button" disabled={busy} onClick={() => setConfirming(false)}>
+          Change the amount
+        </button>
       </section>
     );
   }
 
   return (
-    <form className="panel" onSubmit={review}>
+    <form className="flow-card" onSubmit={review}>
       {retry && (
         <>
           <h2>No deal this round</h2>
           <p>Your numbers didn't meet. Neither of you learns more than that. You can raise your offer.</p>
         </>
       )}
-      <p className="muted">Round {round} of {rounds}</p>
+      <span className="eyebrow">Round {round} of {rounds}</span>
       <label>
-        The most you'd pay (Rp)
-        <input
-          className="price-input"
-          value={groupThousands(limit)}
-          onChange={(e) => setLimit(digitsOnly(e.target.value))}
-          inputMode="numeric"
-          required
-        />
+        The most you'd pay
+        <span className="amount-field">
+          <span aria-hidden="true">Rp</span>
+          <input value={groupThousands(limit)} onChange={(e) => setLimit(digitsOnly(e.target.value))} inputMode="numeric" aria-label="Your offer in Rupiah" required />
+        </span>
         <span className="hint">
           Only you will ever see this number. Up to {formatRp(askingPrice)}, the asking price.
           {floor !== null && ` Round ${round} can only go up from ${formatRp(floor)}.`}
         </span>
       </label>
-      <button type="button" onClick={() => setLimit(askingPrice)}>Offer the asking price</button>
+      <div className="chips">
+        <button type="button" className="chip" onClick={() => setLimit(askingPrice)}>
+          Offer the asking price
+        </button>
+      </div>
       <p className="muted">Offer the asking price and you'll pay it or less. Offer less and the seller never learns your number.</p>
       {tooHigh && (
         <p className="error" role="alert">
           That's above the asking price. The most you can offer is {formatRp(askingPrice)}.
         </p>
       )}
-      <button className="primary" disabled={!valid}>Review my offer</button>
+      <button className="primary big" disabled={!valid}>
+        Review my offer
+      </button>
     </form>
   );
 }

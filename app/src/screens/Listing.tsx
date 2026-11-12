@@ -62,7 +62,7 @@ function Gallery({ photos, title }: { photos: string[]; title: string }) {
   const [shown, setShown] = useState(0);
   const photo = photos[shown];
   return (
-    <>
+    <div className="gallery-wrap">
       <div className="gallery" role="img" aria-label={photo ? `Photo ${shown + 1} of ${photos.length} of ${title}` : `No photo yet for ${title}`}>
         {photo ? <img src={photo} alt="" /> : "Photo"}
       </div>
@@ -75,7 +75,7 @@ function Gallery({ photos, title }: { photos: string[]; title: string }) {
           ))}
         </div>
       )}
-    </>
+    </div>
   );
 }
 
@@ -117,8 +117,11 @@ export function Listing({ id }: { id: string }) {
         <img src={backIcon} alt="" width={16} height={16} /> Back
       </Link>
 
-      <Gallery photos={listing.photoUrls} title={listing.title} />
-
+      <div className="listing-layout">
+        <div className="listing-media">
+          <Gallery photos={listing.photoUrls} title={listing.title} />
+        </div>
+        <div className="listing-info">
       <h1 className="title">{listing.title}</h1>
       <p className="price-block">
         <span className="label">Asking price</span>
@@ -159,6 +162,8 @@ export function Listing({ id }: { id: string }) {
 
       {!isOwn && <Assistant listingId={listing.id} />}
       <Questions questions={questions} />
+        </div>
+      </div>
     </main>
   );
 }

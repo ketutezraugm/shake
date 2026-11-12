@@ -20,7 +20,7 @@ export type OfferView =
   | { kind: "refunded" }
   | { kind: "notYours" };
 
-/** `reservedDealId` is the deal holding the listing's reservation; the relayer doesn't expose it yet (see DECISIONS.md). */
+/** `reservedDealId` is the deal holding the listing's reservation, as the relayer returns it on the listing. */
 export type Reservation = { reservedDealId: number | null };
 
 export function offerView(deal: Deal, account: string, reservation: Reservation | null): OfferView {
