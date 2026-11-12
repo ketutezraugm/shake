@@ -24,7 +24,7 @@ Mirrors docs/plans/IMPLEMENTATION.md. Tick a box only after the task's done-chec
 - [x] **M1-03** Contract: `on_outlayer_result` (TDD) (EZ)
 - [x] **M1-04** Contract: escrow (TDD) (EZ)
 - [x] **M1-05** WASM matching + commitment (TDD) (EZ)
-- [ ] **M1-06** WASM: `get_pubkey`, build, deploy to OutLayer
+- [x] **M1-06** WASM: `get_pubkey`, build, deploy to OutLayer (EZ)
 - [ ] **M1-07** Contract on testnet + OutLayer round trip
 - [ ] **M1-08** Relayer with rate limits
 - [ ] **M1-09** Frontend flow on mocks

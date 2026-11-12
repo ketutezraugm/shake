@@ -1,5 +1,6 @@
 // OutLayer WASM: decrypt, compare, draw price. Shapes: docs/ARCHITECTURE.md.
 pub mod commit;
+pub mod key;
 
 use libsecp256k1::SecretKey;
 use rand::Rng;
@@ -21,6 +22,23 @@ pub enum Response {
     Matched { deal_id: u64, price: u64 },
     NoDeal { deal_id: u64 },
     Invalid { deal_id: u64 },
+}
+
+impl Response {
+    /// The JSON the contract's callback parses (`matched_price` in contract/src/lib.rs).
+    pub fn to_json(&self) -> serde_json::Value {
+        match self {
+            Response::Matched { deal_id, price } => {
+                serde_json::json!({ "deal_id": deal_id, "matched": true, "price": price.to_string() })
+            }
+            Response::NoDeal { deal_id } => {
+                serde_json::json!({ "deal_id": deal_id, "matched": false })
+            }
+            Response::Invalid { deal_id } => {
+                serde_json::json!({ "deal_id": deal_id, "error": "invalid" })
+            }
+        }
+    }
 }
 
 #[derive(Deserialize)]
