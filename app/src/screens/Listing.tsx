@@ -1,8 +1,11 @@
 import { useEffect, useState } from "react";
 import type { Question } from "../../../relayer/src/types";
 import { currentAccount } from "../accounts";
+import { CATEGORY_LABELS } from "../categories";
 import { chainFor } from "../client";
 import { relayerUrl } from "../config";
+import backIcon from "../design/assets/icons/back.svg";
+import priceTag from "../design/assets/stickers/price-tag.svg";
 import { formatRp } from "../format";
 import type { ShopListing } from "../market";
 import { market } from "../marketSource";
@@ -55,6 +58,27 @@ function OfferButton({ listing }: { listing: ShopListing }) {
   );
 }
 
+function Gallery({ photos, title }: { photos: string[]; title: string }) {
+  const [shown, setShown] = useState(0);
+  const photo = photos[shown];
+  return (
+    <>
+      <div className="gallery" role="img" aria-label={photo ? `Photo ${shown + 1} of ${photos.length} of ${title}` : `No photo yet for ${title}`}>
+        {photo ? <img src={photo} alt="" /> : "Photo"}
+      </div>
+      {photos.length > 1 && (
+        <div className="thumbs">
+          {photos.map((url, i) => (
+            <button key={url} className="thumb" aria-label={`Show photo ${i + 1}`} aria-current={i === shown} onClick={() => setShown(i)}>
+              <img src={url} alt="" />
+            </button>
+          ))}
+        </div>
+      )}
+    </>
+  );
+}
+
 export function Listing({ id }: { id: string }) {
   const [loaded, setLoaded] = useState<Loaded | null | undefined>(undefined);
   const [error, setError] = useState<string | null>(null);
@@ -71,11 +95,11 @@ export function Listing({ id }: { id: string }) {
     };
   }, [id]);
 
-  if (error) return <main className="screen"><p className="error" role="alert">{error}</p></main>;
-  if (loaded === undefined) return <main className="screen"><p className="muted">Loading…</p></main>;
+  if (error) return <main className="page"><p className="error" role="alert">{error}</p></main>;
+  if (loaded === undefined) return <main className="page"><p className="muted">Loading…</p></main>;
   if (loaded === null) {
     return (
-      <main className="screen">
+      <main className="page">
         <h1 className="headline">Listing not found</h1>
         <p><Link to="/">Back to browse</Link></p>
       </main>
@@ -83,32 +107,51 @@ export function Listing({ id }: { id: string }) {
   }
 
   const { listing, questions } = loaded;
-  const handle = listing.sellerAccount.split(".")[0];
+  const handle = listing.sellerAccount.split(".")[0] ?? listing.sellerAccount;
   const isOwn = currentAccount() === listing.sellerAccount;
   const note = statusNote(listing);
 
   return (
-    <main className="screen">
-      <p><Link to="/">Back</Link></p>
-      {listing.photoUrls.map((url) => (
-        <img key={url} src={url} alt="" />
-      ))}
-      <h1 className="headline">{listing.title}</h1>
-      <p><span className="muted">Asking price</span> {formatRp(listing.askingPrice)}</p>
-      {listing.description && <p>{listing.description}</p>}
-      <p className="muted">
-        {listing.category} · up to {listing.maxRounds} {listing.maxRounds === 1 ? "round" : "rounds"}
-      </p>
-      <p>
-        Sold by <Link to={`/@${handle}`}>@{handle}</Link>
-      </p>
+    <main className="page">
+      <Link to="/" className="pill">
+        <img src={backIcon} alt="" width={16} height={16} /> Back
+      </Link>
 
-      <section className="panel" aria-label="How offers work">
-        <p>Make a blind offer, up to the asking price.</p>
-        <p className="muted">
-          The seller has a secret lowest price. If your offer meets it, you both get one fair price in between. Offering the full ask always
-          matches. Chat opens once you have a deal.
-        </p>
+      <Gallery photos={listing.photoUrls} title={listing.title} />
+
+      <h1 className="title">{listing.title}</h1>
+      <p className="price-block">
+        <span className="label">Asking price</span>
+        <span className="value">{formatRp(listing.askingPrice)}</span>
+      </p>
+      <div className="facts">
+        <span className="fact">{CATEGORY_LABELS[listing.category]}</span>
+        <span className="fact">
+          Up to {listing.maxRounds} {listing.maxRounds === 1 ? "round" : "rounds"}
+        </span>
+        {listing.status === "open" && listing.freeSlots > 0 && <span className="fact">{listing.freeSlots} offers left</span>}
+      </div>
+      {listing.description && <p>{listing.description}</p>}
+
+      <Link to={`/@${handle}`} className="seller-card">
+        <span className="avatar" aria-hidden="true">{handle.charAt(0).toUpperCase()}</span>
+        <span>
+          <strong>@{handle}</strong>
+          <span className="muted"> · visit shop</span>
+        </span>
+      </Link>
+
+      <section className="blind-box" aria-label="How offers work">
+        <div className="blind-box-top">
+          <img className="sticker" src={priceTag} alt="" />
+          <div>
+            <h2>Make a blind offer, up to the asking price.</h2>
+            <p>
+              The seller has a secret lowest price. If your offer meets it, you both get one fair price in between. Offering the full ask
+              always matches. Chat opens once you have a deal.
+            </p>
+          </div>
+        </div>
         {note && <p role="status">{note}</p>}
         {!note && !isOwn && <OfferButton listing={listing} />}
         {isOwn && <p className="muted">This is your listing.</p>}

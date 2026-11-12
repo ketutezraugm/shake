@@ -10,6 +10,7 @@ import { Listing } from "./screens/Listing";
 import { Offer } from "./screens/Offer";
 import { Profile } from "./screens/Profile";
 import { Sell } from "./screens/Sell";
+import { Shell } from "./screens/Shell";
 
 export type Route =
   | { name: "home" }
@@ -65,14 +66,14 @@ export function navigate(to: string): void {
 }
 
 /** An in-app link: a real `<a>` so new-tab and copy-link still work, routed without a page load. */
-export function Link({ to, className, children }: { to: string; className?: string; children: ReactNode }) {
+export function Link({ to, className, current, children }: { to: string; className?: string; current?: boolean; children: ReactNode }) {
   function onClick(event: MouseEvent<HTMLAnchorElement>) {
     if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
     event.preventDefault();
     navigate(to);
   }
   return (
-    <a href={to} className={className} onClick={onClick}>
+    <a href={to} className={className} onClick={onClick} aria-current={current ? "page" : undefined}>
       {children}
     </a>
   );
@@ -99,7 +100,15 @@ function Pending({ title, task }: { title: string; task: string }) {
 }
 
 export function Router() {
-  const route = parseRoute(usePath());
+  const path = usePath();
+  return (
+    <Shell path={path}>
+      <Page route={parseRoute(path)} />
+    </Shell>
+  );
+}
+
+function Page({ route }: { route: Route }) {
   switch (route.name) {
     case "home":
       return <Home />;

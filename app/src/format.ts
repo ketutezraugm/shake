@@ -3,9 +3,9 @@ export function digitsOnly(text: string): string {
   return text.replace(/\D/g, "").replace(/^0+(?=\d)/, "");
 }
 
-/** Groups a digit string with commas ("4000000" -> "4,000,000"); string-based so long numbers stay exact. */
+/** Groups a digit string the Indonesian way ("4000000" -> "4.000.000"); string-based so long numbers stay exact. */
 export function groupThousands(digits: string): string {
-  return digits.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  return digits.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 }
 
 const U64_MAX = 2n ** 64n - 1n;
@@ -13,7 +13,7 @@ const U64_MAX = 2n ** 64n - 1n;
 /** Canonical Rupiah: digits only, no leading zero, nonzero, fits u64 like the TEE and contract. */
 export const isRupiah = (text: string): boolean => /^[1-9]\d*$/.test(text) && BigInt(text) <= U64_MAX;
 
-/** A Rupiah digit string as shown to people: "5000000" -> "Rp 5,000,000". */
+/** A Rupiah digit string as shown to people: "5000000" -> "Rp 5.000.000". */
 export function formatRp(digits: string): string {
   return `Rp ${groupThousands(digits)}`;
 }

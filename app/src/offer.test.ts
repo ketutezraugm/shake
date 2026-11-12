@@ -131,7 +131,7 @@ describe("submitOffer", () => {
   });
 
   it.each([
-    ["above the asking price", { limit: "4500001" }, "above the asking price. The most you can offer is Rp 4,500,000"],
+    ["above the asking price", { limit: "4500001" }, "above the asking price. The most you can offer is Rp 4.500.000"],
     ["not whole Rupiah", { limit: "4,200,000" }, "whole Rupiah"],
     ["zero", { limit: "0" }, "whole Rupiah"],
   ])("refuses an offer %s before sealing or paying a fee", async (_name, over, message) => {

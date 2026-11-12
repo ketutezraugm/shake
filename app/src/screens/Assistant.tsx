@@ -58,9 +58,9 @@ export function Assistant({ listingId }: { listingId: string }) {
   }
 
   return (
-    <section aria-labelledby="assistant-title">
-      <h2 id="assistant-title">Ask about this item</h2>
-      <form onSubmit={ask}>
+    <section aria-labelledby="assistant-title" className="stack">
+      <h2 id="assistant-title" className="section-title">Ask about this item</h2>
+      <form className="panel" onSubmit={ask}>
         <label>
           Your question
           <input value={draft} onChange={(e) => setDraft(e.target.value)} maxLength={500} disabled={busy} />
@@ -75,7 +75,7 @@ export function Assistant({ listingId }: { listingId: string }) {
         <div role="status">
           <p className="muted">{turn.question}</p>
           {"answer" in turn.reply ? (
-            <p className="panel">{turn.reply.answer}</p>
+            <p className="answer-bubble">{turn.reply.answer}</p>
           ) : (
             <div className="panel">
               <p>The seller didn't mention that. Ask them? Their answer will show here for everyone.</p>
