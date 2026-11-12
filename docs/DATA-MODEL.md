@@ -1,6 +1,6 @@
 # Data model
 
-There is no database (DECISIONS.md, 2026-11-10). The contract is the source of truth. This page maps every piece of data to the one place it lives, so the contract, the TEE, the relayer and the app encode the same shapes. It describes the contract as built (`contract/src/lib.rs`, deployed at M1-07); field names match the code.
+Deals, limits and money live only on the contract; marketplace listings live in Supabase (DECISIONS.md, 2026-11-12, which reverses the 2026-11-10 "no database" call). This page maps every piece of data to the one place it lives, so the contract, the TEE, the relayer and the app encode the same shapes. It describes the contract as built (`contract/src/lib.rs`, deployed at M1-07); field names match the code.
 
 ## Where each piece of data lives
 
@@ -8,11 +8,12 @@ There is no database (DECISIONS.md, 2026-11-10). The contract is the source of t
 |---|---|---|---|---|
 | Contract storage (on-chain) | Permanent, public | Ezra | `Config`, `Deal`, per-round ciphertexts and commitments, escrow state | Plaintext limits, salts, the TEE secret |
 | TEE (OutLayer WASM) | Memory for one execution | Ezra | Decrypted limits and salts, the `PROTECTED_` secret | Anything after the call returns |
-| Relayer (Node) | None, except in-memory rate-limit counters | Harfi | Request and response types for `POST /accounts` | Deal data, limits, secret keys, NEAR AI prompts |
+| Supabase (Postgres + Storage) | Permanent, private (service-role key on the relayer only) | Harfi | `LISTING`, `SLOT`, photos in bucket `listing-photos` | Limits, salts, user keys, copies of deal state |
+| Relayer (Node) | None, except in-memory rate-limit counters | Harfi | Request and response types (`relayer/src/types.ts`) | Deal data, limits, secret keys, NEAR AI prompts |
 | Browser (localStorage, URL) | Per device | Jose | ed25519 keypair, per-round salts, the buyer link token | Nothing leaves it except public key, ciphertext and commit |
 | `docs/real-deals.md` | Markdown file | Harfi | Anonymised outcome log (S-08) | Names, limits. Not a table, keep it that way |
 
-There is no list-all-deals method. Deals are read by id only, so a "my deals" view is a non-goal. If one is wanted later, it is an optional read-only indexer over contract events, recorded in DECISIONS.md first. Item photos are a PRD "Could", so `Deal` has no media fields.
+The contract has no list-all-deals method and `Deal` has no media fields. Browsing, search, photos and "my listings / my deals" come from Supabase: a `LISTING` owns up to 10 `SLOT`s, each slot being one pre-created on-chain deal (`deal_id`) with its link token and, once claimed, the buyer's account. A deal's state is always read from the contract by `deal_id`, never copied.
 
 ## ERD
 
@@ -25,6 +26,9 @@ erDiagram
     ROUND ||--o{ LIMIT_PLAINTEXT : "decrypts to, TEE only"
     ROUND ||--o| OUTLAYER_RESPONSE : "result of"
     RELAYER ||--o{ ACCOUNT : "creates and funds"
+    ACCOUNT ||--o{ LISTING : "seller"
+    LISTING ||--o{ SLOT : "up to 10"
+    SLOT ||--|| DEAL : "deal_id, verified on chain"
 
     CONFIG {
         accountid outlayer "set in new, no setter"
@@ -76,6 +80,23 @@ erDiagram
     }
     RELAYER {
         string account_id "RELAYER_ACCOUNT_ID"
+    }
+    LISTING {
+        uuid id PK
+        string seller_account
+        string title "1-100 bytes"
+        string description "at most 1000 bytes"
+        string category "electronics, fashion, home, vehicles, hobbies, other"
+        string_array photo_paths "at most 4"
+        u8 max_rounds "1 to 3, copied to each slot's deal"
+        enum status "open, sold, closed"
+    }
+    SLOT {
+        i64 id PK
+        uuid listing_id FK
+        u64 deal_id "unique, the seller's deal"
+        string link_token "never returned to the seller or to browse"
+        string buyer_account "null until claimed, one slot per buyer per listing"
     }
     RATE_LIMIT_BUCKET {
         string ip PK "in memory, 3 per hour"

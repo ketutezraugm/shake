@@ -1,10 +1,11 @@
 # Architecture
 
-Source of truth is the contract. No database. Method names below are the day-1 shared contract; change only by PR.
+Source of truth for deals and money is the contract. Marketplace listings and photos live in Supabase, written only by the relayer (DECISIONS.md, 2026-11-12). Method names below are the day-1 shared contract; change only by PR.
 
 ## Components
 - **SPA** (Vite + React + TS): key generation, ECIES encryption, polling, reveal UI. Holds the user's ed25519 key in localStorage.
-- **Relayer** (Node/TS): creates and funds `name.<app>.testnet`. Never sees limits or user keys (receives only the public key).
+- **Relayer** (Node/TS, Hono): creates and funds `name.<app>.testnet` (D1-09) and serves the marketplace API over Supabase. Never sees limits or user keys (receives only the public key); it does hold the per-slot link tokens.
+- **Supabase** (Postgres + Storage): listings, slots (pre-created deals a buyer can claim), photos. Reachable only with the relayer's service-role key.
 - **Deal contract** (Rust, near-sdk 5.30.1): deal state, ciphertexts, commitments, OutLayer call and callback, escrow.
 - **OutLayer WASM** (Rust, wasm32-wasip2): decrypts, compares, draws price, returns `{deal_id, matched, price}`. Runs in TDX on `outlayer.testnet`.
 - **NEAR AI Cloud** (Should): browser-side E2EE chat completion that turns text into `{min}` or `{max}`.
@@ -78,22 +79,36 @@ Response: `{"deal_id":7,"matched":true,"price":"4300000"}` or `{"deal_id":7,"mat
 **Result trust (decided):** Must: the callback accepts results only via OutLayer's callback path (predecessor check per the template), and the README states that OutLayer's operator is currently centralised. Should, if the spike shows PROTECTED_ keys can sign: the WASM also signs `{deal_id, matched, price}` with an ed25519 key whose public half is fixed in the contract at `new`, and the contract verifies it.
 
 ## Relayer API
-| Endpoint | Request | Response | Limit |
-|---|---|---|---|
-| POST /accounts | `{name, publicKey}` | `{accountId}` or 409/429 | 3 per IP per hour, global daily cap |
-| GET /health | none | `{ok:true}` | 60/min/IP |
+Types: `relayer/src/types.ts`. "Signed" requests carry `x-account-id`, `x-public-key`, `x-timestamp` (ms) and `x-signature` (base64 ed25519 over `blind-deal-relayer:v1|{METHOD}|{path}|{sha256 hex of body}|{timestamp}`, path without query); the relayer checks the key belongs to the account on chain. All endpoints: 120 requests/min/IP.
+
+| Endpoint | Auth | Purpose |
+|---|---|---|
+| POST /accounts | none | `{name, publicKey}` -> `{accountId}` or 409/429/503; 3 per IP per hour, global daily cap (D1-09) |
+| GET /health | none | `{ok:true}` |
+| GET /listings?q=&category=&cursor= | none | Open listings, newest first, 20 per page; `nextCursor` is the last `createdAt` |
+| GET /listings/:id | none | One listing with `freeSlots` |
+| POST /listings | signed | `{title, description, category, maxRounds}` -> listing |
+| POST /listings/:id/photos | seller | `{contentType}` -> `{uploadUrl, photoUrl}`; PUT the bytes to `uploadUrl`; max 4 |
+| POST /listings/:id/slots | seller | `{slots:[{dealId, linkToken}]}` (max 10 per listing); each deal is verified on chain |
+| POST /listings/:id/claim | buyer | -> `{dealId, linkToken}`; same slot on repeat; 409 when none is free, 403 for the seller |
+| POST /listings/:id/close | seller | Ends an open listing |
+| POST /listings/:id/sync | none | Re-reads the slot deals; marks the listing sold if one is Funded or Released |
+| GET /me/listings, GET /me/negotiations | signed | The seller's listings with slots; the buyer's claimed deals with link tokens |
+
+Categories: electronics, fashion, home, vehicles, hobbies, other. Errors are `{error}` with 400/401/403/404/409/429.
 
 Funding is a fixed small amount (set in env). The relayer account is funded from the faucet; if it runs low, `/accounts` returns 503.
 
 ## Keys and secrets
-Env vars: `RELAYER_ACCOUNT_ID`, `RELAYER_PRIVATE_KEY`, `APP_PARENT_ACCOUNT`, `NEAR_RPC_URL`, `FUND_AMOUNT`, `ALLOWED_ORIGIN`; build-time `VITE_CONTRACT_ID`, `VITE_RELAYER_URL`, `VITE_TEE_PUBKEY`; Should: `NEAR_AI_API_KEY`. OutLayer payment key. Never in the repo: private keys, `.env`, payment key, `~/.near-credentials`. Commit `.env.example` only. User keys exist only in the browser.
+Env vars: `RELAYER_ACCOUNT_ID`, `RELAYER_PRIVATE_KEY`, `APP_PARENT_ACCOUNT`, `NEAR_RPC_URL`, `FUND_AMOUNT`, `ALLOWED_ORIGIN`, `PORT`, `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `CONTRACT_ID`; build-time `VITE_CONTRACT_ID`, `VITE_RELAYER_URL`, `VITE_TEE_PUBKEY`; Should: `NEAR_AI_API_KEY`. OutLayer payment key. Never in the repo: private keys, `.env`, payment key, `~/.near-credentials`. Commit `.env.example` only. User keys exist only in the browser.
 
 ## Repo
 ```
 contract/  Rust deal contract + tests
 tee/       OutLayer WASM + offline unit tests
 app/       Vite React SPA
-relayer/   Node/TS service
+relayer/   Node/TS service (marketplace API)
+supabase/  SQL migrations
 docs/      PRD, ARCHITECTURE, TEAM, DECISIONS, IDENTITY
 ```
 
