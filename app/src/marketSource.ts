@@ -27,6 +27,7 @@ function seed(id: string, title: string, category: ShopListing["category"], hour
     photoUrls: [],
     maxRounds: 2,
     status: "open",
+    reservedDealId: null,
     createdAt: new Date(Date.UTC(2026, 10, 13, 12) - hoursAgo * 3_600_000).toISOString(),
     freeSlots: 3,
     ...extra,

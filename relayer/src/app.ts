@@ -204,20 +204,20 @@ export function createApp({ store, near, allowedOrigin, accounts, chat, now = Da
     const released = deals.find((deal) => deal.state === "Released");
     if (released) {
       await store.setStatus(listing.id, "sold");
-      return c.json({ ...listing, status: "sold" });
+      return c.json({ ...listing, status: "sold", reservedDealId: null });
     }
     if (listing.status === "open") {
       const holding = deals.find((deal) => HOLDING_STATES.has(deal.state));
       if (!holding) return c.json(listing);
       await store.setStatus(listing.id, "reserved", holding.id);
-      return c.json({ ...listing, status: "reserved" });
+      return c.json({ ...listing, status: "reserved", reservedDealId: holding.id });
     }
     const reservedId = await store.reservedDealOf(listing.id);
     const reserving = deals.find((deal) => deal.id === reservedId);
     const ended = !reserving || reserving.state === "Refunded" || (reserving.state === "NoDeal" && reserving.matched_at_ns != null);
     if (!ended) return c.json(listing);
     await store.setStatus(listing.id, "open");
-    return c.json({ ...listing, status: "open" });
+    return c.json({ ...listing, status: "open", reservedDealId: null });
   });
 
   app.get("/profiles/:handle", async (c) => {

@@ -28,7 +28,7 @@ Mirrors docs/plans/IMPLEMENTATION.md (marketplace plan, Revision B: slots and tw
 - [ ] **MK-23** Listing page: assistant and Q&A (FE): page, assistant and public Q&A in PR; assistant needs MK-05, offer button waits on MK-24, seller answering waits on MK-25 inbox
 
 ## Asking price (decided 2026-11-13)
-- [ ] **MK-15** Asking price in the API (BI)
+- [ ] **MK-15** Asking price in the API (BI): code, tests and migration 0003 written by CT (PR); the migration is not yet applied to the hosted project
 - [ ] **MK-26** Asking price in the screens (FE): sell form, cards and shop done in PR; offer-field cap waits on MK-24; real `askingPrice` field waits on MK-15
 - [ ] **MK-32** Asking price in the frames (DP)
 
