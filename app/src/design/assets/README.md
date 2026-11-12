@@ -40,7 +40,7 @@ Rules:
 
 ## Logo (`logo/`)
 
-Option E, "tied together": a pink and a yellow price tag on one ink string, next to the outlined "shake" wordmark (Manrope ExtraBold, -0.04em, converted to paths). The name waits on the team's OK (#42).
+Option E, "tied together": a pink and a yellow price tag on one ink string, next to the outlined "shake" wordmark (Manrope ExtraBold, -0.04em, converted to paths).
 
 | File | Use |
 |---|---|
