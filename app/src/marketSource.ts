@@ -1,6 +1,5 @@
+import { relayerUrl } from "./config";
 import { httpMarket, mockMarket, type Profile, type ShopListing } from "./market";
-
-const relayerUrl = import.meta.env.VITE_RELAYER_URL as string | undefined;
 
 const DEMO = "demo.blind-deal.testnet";
 
