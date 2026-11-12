@@ -1,15 +1,16 @@
 # Blind deal (working name)
 
-NEAR HACKATHON 2026 entry. A buyer and a seller each set a private price limit; code in a TEE (OutLayer) compares them; if the ranges overlap, the deal closes at a random price inside the overlap, otherwise both see only "no deal". Up to 3 private rounds, chosen by the seller. The buyer pays into a NEAR escrow contract released on "Received". Testnet only.
+NEAR HACKATHON 2026 entry. A second-hand marketplace (seller profiles linked from social bios, listings with photos, an AI product assistant, public Q&A, chat after a deal) where no listing shows a price. The seller seals a minimum per listing; each buyer makes a blind offer; code in a TEE (OutLayer) compares them; if they overlap, the deal closes at a random price inside the overlap, otherwise the buyer sees only "no deal". Up to 3 private rounds per buyer, chosen by the seller. The buyer pays into a NEAR escrow contract released on "Received". Marketplace data lives in Supabase, reached only through the relayer; money and sealed limits stay on the unchanged contract, with up to 10 pre-created deals ("slots") per listing. Sign-in: Google/email or a NEAR wallet. Testnet only.
 
-**Deadline:** submit by 2026-11-14 12:00 UTC (hard wall 23:59 UTC). Feature freeze 2026-11-13 12:00 UTC.
+**Deadline:** submit by 2026-11-14 12:00 UTC (hard wall 23:59 UTC). Feature freeze 2026-11-14 00:00 UTC (moved by the marketplace pivot, 2026-11-12).
 
 ## Start every session
 First time on a machine: **`/onboard`**. Then every session: run **`/inbox`** first (messages, blockers, review feedback; integrator: PRs to review), then create or switch to your task branch. Finish tasks with **`/ship`**. Coordinate with other roles' AIs through GitHub issues labelled `to:<role>` (docs/CONTRIBUTING.md, AI-to-AI communication). Read `docs/HANDOFF.md`, then your role's section in `docs/TEAM.md` and your next task in `docs/plans/IMPLEMENTATION.md`. Before ending a session, run **`/handoff`** (saves work, files asks for other roles, prints a team-chat update and a resume line).
 
 ## Doc map
 - `docs/ARCHITECTURE.md`: read before touching the contract, enclave code, relayer or their interfaces.
-- `docs/DATA-MODEL.md`: ERD, what data lives where, state table. Read before adding any stored field or type.
+- `docs/DATA-MODEL.md`: ERD, what data lives where (contract vs Supabase), state tables, RLS. Read before adding any stored field or type.
+- `docs/superpowers/specs/2026-11-12-marketplace-pivot-design.md`: why and how of the marketplace pivot.
 - `docs/DECISIONS.md`: read before changing any behaviour; add an entry when you make a decision.
 - `docs/IDENTITY.md`: the visual spec (tokens, type, motion). Read before any UI work.
 - `docs/PRD.md`: scope (Must / Should / Could / Won't) and acceptance criteria.

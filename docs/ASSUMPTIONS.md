@@ -12,7 +12,8 @@ Tag: `verified (source)` or `unverified (how to verify)`.
 - Local-only demo OK only with a video; hosted demo is a plus, keep up to 2026-11-18 (ideally 11-25). — verified (Q-012)
 - AI screening (Claude Code + Codex) checks the repo runs and does what the README says; humans decide. — verified (Q-017)
 - Team size of 4 fits both `"2 - 4"` and `"4 - 6"`. — verified (API contract); choice is the human's.
-- One project can win prizes in more than one track. — unverified (ask in NEAR Discord / Telegram). Working assumption per Ezra: one prize max; tag ~2 tracks that honestly fit.
+- A submission may tag every track the project fits; there is no cap on tags. — verified 2026-11-12 (live HACKATHON.md: "Put the id of every track the project fits"). The earlier "~2 tracks" was our own working assumption, not a rule.
+- One project can win prizes in more than one track. — unverified (rules are silent; ask in NEAR Discord / Telegram). Judges are per track, so tag only tracks the README can defend.
 - Submission team size `"2 - 4"` (team of 4). — decided by Ezra 2026-11-09
 - Grand prize winner can also take a track prize. — unverified (ask organizers)
 - X video upload limit for a non-Premium account is 2:20. — unverified (check X help page)
@@ -27,5 +28,7 @@ Tag: `verified (source)` or `unverified (how to verify)`.
 - OutLayer fees, testnet worker availability, network access. — unverified (spike)
 - OutLayer governance is centralised; must be stated in README/pitch. — verified (per spike)
 - NEAR AI Cloud: documented E2EE (X25519/XChaCha20) and attestation at /v1/attestation/report; cannot run custom code. Browser E2EE flow works. — unverified (spike)
+- NEAR AI credits from NEAR Builders come as a separate API key with a $10 balance, claimed at nearbuilders.org/dashboard; they do not appear in cloud.near.ai. — verified 2026-11-12 (live HACKATHON.md Q-000)
+- Supabase free tier covers Auth (email link, Google), Postgres and Storage for a demo of this size. — unverified (check the Supabase pricing page when creating the project, MK-10)
 - Fallbacks: (1) server key registered in contract, stated trust; (2) commit-reveal. — design decision
 - Testnet faucet amount and rate limit. — unverified (near-faucet.io claims conflict: 2 NEAR/claim vs 100 NEAR/30 min; docs.near.org faucet page 410). Verify by using it on day 1 (D1-09).

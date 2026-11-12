@@ -44,7 +44,7 @@ Role prefixes: `ct` Contracts & TEE, `bi` Backend & integration, `fe` Frontend, 
 | When | PR title | Tag |
 |---|---|---|
 | M1 demo slice works end to end | `release: M1 demo slice` | `v0.1.0` |
-| Feature freeze, 2026-11-13 12:00 UTC | `release: feature freeze` | `v0.9.0` |
+| Feature freeze, 2026-11-14 00:00 UTC | `release: feature freeze` | `v0.9.0` |
 | Submission, 2026-11-14 | `release: submission` | `v1.0.0` |
 
 The integrator runs **`/release <milestone>`**; it merges only after Ezra (owner) approves or comments "go" on the release PR. The hosted demo deploys from `main`, so judges always see a released version. Hotfixes after the freeze still go `fix branch → dev → release PR → main`.

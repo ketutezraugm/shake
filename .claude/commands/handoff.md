@@ -16,6 +16,6 @@ Mode: $ARGUMENTS (empty = my own handoff; `team` = all-team update, meant for Ez
 
 **Team update (`/handoff team`):**
 1. `git fetch`, then gather since the last update (or the last 24 h): PRs merged into `dev` (`gh pr list --state merged --base dev --search "merged:>=<date>"`), open PRs and their review state, open `blocker` issues, every workstream section of `docs/HANDOFF.md`, and `docs/PROGRESS.md` ticks against the day's plan in `docs/plans/IMPLEMENTATION.md`.
-2. Compare with the schedule (M1 demo slice, feature freeze 2026-11-13 12:00 UTC, submission 2026-11-14 12:00 UTC) and name anything at risk.
+2. Compare with the schedule (marketplace plan in docs/plans/IMPLEMENTATION.md, gates G2 2026-11-13 12:00 UTC and G3 20:00 UTC, feature freeze 2026-11-14 00:00 UTC, submission 2026-11-14 12:00 UTC) and name anything at risk.
 3. Print one paste-ready message for the team chat, written for the teammates: a status line (on track / at risk), then one line per person (Harfi, Ezra, Jose, Abel): what landed, what's next, what's blocking them, plus the links. End with today's top priority. At most 15 lines.
 4. Also print the onboarding block for anyone new: accept the GitHub invite, `gh auth login`, `git clone https://github.com/ketutezraugm/blind-deal`, start Claude Code in the folder, type `/onboard`.

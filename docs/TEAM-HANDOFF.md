@@ -1,21 +1,21 @@
 # Blind deal: team handoff
 
-NEAR HACKATHON 2026 · status on 10 Nov 2026 · prepared by Ezra
+NEAR HACKATHON 2026 · status on 10 Nov 2026, updated 12 Nov for the marketplace pivot · prepared by Ezra
 
 ## The one-minute version
-- **Deadline:** 14 Nov 2026, 23:59 UTC. Our own target: submit by **12:00 UTC on 14 Nov**. Feature freeze is **12:00 UTC on 13 Nov**.
-- **What we're building:** *Blind deal* (working name). A buyer and a seller each tell the app their real price limit. A sealed machine (a TEE on NEAR's OutLayer) compares the two. If the ranges overlap, the deal closes at a random price inside the overlap; if not, both see "no deal" and learn nothing else. The buyer pays into an escrow contract on NEAR that releases the money when they confirm they got the item.
+- **Deadline:** 14 Nov 2026, 23:59 UTC. Our own target: submit by **12:00 UTC on 14 Nov**. Feature freeze is **00:00 UTC on 14 Nov** (moved on 12 Nov by the marketplace pivot).
+- **What we're building:** *Blind deal* (working name), a second-hand marketplace where no listing shows a price. A seller puts their shop link in their Instagram or marketplace bio. Buyers browse listings with photos, ask an AI assistant or the seller about the item, then make a blind offer against the seller's sealed minimum. A sealed machine (a TEE on NEAR's OutLayer) compares the two. If they overlap, the deal closes at a random price inside the overlap; if not, the buyer sees "no deal" and learns nothing else. The buyer pays into an escrow contract on NEAR, chat opens, and the money releases when they confirm they got the item. Since 12 Nov: marketplace data lives in Supabase behind the relayer; money and sealed limits stay on the unchanged contract, with up to 10 pre-created deals per listing. Sign in with Google/email or a NEAR wallet.
 - **Why this idea:** out of 373 submissions on 9 Nov, none does negotiation. About half the field builds "spending guards for AI agents", and we're avoiding that crowd. Judges care about security, privacy and not trusting AI with money. Here a fixed rule decides the deal, and the AI only helps people phrase their limits.
-- **Tracks:** privacy + realworld by default; agents instead of realworld only if the AI negotiator ships by the freeze.
+- **Tracks:** tag every track that honestly fits (no cap, checked 12 Nov). Proposal: privacy, agents (the AI product assistant), realworld.
 - **Look:** sarong-check cloth and yellow cattle ear tags, in security-envelope blue. It comes from *marosok*, the West Sumatran cattle-market custom of agreeing a price with fingers hidden under a sarong.
 
 ## Roles
-| Role | Who | Owns | First task today |
+| Role | Who | Owns | Current tasks (12 Nov plan) |
 |---|---|---|---|
-| Contracts & TEE | Ezra (ketutezraugm) | `contract/`, `tee/` | Install Rust (`winget install Rustlang.Rustup`, then `cargo install cargo-near`), run the OutLayer spike (D1-08) |
-| Backend & integration + integrator (reviews and merges PRs) | Harfi (SyuraMoons) | `relayer/`, CI, Render, README | Repo scaffold, CI, Render hello-world, then the relayer (D1-01..03, D1-09) |
-| Frontend | Jose (ChristianoJ21) | `app/` | App skeleton on mocks (D1-10) |
-| Design & packaging | Abel (rafaelaanabelpurba) | Claude Design, assets, video | Design tokens and the 8 phone screens (D1-07, D1-11) |
+| Contracts & TEE | Ezra (ketutezraugm) | `contract/`, `tee/`, TS contract client, crypto, slot helper, wallet login, AI assistant | MK-04 client and slot helper, MK-07 slot round trip, MK-06 NEAR wallet login, MK-05 assistant |
+| Backend & integration + integrator (reviews and merges PRs) | Harfi (SyuraMoons) | `supabase/`, `relayer/`, sign-in, CI, Render, seed, e2e, README | MK-10 migrations, CI + Render, MK-11 accounts with Supabase login, MK-12 profiles/Q&A/chat/inbox endpoints, MK-20 Google/email sign-in, MK-14 seed, MK-40 e2e |
+| Frontend | Jose (ChristianoJ21) | `app/` screens | MK-21 browse and profile, MK-22 create listing, MK-23 listing page, MK-24 offer flow, MK-25 chat and inbox |
+| Design & packaging | Abel (rafaelaanabelpurba) | Claude Design, assets, seed photos, video | MK-30 marketplace screens, MK-31 seed photos, video and X post |
 
 ## Hard rules for everyone
 1. Git: work on task branches, open PRs into `dev` with `/ship`; Harfi's Claude reviews and merges (`/review-pr`); `main` only moves at releases. No force pushes. Details: `docs/CONTRIBUTING.md`.
@@ -49,7 +49,7 @@ Until you have the repo, give your Claude this PDF as context.
 5. Architecture: contract, enclave, relayer, deploy
 6. Team: roles, interfaces, workflow
 7. Collaboration rules: git, integrator, owner override, AI-to-AI communication
-8. Implementation plan: 41 tasks with owners and checks
+8. Implementation plan: marketplace tasks (MK-xx) with owners and checks
 9. Design brief and identity (Abel's starting point)
 10. Decisions log
 11. Endgame: red-team, win odds, schedule, readiness
