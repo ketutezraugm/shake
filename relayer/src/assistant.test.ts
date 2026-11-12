@@ -58,7 +58,7 @@ describe("quota", () => {
 });
 
 // MK-05 done-check: runs against the real model only when a key is in the environment.
-describe.skipIf(!process.env.NEAR_AI_API_KEY)("live model", () => {
+describe.skipIf(!process.env.NEAR_AI_API_KEY)("live model", { timeout: 60_000 }, () => {
   const chat = nearAiChat(process.env.NEAR_AI_API_KEY ?? "");
   const numbers = (text: string) => text.match(/\d+/g) ?? [];
 
