@@ -375,3 +375,36 @@
     animation: none;
   }
 }
+
+.form-col {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+}
+
+/* Wide screens: the sell form in two columns, the offer's item beside the step it belongs to (Abel's desktop frames 7 and 8). */
+@media (min-width: 900px) {
+  .sell-form {
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+    gap: 40px;
+    align-items: start;
+  }
+
+  .offer-layout {
+    display: grid;
+    grid-template-columns: 360px minmax(0, 560px);
+    gap: var(--space-16) 64px;
+    align-items: start;
+    justify-content: center;
+  }
+
+  .offer-layout > .item-line {
+    grid-column: 1;
+    grid-row: 1 / span 8;
+  }
+
+  .offer-layout > :not(.item-line) {
+    grid-column: 2;
+  }
+}

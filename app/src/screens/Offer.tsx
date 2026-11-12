@@ -79,7 +79,7 @@ function OfferDeal({ dealId, account, negotiation }: { dealId: number; account: 
   const view = offerView(deal, account, { reservedDealId });
 
   return (
-    <main className="page">
+    <main className="page offer-layout">
       <div className="item-line">
         <div className="thumb-box" aria-hidden="true" />
         <div>

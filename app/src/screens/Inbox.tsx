@@ -14,7 +14,7 @@ export function Inbox() {
   const account = currentAccount();
   if (!account) {
     return (
-      <main className="page">
+      <main className="page narrow">
         <h1 className="headline">Inbox</h1>
         <p className="muted"><Link to="/signin">Sign in</Link> to see your inbox.</p>
       </main>
@@ -22,7 +22,7 @@ export function Inbox() {
   }
   if (!relayerUrl) {
     return (
-      <main className="page">
+      <main className="page narrow">
         <h1 className="headline">Inbox</h1>
         <p className="muted">The inbox needs VITE_RELAYER_URL in the app's environment.</p>
       </main>
@@ -53,7 +53,7 @@ function InboxFor({ account, relayerUrl }: { account: string; relayerUrl: string
 
   if (!inbox) {
     return (
-      <main className="page">
+      <main className="page narrow">
         <h1 className="headline">Inbox</h1>
         {error ? <p className="error" role="alert">{error}</p> : <p className="muted">Loading…</p>}
       </main>
@@ -64,7 +64,7 @@ function InboxFor({ account, relayerUrl }: { account: string; relayerUrl: string
   const empty = inbox.questions.length + inbox.roundsWaiting.length + inbox.matches.length + inbox.newMessages.length === 0;
 
   return (
-    <main className="page">
+    <main className="page narrow">
       <div className="section-head">
         <h1 className="headline">Inbox</h1>
         <span className="num muted">{count > 0 ? `${count} new` : "All caught up"}</span>

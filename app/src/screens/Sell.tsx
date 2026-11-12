@@ -88,7 +88,8 @@ function SellForm({ account, relayerUrl }: FormProps) {
       <h1 className="headline">Sell something</h1>
       <p className="muted">Signed in as {account}</p>
 
-      <form className="flow-card" onSubmit={submit}>
+      <form className="flow-card sell-form" onSubmit={submit}>
+        <div className="form-col">
         <label>
           What are you selling?
           <input value={title} onChange={(e) => setTitle(e.target.value)} maxLength={100} required disabled={busy} />
@@ -121,6 +122,8 @@ function SellForm({ account, relayerUrl }: FormProps) {
           />
         </label>
 
+        </div>
+        <div className="form-col">
         <label>
           Rounds
           <select value={maxRounds} onChange={(e) => setMaxRounds(Number(e.target.value))} disabled={busy}>
@@ -163,6 +166,7 @@ function SellForm({ account, relayerUrl }: FormProps) {
         <button className="primary" disabled={busy || title.trim() === "" || askingPrice === "" || minimum === ""}>
           Seal and publish
         </button>
+        </div>
       </form>
     </main>
   );

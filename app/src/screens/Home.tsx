@@ -6,9 +6,9 @@ import type { ShopListing } from "../market";
 import { market } from "../marketSource";
 import { ListingCard } from "./ListingCard";
 
-export function Home() {
-  const [draft, setDraft] = useState("");
-  const [q, setQ] = useState("");
+export function Home({ initialQuery = "" }: { initialQuery?: string }) {
+  const [draft, setDraft] = useState(initialQuery);
+  const [q, setQ] = useState(initialQuery);
   const [category, setCategory] = useState<Category | "">("");
   const [listings, setListings] = useState<ShopListing[] | null>(null);
   const [cursor, setCursor] = useState<string | null>(null);

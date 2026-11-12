@@ -39,7 +39,7 @@ export function Profile({ handle }: { handle: string }) {
 
   const { profile, listings, soldCount } = shop;
   return (
-    <main className="page">
+    <main className="page profile-layout">
       <section className="profile-head" aria-label="Shop">
         <div className="profile-row">
           {profile.avatarUrl ? <img className="avatar" src={profile.avatarUrl} alt="" /> : <span className="avatar" aria-hidden="true">{profile.displayName.charAt(0).toUpperCase()}</span>}
@@ -65,20 +65,22 @@ export function Profile({ handle }: { handle: string }) {
         </button>
       </section>
 
-      <div className="section-head">
-        <h2>For sale</h2>
-      </div>
-      <p className="muted">Open an item and make a blind offer up to the asking price.</p>
+      <div className="profile-listings">
+        <div className="section-head">
+          <h2>For sale</h2>
+        </div>
+        <p className="muted">Open an item and make a blind offer up to the asking price.</p>
 
-      {listings.length === 0 ? (
-        <p className="muted">Nothing for sale right now.</p>
-      ) : (
-        <ul className="grid">
-          {listings.map((listing) => (
-            <ListingCard key={listing.id} listing={listing} />
-          ))}
-        </ul>
-      )}
+        {listings.length === 0 ? (
+          <p className="muted">Nothing for sale right now.</p>
+        ) : (
+          <ul className="grid">
+            {listings.map((listing) => (
+              <ListingCard key={listing.id} listing={listing} />
+            ))}
+          </ul>
+        )}
+      </div>
     </main>
   );
 }

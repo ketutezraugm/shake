@@ -23,7 +23,7 @@ export function Chat({ dealId }: { dealId: number }) {
   const account = currentAccount();
   if (!account) {
     return (
-      <main className="page">
+      <main className="page narrow">
         <h1 className="headline">Chat</h1>
         <p className="muted"><Link to="/signin">Sign in</Link> to open your chat.</p>
       </main>
@@ -31,7 +31,7 @@ export function Chat({ dealId }: { dealId: number }) {
   }
   if (!relayerUrl) {
     return (
-      <main className="page">
+      <main className="page narrow">
         <h1 className="headline">Chat</h1>
         <p className="muted">Chat needs VITE_RELAYER_URL in the app's environment.</p>
       </main>
@@ -89,15 +89,15 @@ function DealChat({ dealId, account, relayerUrl }: { dealId: number; account: st
     }
   }
 
-  if (deal === undefined) return <main className="page"><p className="muted">Loading…</p></main>;
+  if (deal === undefined) return <main className="page narrow"><p className="muted">Loading…</p></main>;
   if (deal === null || (deal.buyer !== account && deal.seller !== account)) {
-    return <main className="page"><h1 className="headline">Chat</h1><p className="muted">This chat isn't yours.</p></main>;
+    return <main className="page narrow"><h1 className="headline">Chat</h1><p className="muted">This chat isn't yours.</p></main>;
   }
   const other = deal.seller === account ? (deal.buyer ?? "the buyer") : deal.seller;
 
   if (!CHAT_OPEN.has(deal.state)) {
     return (
-      <main className="page">
+      <main className="page narrow">
         <h1 className="headline">Chat</h1>
         <p className="flow-card">Chat opens once you have a deal.</p>
         <p><Link to="/inbox">Back to inbox</Link></p>
@@ -106,7 +106,7 @@ function DealChat({ dealId, account, relayerUrl }: { dealId: number; account: st
   }
 
   return (
-    <main className="page">
+    <main className="page narrow">
       <div className="chat-head">
         <span className="avatar" aria-hidden="true">{other.charAt(0).toUpperCase()}</span>
         <div>
