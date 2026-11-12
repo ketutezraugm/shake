@@ -9,6 +9,7 @@
     "test": "vitest run --passWithNoTests"
   },
   "dependencies": {
+    "eciesjs": "0.5.0",
     "near-api-js": "7.4.0",
     "react": "19.3.1",
     "react-dom": "19.3.1"
