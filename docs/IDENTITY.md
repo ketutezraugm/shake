@@ -52,10 +52,12 @@ Nine literal objects: price tag (your number), clipped tags (deal), hand under a
 ## Signature move
 Your number goes on a tag only you can see; the deal is two tags clipped together showing one price. The reveal screen is one white hero card holding the clipped-tags sticker, "It's a deal", and the price in `--deal` green, with up to four confetti dots.
 
-## Signature motion: the reveal
-1. Both sides confirmed: the clipped-tags sticker drops in from `--reveal-lift` (24 px) and swings once from `--reveal-swing` to 0 (600 ms / 300 ms, `--ease-out`). No overshoot.
-2. The price fades in (`opacity`, 200 ms); it is shown whole and does not count up.
-3. "No deal": no sticker, one line of `--danger` text fades in (200 ms). Nothing else moves.
+## Signature motion: the shake
+The brand's one move: things shake hands. Specs and a replayable demo: screens canvas, page "Brand: motion and logo".
+1. **Sticker pop-shake.** The first time a sticker enters the screen it pops in and wiggles once: scale 0.55 → 1.08 → 0.97 → 1, rotate −10° → +6° → −4° → +2° → −1° → 0, opacity 0 → 1 (`--dur-pop` 640 ms, `--ease-pop`, `--pop-stagger` 90 ms between stickers). Never again in the same session.
+2. **Deal handshake.** When a deal lands, the deal card (with its clipped-tags sticker) bounces once vertically: translateY −10 → +8 → −6 → +3 → −1 → 0 px (`--dur-handshake` 560 ms, `--ease-handshake`, starting `--handshake-delay` 520 ms after the reveal). A phone may add one short vibration. Vertical only: a sideways shake means "wrong" (error) and is never used for a deal.
+3. The price fades in (`opacity`, 200 ms); it is shown whole and does not count up.
+4. "No deal": no sticker, no shake, one line of `--danger` text fades in (200 ms).
 
 ## Motion tokens
 | Token | Value | Use |
@@ -63,12 +65,14 @@ Your number goes on a tag only you can see; the deal is two tags clipped togethe
 | `--dur-instant` | 100 ms | press, hover, toggles |
 | `--dur-quick` | 200 ms | state changes, fades |
 | `--dur-deliberate` | 400 ms | screen changes |
-| `--dur-reveal` | 600 ms | the reveal drop (the only long move) |
+| `--dur-reveal` | 600 ms | longest screen-level move |
+| `--dur-pop` / `--ease-pop` / `--pop-stagger` | 640 ms / `cubic-bezier(0.2, 0.7, 0.2, 1)` / 90 ms | sticker pop-shake |
+| `--dur-handshake` / `--ease-handshake` / `--handshake-delay` | 560 ms / `cubic-bezier(0.3, 0.6, 0.3, 1)` / 520 ms | deal handshake |
 | `--ease-out` | `cubic-bezier(0.16, 1, 0.3, 1)` | entering |
 | `--ease-in` | `cubic-bezier(0.7, 0, 0.84, 0)` | leaving |
 | `--ease-std` | `cubic-bezier(0.2, 0, 0, 1)` | on-screen moves |
 
-Rules: animate only `transform` and `opacity`; no springs; nothing blocks input; a repeated action skips its animation. `prefers-reduced-motion`: the drop and swing become a 200 ms crossfade; nothing loops.
+Rules: animate only `transform` and `opacity`; overshoot only in the sticker pop-shake and the deal handshake; nothing blocks input; a repeated action skips its animation. `prefers-reduced-motion`: stickers fade in over 200 ms with no wiggle, the handshake is skipped; nothing loops.
 
 ## Icon language
 UI icons (back, lock, share): 24 px line icons, 2-2.2 px `--ink` stroke, round caps, always labelled. Stickers are illustration, not icons. Drawn in Claude Design; no icon libraries.
