@@ -1,5 +1,6 @@
 import { PHOTO_TYPES, type Category, type Listing, type PhotoRes, type PhotoType } from "../../relayer/src/types";
 import type { ContractClient } from "./contract";
+import { isRupiah } from "./format";
 import { signedPost } from "./relayer";
 import type { Signer } from "./signer";
 import { createSlots } from "./slots";
@@ -7,7 +8,6 @@ import { createSlots } from "./slots";
 const MAX_PHOTOS = 4;
 const MAX_PHOTO_BYTES = 2 * 1024 * 1024; // the storage bucket's limit
 const MAX_SLOTS = 10;
-const U64_MAX = 2n ** 64n - 1n;
 
 export type PublishInput = {
   title: string;
@@ -33,9 +33,6 @@ export type PublishStep =
 
 const byteLength = (text: string) => new TextEncoder().encode(text).length;
 const isPhotoType = (type: string): type is PhotoType => (PHOTO_TYPES as readonly string[]).includes(type);
-
-/** Canonical Rupiah: digits only, no leading zero, nonzero, fits u64 like the TEE and contract. */
-const isRupiah = (text: string) => /^[1-9]\d*$/.test(text) && BigInt(text) <= U64_MAX;
 
 /** Checks everything the relayer and contract would refuse, so the seller finds out before any request or fee. */
 function validate(input: PublishInput): void {
