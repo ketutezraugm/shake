@@ -1,0 +1,84 @@
+/* The sticker pop-shake from IDENTITY.md, for every sticker. `scale` and `rotate` are the individual transform
+   properties, so the wiggle adds to each sticker's own resting tilt instead of replacing it. Tokens only. */
+
+:root {
+  /* One damped spring per property, as `linear()` easings: scale (damping 0.5) overshoots to about 1.07 and dips to 0.97,
+     the turn (damping 0.22) swings to about +5 degrees and back. A spring is one continuous curve, so the motion never
+     brakes at a keyframe and restarts. Both settle inside --dur-pop (640 ms). */
+  --spring-scale: linear(0, 0.05, 0.175, 0.343, 0.525, 0.7, 0.853, 0.977, 1.068, 1.126, 1.156, 1.163, 1.152, 1.13, 1.102, 1.073, 1.044, 1.02, 1.001, 0.987, 0.978, 0.974, 0.974, 0.976, 0.979, 0.984, 0.989, 0.993, 0.997, 1, 1.002, 1.004, 1);
+  --spring-turn: linear(0, 0.063, 0.233, 0.471, 0.739, 1, 1.221, 1.382, 1.472, 1.491, 1.446, 1.353, 1.23, 1.097, 0.972, 0.87, 0.798, 0.762, 0.761, 0.789, 0.84, 0.902, 0.967, 1.027, 1.074, 1.105, 1.119, 1.116, 1.099, 1.072, 1.041, 1.009, 0.981, 0.959, 0.946, 0.941, 0.945, 0.954, 0.968, 0.984, 1);
+}
+
+.sticker-wait,
+.site-footer.write-wait .footer-art .sticker {
+  opacity: 0;
+}
+
+/* The footer lists its stickers here because it starts them itself, in order, instead of waiting for each to scroll in. */
+.sticker-pop,
+.site-footer.write-go .footer-art .sticker {
+  animation:
+    sticker-scale var(--dur-pop) var(--spring-scale) both,
+    sticker-turn var(--dur-pop) var(--spring-turn) both,
+    sticker-appear var(--dur-quick) var(--ease-out) both;
+  animation-delay: calc(var(--pop-base, 0ms) + var(--pop-index, 0) * var(--pop-stagger));
+}
+
+@keyframes sticker-scale {
+  from { scale: 0.55; }
+  to { scale: 1; }
+}
+
+@keyframes sticker-turn {
+  from { rotate: -10deg; }
+  to { rotate: 0deg; }
+}
+
+/* Solid within 200 ms, so the sticker is not see-through while it swings. */
+@keyframes sticker-appear {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* The footer writes its wordmark, then sinks it into the panel edge, then lands the stickers (see footer.css):
+   1. the curtain slides off to the right, so the word appears left to right (--dur-reveal);
+   2. as the last letter shows, the word, raised until now, sinks 12% into the panel edge (--dur-deliberate). */
+.site-footer.write-wait .footer-word {
+  translate: 0 -12%;
+}
+
+.site-footer.write-go .footer-word {
+  translate: none;
+  transition: translate var(--dur-deliberate) var(--ease-out) calc(var(--dur-reveal) * 0.8);
+}
+
+.site-footer.write-wait .footer-curtain {
+  translate: 0 0;
+}
+
+.site-footer.write-go .footer-curtain {
+  translate: 104% 0;
+  /* Linear, because writing moves at one steady pace; an ease front-loads the wipe and then crawls over the last letters. */
+  transition: translate var(--dur-reveal) linear;
+}
+
+.site-footer.write-done .footer-curtain {
+  display: none;
+}
+
+/* Tokens already shorten --dur-pop; the wiggle becomes a plain fade and the wordmark is simply there, unwritten. */
+@media (prefers-reduced-motion: reduce) {
+  .sticker-pop,
+  .site-footer.write-go .footer-art .sticker {
+    animation: sticker-appear var(--dur-pop) var(--ease-out) both;
+    animation-delay: calc(var(--pop-base, 0ms) + var(--pop-index, 0) * var(--pop-stagger));
+  }
+
+  .site-footer.write-wait .footer-word {
+    translate: none;
+  }
+
+  .footer-curtain {
+    display: none;
+  }
+}
