@@ -3,7 +3,7 @@ import { systemPrompt, UNKNOWN } from "./assistantPrompt.js";
 import type { AssistantRes, Listing, Question } from "./types.js";
 
 const NEAR_AI_URL = "https://cloud-api.near.ai/v1/chat/completions";
-const MODEL = "zai-org/GLM-5.1-FP8";
+const MODEL = "deepseek/deepseek-v4.1-flash";
 
 export type ChatMessage = { role: "system" | "user"; content: string };
 /** One chat completion: messages in, the model's reply out. */
