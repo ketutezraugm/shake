@@ -11,7 +11,7 @@ export interface Signer {
   call(method: string, args: object, depositYocto?: bigint): Promise<unknown>;
 }
 
-const GAS = 300_000_000_000_000n; // 300 Tgas; unused gas is refunded
+export const FULL_GAS = 300_000_000_000_000n; // 300 Tgas, enough for a round that calls OutLayer; unused gas is refunded
 
 async function sha256Hex(text: string): Promise<string> {
   const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
@@ -19,7 +19,7 @@ async function sha256Hex(text: string): Promise<string> {
 }
 
 /** The walletless account: the browser's own full-access key signs everything. */
-export function keySigner(accountId: string, secretKey: string, chain: ChainConfig): Signer {
+export function keySigner(accountId: string, secretKey: string, chain: ChainConfig, gas = FULL_GAS): Signer {
   const key = KeyPair.fromString(secretKey as KeyPairString);
   const account = new Account(accountId, chain.rpcUrl, secretKey as KeyPairString);
 
@@ -37,6 +37,6 @@ export function keySigner(accountId: string, secretKey: string, chain: ChainConf
       };
     },
     call: (methodName, args, deposit = 0n) =>
-      account.callFunction({ contractId: chain.contractId, methodName, args, deposit, gas: GAS }),
+      account.callFunction({ contractId: chain.contractId, methodName, args, deposit, gas }),
   };
 }

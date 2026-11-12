@@ -22,7 +22,7 @@ Mirrors docs/plans/IMPLEMENTATION.md (marketplace plan, Revision B: slots and tw
 - [x] **MK-11** `POST /accounts` with Supabase JWT (BI)
 - [x] **MK-12** Relayer: profiles, questions, messages, inbox, reserved sync (BI)
 - [ ] **MK-20** Google/email sign-in, handle, keys (BI)
-- [ ] **MK-06** NEAR wallet login (CT)
+- [ ] **MK-06** NEAR wallet login (CT): code and live key checks pass (EZ); one real wallet session still open
 - [ ] **MK-21** Browse, search, seller profile (FE): logic and routes in PR, visuals wait on MK-30, live data on #47
 - [ ] **MK-22** Create listing (FE): flow and screen in PR, live run waits on MK-20 sign-in and a deployed relayer
 - [ ] **MK-23** Listing page: assistant and Q&A (FE)

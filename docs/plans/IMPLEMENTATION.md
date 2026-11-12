@@ -124,10 +124,11 @@ D1-01 scaffold, D1-04/05 contract stub and TS types, D1-07 tokens and identity d
 - **Done:** a fresh browser signs in with an email link and with Google, picks a handle, and `/@handle` shows the new profile; `npm test -w app -- keys` passes (an exported key re-imports to the same public key; the secret key is never in a fetch body).
 
 ### MK-06 NEAR wallet login
-- **Owner:** CT. **Deps:** MK-04, MK-12 (`PUT /me/profile`).
-- **Files:** `app/src/walletSigner.ts`, `app/src/walletSigner.test.ts`, the wallet button in `SignIn.tsx` (with Harfi).
-- **Produces:** `walletSigner()` implementing `Signer`: NEAR Connect sign-in requesting a function-call key on the contract; relayer requests and non-payable calls signed with that key; payable calls (`submit_limit` with the fee, `deposit`) sent through the wallet.
-- **Done:** with a testnet wallet (Meteor or MyNEAR): sign in, `PUT /me/profile` succeeds with the function-call key's signature, a listing with 2 slots is created without a wallet popup, and as a buyer on another account the round-completing `submit_limit` opens the wallet. `npm test -w app -- walletSigner` passes (headers match `relayer/src/auth.ts` `signingMessage`).
+- **Owner:** CT. **Deps:** MK-04, MK-12 (`PUT /me/profile`, merged).
+- **Files:** `app/src/walletSigner.ts`, `app/src/walletSigner.test.ts`, `scripts/wallet-key-check.mts`; the wallet button in `SignIn.tsx` is Harfi's MK-20, wired to `connectWallet`.
+- **Produces:** `connectWallet(connector, chain, storage?) -> WalletSession` (asks the wallet for a function-call key on the deal contract, 1 NEAR gas allowance, methods `create_deal`, `submit_limit`, `cancel`, `confirm_received`, `refund`, `expire`; keeps `{accountId, secretKey}` in the browser), `loadWalletSession()`, `clearWalletSession()`, `walletSigner(session, getWallet, chain) -> Signer`: calls without a deposit are signed by the key (30 Tgas), calls that attach money (the round-completing `submit_limit`, `deposit`) go through the wallet.
+- **Done (passes):** `npm test -w app -- walletSigner` 5 passed; `npx tsx scripts/wallet-key-check.mts` prints `ok` for: the relayer accepts `PUT /me/profile` signed by the function-call key; `create_deal` and the seller's `submit_limit` through the key (deal `Waiting`); the key is refused when it attaches a deposit; then `RESULT: ok`.
+- **Still open:** one real wallet session (Meteor, Intear or Nightly on testnet) to check the popup, the key it adds and a payment through the wallet.
 
 ### MK-21 Browse, search, seller profile
 - **Owner:** FE. **Deps:** MK-30; #35 endpoints exist, `GET /profiles/:handle` from MK-12 (stub until then).
