@@ -31,7 +31,7 @@ Each session edits only its own workstream section below.
 - Owner: Jose (ChristianoJ21). Next: D1-10 skeleton on mocks (after D1-05, D1-07). In progress: none. Blockers: none.
 
 ## Design & packaging (Abel)
-- Owner: Abel (rafaelaanabelpurba). Next: D1-07 tokens CSS, D1-11 screens in Claude Design (full brief arrives in Phase 7). In progress: none. Blockers: none.
+- Owner: Abel (rafaelaanabelpurba). Done: D1-07 tokens CSS (PR open, `app/src/design/tokens.css`, fonts in `app/public/fonts/`). Next: D1-11 screens in Claude Design, then M1-14 assets. In progress: none. Blockers: none. Note: font URLs assume Vite serves `app/public/` at `/`; recheck once D1-01 lands.
 
 ## Known bugs
 - none yet
