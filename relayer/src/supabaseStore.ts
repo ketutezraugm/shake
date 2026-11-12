@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import { createClient } from "@supabase/supabase-js";
 import { HttpError } from "./errors.js";
 import type { SlotRow, Store } from "./store.js";
-import type { Category, Listing, ListingStatus, Negotiation } from "./types.js";
+import type { Category, Listing, ListingStatus, Message, Negotiation, Profile, Question } from "./types.js";
 
 const BUCKET = "listing-photos";
 const EXTENSIONS = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp" } as const;
@@ -26,6 +26,46 @@ type NegotiationRow = {
   link_token: string;
   listings: { id: string; title: string; seller_account: string };
 };
+
+type ProfileRow = { account_id: string; handle: string; display_name: string; avatar_url: string | null; bio: string; city: string };
+type QuestionRow = {
+  id: number;
+  listing_id: string;
+  question: string;
+  answer: string | null;
+  answered_at: string | null;
+  created_at: string;
+};
+type MessageRow = { id: number; deal_id: number; sender_account: string; body: string; created_at: string };
+
+const PROFILE_COLUMNS = "account_id, handle, display_name, avatar_url, bio, city";
+const QUESTION_COLUMNS = "id, listing_id, question, answer, answered_at, created_at";
+const MESSAGE_COLUMNS = "id, deal_id, sender_account, body, created_at";
+
+const toProfile = (row: ProfileRow): Profile => ({
+  handle: row.handle,
+  displayName: row.display_name,
+  avatarUrl: row.avatar_url,
+  bio: row.bio,
+  city: row.city,
+});
+
+const toQuestion = (row: QuestionRow): Question => ({
+  id: row.id,
+  listingId: row.listing_id,
+  question: row.question,
+  answer: row.answer,
+  answeredAt: row.answered_at,
+  createdAt: row.created_at,
+});
+
+const toMessage = (row: MessageRow): Message => ({
+  id: row.id,
+  dealId: row.deal_id,
+  senderAccount: row.sender_account,
+  body: row.body,
+  createdAt: row.created_at,
+});
 
 export function supabaseStore(url: string, serviceKey: string): Store {
   const db = createClient(url, serviceKey, { auth: { persistSession: false } });
@@ -147,6 +187,107 @@ export function supabaseStore(url: string, serviceKey: string): Store {
       });
       if (error?.code === UNIQUE_VIOLATION) throw new HttpError(409, "handle or login already has an account");
       if (error) throw new Error(error.message);
+    },
+
+    async profileByHandle(handle) {
+      const row = optional(await db.from("profiles").select(PROFILE_COLUMNS).eq("handle", handle).maybeSingle<ProfileRow>());
+      return row ? { ...toProfile(row), accountId: row.account_id } : null;
+    },
+
+    async profileOf(accountId) {
+      const row = optional(await db.from("profiles").select(PROFILE_COLUMNS).eq("account_id", accountId).maybeSingle<ProfileRow>());
+      return row ? toProfile(row) : null;
+    },
+
+    async saveProfile(accountId, fields, create) {
+      const columns = { display_name: fields.displayName, bio: fields.bio, city: fields.city, avatar_url: fields.avatarUrl };
+      const query = create
+        ? db.from("profiles").insert({ account_id: accountId, handle: create.handle, auth: "wallet", ...columns })
+        : db.from("profiles").update(columns).eq("account_id", accountId);
+      const result = await query.select(PROFILE_COLUMNS).single<ProfileRow>();
+      if (result.error?.code === UNIQUE_VIOLATION) throw new HttpError(409, "handle or login already has an account");
+      return toProfile(check(result));
+    },
+
+    async addQuestion(listingId, asker, question) {
+      const row = check(
+        await db.from("questions").insert({ listing_id: listingId, asker_account: asker, question }).select(QUESTION_COLUMNS).single<QuestionRow>(),
+      );
+      return toQuestion(row);
+    },
+
+    async answeredQuestions(listingId) {
+      const rows = check(
+        await db
+          .from("questions")
+          .select(QUESTION_COLUMNS)
+          .eq("listing_id", listingId)
+          .not("answer", "is", null)
+          .order("id")
+          .returns<QuestionRow[]>(),
+      );
+      return rows.map(toQuestion);
+    },
+
+    async question(id) {
+      const row = optional(await db.from("questions").select(QUESTION_COLUMNS).eq("id", id).maybeSingle<QuestionRow>());
+      return row ? toQuestion(row) : null;
+    },
+
+    async answerQuestion(id, answer) {
+      // The `answer is null` filter makes a second answer match no row instead of overwriting the first.
+      const row = optional(
+        await db
+          .from("questions")
+          .update({ answer, answered_at: new Date().toISOString() })
+          .eq("id", id)
+          .is("answer", null)
+          .select(QUESTION_COLUMNS)
+          .maybeSingle<QuestionRow>(),
+      );
+      return row ? toQuestion(row) : null;
+    },
+
+    async unansweredFor(seller) {
+      const rows = check(
+        await db
+          .from("questions")
+          .select(`${QUESTION_COLUMNS}, listings!inner(title, seller_account)`)
+          .eq("listings.seller_account", seller)
+          .is("answer", null)
+          .order("id")
+          .returns<(QuestionRow & { listings: { title: string } })[]>(),
+      );
+      return rows.map((row) => ({ ...toQuestion(row), listingTitle: row.listings.title }));
+    },
+
+    async addMessage(dealId, sender, body) {
+      const row = check(
+        await db.from("messages").insert({ deal_id: dealId, sender_account: sender, body }).select(MESSAGE_COLUMNS).single<MessageRow>(),
+      );
+      return toMessage(row);
+    },
+
+    async messagesOf(dealId, after) {
+      const rows = check(
+        await db.from("messages").select(MESSAGE_COLUMNS).eq("deal_id", dealId).gt("id", after).order("id").returns<MessageRow[]>(),
+      );
+      return rows.map(toMessage);
+    },
+
+    async messagesIn(dealIds, after, notFrom) {
+      if (dealIds.length === 0) return [];
+      const rows = check(
+        await db
+          .from("messages")
+          .select(MESSAGE_COLUMNS)
+          .in("deal_id", dealIds)
+          .gt("id", after)
+          .neq("sender_account", notFrom)
+          .order("id")
+          .returns<MessageRow[]>(),
+      );
+      return rows.map(toMessage);
     },
 
     async negotiationsOf(buyer) {

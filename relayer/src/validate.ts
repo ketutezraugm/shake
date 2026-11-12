@@ -3,11 +3,15 @@ import { HttpError } from "./errors.js";
 import {
   CATEGORIES,
   PHOTO_TYPES,
+  type AnswerReq,
+  type AskReq,
   type Category,
   type CreateAccountReq,
   type CreateListingReq,
   type PhotoReq,
   type RegisterSlotsReq,
+  type SendMessageReq,
+  type UpdateProfileReq,
 } from "./types.js";
 
 export const MAX_PHOTOS = 4;
@@ -72,3 +76,30 @@ export function parsePhotoReq(body: unknown): PhotoReq {
   if (!PHOTO_TYPES.includes(contentType as PhotoReq["contentType"])) throw bad("contentType must be jpeg, png or webp");
   return { contentType: contentType as PhotoReq["contentType"] };
 }
+
+// Bounds mirror the check constraints in migration 0002.
+function text(value: unknown, field: string, min: number, max: number): string {
+  if (typeof value !== "string" || bytes(value) < min || bytes(value) > max) throw bad(`${field} must be ${min}-${max} bytes`);
+  return value;
+}
+
+export function parseUpdateProfile(body: unknown): UpdateProfileReq {
+  const { handle, displayName, bio, city, avatarUrl } = record(body);
+  if (handle !== undefined && (typeof handle !== "string" || !HANDLE.test(handle))) {
+    throw bad("handle must be 2-32 lowercase letters, digits or single dashes");
+  }
+  if (avatarUrl !== null && (typeof avatarUrl !== "string" || !avatarUrl.startsWith("https://") || avatarUrl.length > 500)) {
+    throw bad("avatarUrl must be an https URL or null");
+  }
+  return {
+    handle: handle as string | undefined,
+    displayName: text(displayName, "displayName", 0, 60),
+    bio: text(bio, "bio", 0, 300),
+    city: text(city, "city", 0, 60),
+    avatarUrl,
+  };
+}
+
+export const parseAsk = (body: unknown): AskReq => ({ question: text(record(body).question, "question", 1, 500) });
+export const parseAnswer = (body: unknown): AnswerReq => ({ answer: text(record(body).answer, "answer", 1, 1000) });
+export const parseMessage = (body: unknown): SendMessageReq => ({ body: text(record(body).body, "body", 1, 1000) });

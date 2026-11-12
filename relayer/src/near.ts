@@ -5,6 +5,7 @@ export type ChainDeal = {
   buyer: string | null;
   link_hash: number[];
   max_rounds: number;
+  round: number;
   state: string;
   /** Set when the deal matched; a NoDeal that still has it is an expired match. */
   matched_at_ns?: number | null;

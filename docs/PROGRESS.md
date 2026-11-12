@@ -19,8 +19,8 @@ Mirrors docs/plans/IMPLEMENTATION.md (marketplace plan, Revision B: slots and tw
 ## Block B: 2026-11-13 00:00-12:00 UTC
 - [ ] **MK-07** Marketplace round trip on testnet (CT): chain half passes (EZ); Supabase half waits on MK-10 and MK-12
 - [ ] **G2** Gate 12:00 UTC: MK-07 green (lead)
-- [ ] **MK-11** `POST /accounts` with Supabase JWT (BI)
-- [ ] **MK-12** Relayer: profiles, questions, messages, inbox, reserved sync (BI)
+- [x] **MK-11** `POST /accounts` with Supabase JWT (BI)
+- [x] **MK-12** Relayer: profiles, questions, messages, inbox, reserved sync (BI)
 - [ ] **MK-20** Google/email sign-in, handle, keys (BI)
 - [ ] **MK-06** NEAR wallet login (CT)
 - [ ] **MK-21** Browse, search, seller profile (FE): logic and routes in PR, visuals wait on MK-30, live data on #47

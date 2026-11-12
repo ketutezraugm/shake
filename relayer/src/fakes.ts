@@ -1,7 +1,8 @@
 import { randomUUID } from "node:crypto";
 import type { ChainDeal, NearReader } from "./near.js";
 import { HttpError } from "./errors.js";
-import type { NewProfile, SlotRow, Store } from "./store.js";
+import type { NewProfile, ProfileFields, SlotRow, Store } from "./store.js";
+import type { Message, Profile, Question } from "./types.js";
 import type { Listing, Negotiation } from "./types.js";
 
 // In-memory stand-ins for the tests; claim() mirrors the claim_slot SQL function.
@@ -25,6 +26,9 @@ export class FakeStore implements Store {
   readonly slots: Slot[] = [];
   readonly profiles: NewProfile[] = [];
   readonly reservedDeals = new Map<string, number>();
+  readonly details = new Map<string, ProfileFields>();
+  readonly questions: Question[] = [];
+  readonly messages: Message[] = [];
 
   private free(id: string) {
     return this.slots.filter((slot) => slot.listingId === id && slot.buyer === null).length;
@@ -97,6 +101,79 @@ export class FakeStore implements Store {
   async createProfile(profile: NewProfile) {
     if (await this.handleTaken(profile.handle)) throw new HttpError(409, "handle or login already has an account");
     this.profiles.push(profile);
+  }
+
+  private profileView(profile: NewProfile): Profile {
+    const fields = this.details.get(profile.accountId) ?? { displayName: "", bio: "", city: "", avatarUrl: null };
+    return { handle: profile.handle, ...fields };
+  }
+
+  async profileByHandle(handle: string) {
+    const profile = this.profiles.find((p) => p.handle === handle);
+    return profile ? { ...this.profileView(profile), accountId: profile.accountId } : null;
+  }
+
+  async profileOf(accountId: string) {
+    const profile = this.profiles.find((p) => p.accountId === accountId);
+    return profile ? this.profileView(profile) : null;
+  }
+
+  async saveProfile(accountId: string, fields: ProfileFields, create?: { handle: string }) {
+    if (create) await this.createProfile({ accountId, handle: create.handle, auth: "wallet", supabaseUserId: null });
+    this.details.set(accountId, fields);
+    return this.profileView(this.profiles.find((p) => p.accountId === accountId) as NewProfile);
+  }
+
+  async addQuestion(listingId: string, _asker: string, question: string) {
+    const row: Question = {
+      id: this.questions.length + 1,
+      listingId,
+      question,
+      answer: null,
+      answeredAt: null,
+      createdAt: new Date().toISOString(),
+    };
+    this.questions.push(row);
+    return row;
+  }
+
+  async answeredQuestions(listingId: string) {
+    return this.questions.filter((q) => q.listingId === listingId && q.answer !== null);
+  }
+
+  async question(id: number) {
+    return this.questions.find((q) => q.id === id) ?? null;
+  }
+
+  async answerQuestion(id: number, answer: string) {
+    const row = this.questions.find((q) => q.id === id);
+    if (!row || row.answer !== null) return null;
+    row.answer = answer;
+    row.answeredAt = new Date().toISOString();
+    return row;
+  }
+
+  async unansweredFor(seller: string) {
+    return this.questions
+      .filter((q) => q.answer === null)
+      .flatMap((q) => {
+        const listing = this.listings.find((l) => l.id === q.listingId);
+        return listing?.sellerAccount === seller ? [{ ...q, listingTitle: listing.title }] : [];
+      });
+  }
+
+  async addMessage(dealId: number, sender: string, body: string) {
+    const row: Message = { id: this.messages.length + 1, dealId, senderAccount: sender, body, createdAt: new Date().toISOString() };
+    this.messages.push(row);
+    return row;
+  }
+
+  async messagesOf(dealId: number, after: number) {
+    return this.messages.filter((m) => m.dealId === dealId && m.id > after);
+  }
+
+  async messagesIn(dealIds: number[], after: number, notFrom: string) {
+    return this.messages.filter((m) => dealIds.includes(m.dealId) && m.id > after && m.senderAccount !== notFrom);
   }
 
   async negotiationsOf(buyer: string): Promise<Negotiation[]> {
