@@ -1,25 +1,25 @@
-# Packaging: [NAME]
+# Packaging: Shake
 
-Draft 2026-11-12. Binding sources: PRD, marketplace pivot design (docs/superpowers/specs/2026-11-12-marketplace-pivot-design.md, 2026-11-12), IDEAS (Blind deal), DECISIONS, RECON 1/4/5, HACKATHON "2. The demo post". Demo numbers (seller minimum 5.0M, buyer offer 5.5M, deal 5.2M) are seed values, [TBD: confirm in `demo:seed`]. Anything unverified is `[TBD: ...]`.
+Draft 2026-11-12, updated 2026-11-13 for the name Shake (#42), the asking price and the buyer cap. Binding sources: PRD, marketplace pivot design (docs/superpowers/specs/2026-11-12-marketplace-pivot-design.md, 2026-11-12), IDEAS (Blind deal), DECISIONS, RECON 1/4/5, HACKATHON "2. The demo post". Demo numbers (asking price 6.0M, seller minimum 5.0M, buyer offer 5.5M, deal 5.2M) are seed values; a buyer can offer at most the asking price, so the asking price must be at least the buyer's number; [TBD: confirm in `demo:seed`]. Anything unverified is `[TBD: ...]`.
 
 ## 1. Demo video script (target 2:10, captions on)
 
 | Time | Shot | On-screen | Voiceover |
 |---|---|---|---|
-| 0:00-0:08 | Instagram profile of a student seller, thumb taps the bio link `/@handle`. Shop opens with photos and asking prices | "Seller wants 5M. Buyer would pay 5.5M. Neither says so." | "Whoever names a number first loses. So people walk away from deals both of them wanted. This seller put her shop in her bio. Every item shows a photo and an asking price. How low she'd really go stays sealed." |
-| 0:08-0:20 | Tap a laptop listing. Type "Is the charger included?" in the assistant. Answer appears. Type "What's the lowest price?" and the assistant declines | "Ask the assistant" then "Offers used: 3 of 10" | "Buyers can ask an AI assistant about the item. It answers from the listing and from public questions, and it never sees the price. If it doesn't know, the question goes to the seller and her answer is public." |
-| 0:20-0:35 | Buyer signs in with Google, types a maximum, taps Confirm. Seller's phone shows the listing was sealed earlier | "No wallet. No seed phrase." | "The seller sealed her minimum once, when she listed the laptop. The buyer signs in with Google and types the most he would pay. The chain is behind the sign-in." |
+| 0:00-0:08 | Instagram profile of a student seller, thumb taps the bio link `/@handle`. Shop opens with photos and asking prices | "Asking Rp 6M. She'd take 5M. He'd pay 5.5M. Neither says so." | "Whoever names a number first loses. So people walk away from deals both of them wanted. This seller put her shop in her bio. Every item shows a photo and an asking price. How low she'd really go stays sealed." |
+| 0:08-0:20 | Tap a laptop listing. Type "Is the charger included?" in the assistant. Answer appears. Type "What's the lowest price?" and the assistant declines | "Ask the assistant" then "Offers used: 3 of 10" | "Buyers can ask an AI assistant about the item. It answers from the listing and from public questions, and it never sees her floor. If it doesn't know, the question goes to the seller and her answer is public." |
+| 0:20-0:35 | Buyer signs in with Google, types a maximum, taps Confirm. Seller's phone shows the listing was sealed earlier | "No wallet. No seed phrase." | "The seller sealed her minimum once, when she listed the laptop. The buyer signs in with Google and types the most he would pay, up to her asking price. The chain is behind the sign-in." |
 | 0:35-1:00 | Animation: number encrypted on the phone, arrow to a sealed box | "Encrypted on your phone". "Runs in a TEE on OutLayer" | "Each limit is encrypted before it leaves the phone. Only code running in a secure enclave can open it, and that code is public and hash-pinned. We can't read your number either." |
 | 1:00-1:15 | Reveal on the buyer's phone. Verified panel with nonce; explorer showing ciphertext and commitment hash | Reveal: "Deal at Rp 5,200,000". "Attested code hash". "On-chain: ciphertext + commitment" | "He sees one answer: a deal at 5.2 million. A fresh attestation shows which code ran. On NEAR you can see only ciphertext and a hash, never the number." [TBD: show the panel only if it ships] |
 | 1:15-1:35 | Listing flips to Reserved. Buyer pays into escrow. Chat opens. Item handed over. Buyer taps Received. Listing shows Sold | "RESERVED" then "PAID" then "SOLD" | "A match reserves the item and the buyer pays into escrow. Chat opens only now, after the deal. When the item arrives, he taps Received and the seller is paid. If it never arrives, he gets a refund. There is no admin key." |
 | 1:35-1:55 | Unmatched offer: "No deal", then "Round 2 of 2", buyer raises | "Seller picks 1 to 3 rounds" | "If there's no deal, the buyer can try again. He can only raise. Each round reveals only deal or no deal." |
 | 1:55-2:05 | Plain text card | "Limit: the enclave operator, OutLayer, is still centralised. We say so in the README." | "One honest limit: OutLayer is not yet fully decentralised, and you trust it to run the public code." |
-| 2:05-2:10 | Logo, repo URL, demo URL | "[NAME]. Built at NEAR HACKATHON" | "[NAME]. Put your shop in your bio." |
+| 2:05-2:10 | Logo, repo URL, demo URL | "Shake. Built at NEAR HACKATHON" | "Shake. Put your shop in your bio." |
 
 ## 2. X demo post
 
 **Main (about 260 chars):**
-> Selling a laptop: you want 5M, they'd pay 5.5M, nobody finds out. On [NAME], sellers seal a minimum and buyers make blind offers. You see only "Deal at Rp 5.2M" or "No deal". Matching runs in an OutLayer TEE; payment sits in NEAR escrow. @NEARProtocol #NEARHackathon
+> Selling a laptop: you want 5M, they'd pay 5.5M, nobody finds out. On Shake, sellers seal a minimum and buyers make blind offers. You see only "Deal at Rp 5.2M" or "No deal". Matching runs in an OutLayer TEE; payment sits in NEAR escrow. @NEARProtocol #NEARHackathon
 
 (Count before posting, trim "Rp" if over 280. Attach the video. Add @NearLegion @NearBuilders in the thread if room is short.)
 
@@ -32,11 +32,11 @@ Draft 2026-11-12. Binding sources: PRD, marketplace pivot design (docs/superpowe
 
 **"What did you build?" (about 1200 chars):**
 
-Haggling punishes whoever names a number first. A student selling a used laptop says Rp 5M, the buyer would have paid 5.5M, and neither ever finds out. People abandon deals both sides wanted because neither will show a limit.
+Haggling punishes whoever names a number first. A student selling a used laptop would take Rp 5M, the buyer would have paid 5.5M, and neither ever finds out. People abandon deals both sides wanted because neither will show a limit.
 
-[NAME] is a second-hand marketplace where the seller's real floor stays blind. The seller puts a shop link (/@handle) in their Instagram or marketplace bio. Buyers browse listings with photos and asking prices. An AI assistant answers questions from the listing and public Q&A and never sees the seller's floor. Questions it can't answer go to the seller as public Q&A.
+Shake is a second-hand marketplace where the seller's real floor stays blind. The seller puts a shop link (/@handle) in their Instagram or marketplace bio. Buyers browse listings with photos and asking prices. An AI assistant answers questions from the listing and public Q&A and never sees the seller's floor. Questions it can't answer go to the seller as public Q&A.
 
-The seller seals a minimum once per listing. A buyer makes a blind offer, up to 10 offers per listing. Both numbers are encrypted in the browser to a key that exists only inside a TEE. Public, hash-pinned WASM on OutLayer checks the overlap and, if there is one, draws a random price inside it. Both sides see only "Deal at Rp X" or "No deal". The seller picks 1 to 3 rounds. Buyers can only raise.
+The seller seals a minimum once per listing. A buyer makes a blind offer of at most the asking price, up to 10 offers per listing; offering the full ask always closes. Both numbers are encrypted in the browser to a key that exists only inside a TEE. Public, hash-pinned WASM on OutLayer checks the overlap and, if there is one, draws a random price inside it. Both sides see only "Deal at Rp X" or "No deal". The seller picks 1 to 3 rounds. Buyers can only raise.
 
 A match reserves the item. The buyer pays into a NEAR escrow contract and chat opens. "Received" releases the funds and marks the item Sold. Sign-in is Google or email, with a NEAR account made behind it, or an existing NEAR wallet. Testnet only. Stated limits: OutLayer is centralised today, and the match bit leaks a little information.
 
@@ -46,7 +46,7 @@ A match reserves the item. The buyer pays into a NEAR escrow contract and chat o
 
 *Track: Privacy.* Limits are encrypted in the browser to a key derived inside the TEE from a `PROTECTED_` secret. The WASM runs in Intel TDX on `outlayer.testnet`, is public and hash-pinned, and returns only `{matched, price}`. The relayer and the AI assistant never see a minimum or an offer. Contract state shows ciphertext and `sha256` commitments, so a result can be audited when an owner chooses to reveal. [TBD: "Verified" panel with fresh nonce, only if it ships.] Stated limits: OutLayer governance is centralised; the match bit and price leak some information; users trust the served frontend.
 
-*Track: Agents.* The product assistant runs on NEAR AI Cloud through the relayer. It answers from the listing text and public Q&A, never discusses price or offers, and says so when it does not know. It is never given the sealed minimum, because nothing on the server holds it. Unanswered questions become public Q&A for the seller. If the AI negotiator ships, NEAR AI Cloud also turns "not below 4M, charger included" into numbers, and a deterministic rule in the WASM, never the model, decides money. [TBD: tag agents only if the team confirms at submission.]
+*Track: Agents.* The product assistant runs on NEAR AI Cloud through the relayer. It runs DeepSeek V4.1 Flash on NEAR AI Cloud and answers from the listing text and public Q&A. It may repeat the public asking price, never discusses offers, discounts or the lowest price, and says so when it does not know. It is never given the sealed minimum, because nothing on the server holds it. Unanswered questions become public Q&A for the seller. If the AI negotiator ships, NEAR AI Cloud also turns "not below 4M, charger included" into numbers, and a deterministic rule in the WASM, never the model, decides money. [TBD: tag agents only if the team confirms at submission.]
 
 *Track: Real-world.* Escrowed payments between real sellers and buyers: [TBD: N] real student deals, reserved, paid, sold and refunded states, transaction links, README readable without crypto knowledge. [TBD: final track list is the team's call at submission.]
 
@@ -54,9 +54,9 @@ A match reserves the item. The buyer pays into a NEAR escrow contract and chat o
 
 ## 4. Two-minute pitch (about 270 words)
 
-"Picture a student selling a used laptop. She asks 5 million rupiah. The buyer would have paid 5.5. Neither says it, the buyer offers 4, she says no, and both go home without a deal they wanted.
+"Picture a student selling a used laptop. She would take 5 million rupiah. The buyer would have paid 5.5. Neither says it, the buyer offers 4, she says no, and both go home without a deal they wanted.
 
-[NAME] removes the haggle. She puts her shop link in her Instagram bio. Buyers find her items with photos and asking prices. An AI assistant answers their questions about the item. It never sees her floor. If it doesn't know, the question goes to her and the answer becomes public.
+Shake removes the haggle. She puts her shop link in her Instagram bio. Buyers find her items with photos and asking prices. An AI assistant answers their questions about the item. It never sees her floor. If it doesn't know, the question goes to her and the answer becomes public.
 
 She sealed her minimum once. He signs in with Google and types the most he would pay. Both phones show one answer: 'Deal at Rp 5.2 million' or 'No deal'. Nothing else.
 
@@ -84,9 +84,10 @@ We're running it with students: [TBD: N deals, N that would not have started]. T
 10. **What leaks?** The match bit, and the price: you learn the other limit lies beyond the price. Not the number.
 11. **Money is testnet. Does this matter?** Escrow logic and flows are real; funds are not. Fixed demo rate, `rp_per_near` set at init. Mainnet and oracle: out of scope.
 12. **What if the page you serve is malicious?** Users trust the frontend; it is open source and self-hostable. This is a stated limit.
-13. **Does the AI assistant know the seller's minimum?** No. The relayer gives it only the listing text and public Q&A. The minimum is sealed to the TEE, so nothing on the server has it. The assistant is told never to discuss price or offers.
+13. **Does the AI assistant know the seller's minimum?** No. The relayer gives it only the listing text and public Q&A. The minimum is sealed to the TEE, so nothing on the server has it. The assistant may repeat the public asking price and is told never to discuss offers, discounts or the lowest price; the live checks fail on any other number.
 14. **How does it make money?** A small fee on escrowed sales, around 0.5%. This is a hypothesis we have not tested. Sellers who list in their bio bring their own buyers, and marketplaces and buy-and-sell groups can link to a shop.
 15. **Why can't buyers chat before a deal?** Free chat invites people to type prices, which undoes the blind offer. Before a deal, buyers ask the assistant or post a public question. Chat opens after a match, between those two people only.
+16. **Is there anything like this in the hackathon?** In our 2026-11-13 scan of all 783 gallery entries we found sealed-bid projects (Sealwell for token auctions, VeilProcure and SealedChoice for tenders) and agent marketplaces, but none that sells a human second-hand item with both the seller's floor and the buyer's ceiling hidden, a price inside the overlap and escrow. Their bids are one-sided; ours are two-sided. [TBD: re-check on submission day.]
 
 ## 6. Live demo plan
 

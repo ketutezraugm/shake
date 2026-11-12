@@ -1,10 +1,10 @@
-# Blind deal: team handoff
+# Shake: team handoff
 
 NEAR HACKATHON 2026 · status on 10 Nov 2026, updated 12 Nov for the marketplace pivot · prepared by Ezra
 
 ## The one-minute version
 - **Deadline:** 14 Nov 2026, 23:59 UTC. Our own target: submit by **12:00 UTC on 14 Nov**. Feature freeze is **00:00 UTC on 14 Nov** (moved on 12 Nov by the marketplace pivot).
-- **What we're building:** *Blind deal* (working name), a second-hand marketplace where every listing shows an asking price but the seller's real floor stays sealed. A seller puts their shop link in their Instagram or marketplace bio. Buyers browse listings with photos, ask an AI assistant or the seller about the item, then make a blind offer against the seller's sealed minimum. A sealed machine (a TEE on NEAR's OutLayer) compares the two. If they overlap, the deal closes at a random price inside the overlap; if not, the buyer sees "no deal" and learns nothing else. The buyer pays into an escrow contract on NEAR, chat opens, and the money releases when they confirm they got the item. Since 12 Nov: marketplace data lives in Supabase behind the relayer; money and sealed limits stay on the unchanged contract, with up to 10 pre-created deals per listing. Sign in with Google/email or a NEAR wallet.
+- **What we're building:** *Shake* (formerly Blind deal), a second-hand marketplace where every listing shows an asking price but the seller's real floor stays sealed. A seller puts their shop link in their Instagram or marketplace bio. Buyers browse listings with photos, ask an AI assistant or the seller about the item, then make a blind offer against the seller's sealed minimum. A sealed machine (a TEE on NEAR's OutLayer) compares the two. If they overlap, the deal closes at a random price inside the overlap; if not, the buyer sees "no deal" and learns nothing else. The buyer pays into an escrow contract on NEAR, chat opens, and the money releases when they confirm they got the item. Since 12 Nov: marketplace data lives in Supabase behind the relayer; money and sealed limits stay on the unchanged contract, with up to 10 pre-created deals per listing. Sign in with Google/email or a NEAR wallet.
 - **Why this idea:** out of 373 submissions on 9 Nov, none does negotiation. About half the field builds "spending guards for AI agents", and we're avoiding that crowd. Judges care about security, privacy and not trusting AI with money. Here a fixed rule decides the deal, and the AI only helps people phrase their limits.
 - **Tracks:** tag every track that honestly fits (no cap, checked 12 Nov). Proposal: privacy, agents (the AI product assistant), realworld.
 - **Look:** sarong-check cloth and yellow cattle ear tags, in security-envelope blue. It comes from *marosok*, the West Sumatran cattle-market custom of agreeing a price with fingers hidden under a sarong.
@@ -44,7 +44,7 @@ Until you have the repo, give your Claude this PDF as context.
 ## What's in this document
 1. This handoff
 2. Build brief: every decision, on one page
-3. The idea: Blind deal, user flow, trust model
+3. The idea: Shake, user flow, trust model
 4. PRD: scope, acceptance criteria, risks
 5. Architecture: contract, enclave, relayer, deploy
 6. Team: roles, interfaces, workflow
