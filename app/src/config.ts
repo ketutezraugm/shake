@@ -6,6 +6,10 @@ const env = import.meta.env as Record<string, string | undefined>;
 export const relayerUrl = env.VITE_RELAYER_URL;
 export const teePubkey = env.VITE_TEE_PUBKEY;
 
+/** Supabase Auth only (Google and email links); the anon key cannot read marketplace data, which RLS locks to the relayer. */
+export const supabaseUrl = env.VITE_SUPABASE_URL;
+export const supabaseAnonKey = env.VITE_SUPABASE_ANON_KEY;
+
 export const chain: ChainConfig = {
   contractId: env.VITE_CONTRACT_ID ?? "",
   rpcUrl: env.VITE_NEAR_RPC_URL ?? "https://test.rpc.fastnear.com",

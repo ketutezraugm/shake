@@ -123,6 +123,8 @@ Revision B, to build:
 |---|---|---|---|
 | POST /accounts | Supabase JWT | `{handle, publicKey}` -> `{accountId}`; creates `handle.<parent>.testnet` with the key as full-access key and funds it; writes the profile; 401 without JWT, 409 for a second account or a taken handle, 429, 503 when the relayer runs low (D1-09 not yet in `app.ts`; MK-11) | 3 per IP per hour, global daily cap; one account per Supabase user |
 | GET /profiles/:handle | none | Public profile: handle, display name, avatar, bio, city; 404 if unknown | default |
+| GET /accounts/me | Supabase JWT | `{accountId, handle}` for the login, or 404 before it has an account; lets a returning user on a new device be sent to key import | default |
+| GET /me/profile | signed | The caller's own profile, or 404 before one exists (a wallet user's first sign-in) | default |
 | PUT /me/profile | signed | Updates the caller's profile row (CORS `allowMethods` must add PUT) | default |
 | GET /listings/:id/questions | none | Answered questions only | default |
 | POST /listings/:id/questions | signed | `{question}` | default |

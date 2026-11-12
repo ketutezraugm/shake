@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import { Hono, type Context } from "hono";
 import { cors } from "hono/cors";
-import { openAccount, type AccountsDeps } from "./accounts.js";
+import { accountOfLogin, openAccount, type AccountsDeps } from "./accounts.js";
 import { answerQuestion, quota, type Chat } from "./assistant.js";
 import { createAuthenticator } from "./auth.js";
 import { HttpError } from "./errors.js";
@@ -122,6 +122,11 @@ export function createApp({ store, near, allowedOrigin, accounts, chat, now = Da
     return c.json(await openAccount(accounts, store, c.req.header("authorization"), body), 201);
   });
 
+  app.get("/accounts/me", async (c) => {
+    if (!accounts) throw new HttpError(503, "account creation is not configured");
+    return c.json(await accountOfLogin(accounts, store, c.req.header("authorization")));
+  });
+
   app.get("/listings", async (c) => {
     const category = c.req.query("category");
     const before = c.req.query("cursor");
@@ -231,6 +236,13 @@ export function createApp({ store, near, allowedOrigin, accounts, chat, now = Da
       soldCount: all.filter((l) => l.status === "sold").length,
     };
     return c.json(shop);
+  });
+
+  app.get("/me/profile", async (c) => {
+    const { account } = await signed(c);
+    const profile = await store.profileOf(account);
+    if (!profile) throw new HttpError(404, "no profile yet");
+    return c.json(profile);
   });
 
   app.put("/me/profile", async (c) => {

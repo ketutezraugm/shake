@@ -21,7 +21,7 @@ Mirrors docs/plans/IMPLEMENTATION.md (marketplace plan, Revision B: slots and tw
 - [ ] **G2** Gate 12:00 UTC: MK-07 green (lead)
 - [x] **MK-11** `POST /accounts` with Supabase JWT (BI)
 - [x] **MK-12** Relayer: profiles, questions, messages, inbox, reserved sync (BI)
-- [ ] **MK-20** Google/email sign-in, handle, keys (BI)
+- [x] **MK-20** Google/email sign-in, handle, keys (BI): code, unit tests and build green; the live Google, email-link and wallet runs need a human browser session
 - [ ] **MK-06** NEAR wallet login (CT): code and live key checks pass (EZ); one real wallet session still open
 - [ ] **MK-21** Browse, search, seller profile (FE): logic and routes in PR, visuals wait on MK-30, live data on #47
 - [ ] **MK-22** Create listing (FE): flow and screen in PR, live run waits on MK-20 sign-in and a deployed relayer

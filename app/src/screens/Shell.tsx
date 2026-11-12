@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
-import { currentAccount } from "../accounts";
+import { currentHandle } from "../accounts";
 import { Link } from "../routes";
+import { AccountMenu } from "./AccountMenu";
 
 type Tab = { to: string; label: string; icon: ReactNode };
 
@@ -48,9 +49,8 @@ const SHOP = (handle: string): Tab => ({
 });
 
 /** Abel's frame around every screen: the shake wordmark, a sign-in or account chip, and the bottom tabs. */
-export function Shell({ path, children }: { path: string; children: ReactNode }) {
-  const account = currentAccount();
-  const handle = account?.split(".")[0];
+export function Shell({ path, signedIn, children }: { path: string; signedIn: boolean; children: ReactNode }) {
+  const handle = currentHandle();
   const tabs = [BROWSE, SELL, INBOX, ...(handle ? [SHOP(handle)] : [])];
 
   return (
@@ -59,19 +59,21 @@ export function Shell({ path, children }: { path: string; children: ReactNode })
         <Link to="/" className="brand">
           shake
         </Link>
-        {handle ? <Link to={`/@${handle}`} className="pill">@{handle}</Link> : <Link to="/signin" className="pill">Sign in</Link>}
+        <AccountMenu />
       </header>
       {children}
-      <div className="tabs">
-        <nav aria-label="Main">
-          {tabs.map((tab) => (
-            <Link key={tab.to} to={tab.to} className="tab" current={path === tab.to}>
-              {tab.icon}
-              {tab.label}
-            </Link>
-          ))}
-        </nav>
-      </div>
+      {signedIn && (
+        <div className="tabs">
+          <nav aria-label="Main">
+            {tabs.map((tab) => (
+              <Link key={tab.to} to={tab.to} className="tab" current={path === tab.to}>
+                {tab.icon}
+                {tab.label}
+              </Link>
+            ))}
+          </nav>
+        </div>
+      )}
     </div>
   );
 }

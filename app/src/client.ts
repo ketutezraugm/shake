@@ -4,6 +4,8 @@ import { exportSecretKey } from "./keys";
 import { MOCK_TEE_PUBLIC_KEY, MockChain, mockClient, mockSigner } from "./mockClient";
 import { nearClient } from "./nearClient";
 import { keySigner, type Signer } from "./signer";
+import { getWallet } from "./wallet";
+import { loadWalletSession, walletSigner } from "./walletSigner";
 
 // Until M1-11 swaps in testnet, the mock chain lives on the dev server (vite.config.ts) so any browser can join a deal.
 const STORE_URL = "/__mock-chain";
@@ -41,12 +43,14 @@ export function clientFor(accountId: string): ContractClient {
 export type ChainAccess = { signer: Signer; client: ContractClient; teePubkey: string };
 
 /**
- * What a screen needs to act as `accountId`: the real contract and a browser-key signer when VITE_CONTRACT_ID is set,
+ * What a screen needs to act as `accountId`: the real contract and a signer when VITE_CONTRACT_ID is set (the wallet
+ * user's limited key and payment popups, or the browser key of a Google/email user),
  * otherwise the shared dev-server mock chain. Same `Signer` and `ContractClient` either way, so screens never branch.
  */
 export function chainFor(accountId: string): ChainAccess {
   if (chainConfig.contractId) {
-    const signer = keySigner(accountId, exportSecretKey(), chainConfig);
+    const wallet = loadWalletSession();
+    const signer = wallet?.accountId === accountId ? walletSigner(wallet, getWallet, chainConfig) : keySigner(accountId, exportSecretKey(), chainConfig);
     return { signer, client: nearClient(signer, chainConfig), teePubkey: realTeePubkey ?? "" };
   }
   return { signer: mockSigner(accountId), client: clientFor(accountId), teePubkey: MOCK_TEE_PUBLIC_KEY };

@@ -90,8 +90,9 @@ export class FakeStore implements Store {
     return { dealId: slot.dealId, linkToken: slot.linkToken };
   }
 
-  async hasProfileForUser(supabaseUserId: string) {
-    return this.profiles.some((p) => p.supabaseUserId === supabaseUserId);
+  async accountOfUser(supabaseUserId: string) {
+    const profile = this.profiles.find((p) => p.supabaseUserId === supabaseUserId);
+    return profile ? { accountId: profile.accountId, handle: profile.handle } : null;
   }
 
   async handleTaken(handle: string) {

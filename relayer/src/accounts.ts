@@ -1,7 +1,7 @@
 import { Account } from "near-api-js";
 import { HttpError } from "./errors.js";
 import type { Store } from "./store.js";
-import type { CreateAccountRes } from "./types.js";
+import type { AccountOfLoginRes, CreateAccountRes } from "./types.js";
 import { parseCreateAccount } from "./validate.js";
 
 /** Creates sub-accounts of the parent account; the real one signs with the relayer's key. */
@@ -41,19 +41,32 @@ export function nearAccountCreator(rpcUrl: string, parentId: string, privateKey:
   };
 }
 
+async function loginOf({ verifyJwt }: AccountsDeps, authorization: string | undefined): Promise<string> {
+  const token = authorization?.match(/^Bearer (.+)$/)?.[1];
+  const userId = token ? await verifyJwt(token) : null;
+  if (!userId) throw new HttpError(401, "sign in first");
+  return userId;
+}
+
+/** The account this login already opened, so a returning user on a new device is sent to import their key. */
+export async function accountOfLogin(deps: AccountsDeps, store: Store, authorization: string | undefined): Promise<AccountOfLoginRes> {
+  const account = await store.accountOfUser(await loginOf(deps, authorization));
+  if (!account) throw new HttpError(404, "no account yet");
+  return account;
+}
+
 /** One NEAR account per Supabase login: the browser sends only its public key, the relayer pays for the account. */
 export async function openAccount(
-  { creator, verifyJwt, fundYocto }: AccountsDeps,
+  deps: AccountsDeps,
   store: Store,
   authorization: string | undefined,
   body: unknown,
 ): Promise<CreateAccountRes> {
-  const token = authorization?.match(/^Bearer (.+)$/)?.[1];
-  const userId = token ? await verifyJwt(token) : null;
-  if (!userId) throw new HttpError(401, "sign in first");
+  const { creator, fundYocto } = deps;
+  const userId = await loginOf(deps, authorization);
 
   const { handle, publicKey } = parseCreateAccount(body);
-  if (await store.hasProfileForUser(userId)) throw new HttpError(409, "this login already has an account");
+  if (await store.accountOfUser(userId)) throw new HttpError(409, "this login already has an account");
   if (await store.handleTaken(handle)) throw new HttpError(409, "that handle is taken");
   if ((await creator.balance()) < fundYocto + PARENT_RESERVE) throw new HttpError(503, "sign-ups are paused, try again later");
 

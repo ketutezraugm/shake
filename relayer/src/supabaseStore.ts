@@ -169,9 +169,11 @@ export function supabaseStore(url: string, serviceKey: string): Store {
       return slot ? { dealId: slot.deal_id, linkToken: slot.link_token } : null;
     },
 
-    async hasProfileForUser(supabaseUserId) {
-      const row = optional(await db.from("profiles").select("account_id").eq("supabase_user_id", supabaseUserId).maybeSingle());
-      return row !== null;
+    async accountOfUser(supabaseUserId) {
+      const row = optional(
+        await db.from("profiles").select("account_id, handle").eq("supabase_user_id", supabaseUserId).maybeSingle<{ account_id: string; handle: string }>(),
+      );
+      return row ? { accountId: row.account_id, handle: row.handle } : null;
     },
 
     async handleTaken(handle) {

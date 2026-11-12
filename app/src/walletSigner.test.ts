@@ -1,6 +1,6 @@
 import { KeyPair } from "near-api-js";
 import { describe, expect, it, vi } from "vitest";
-import { connectWallet, loadWalletSession, walletSigner, type WalletLike } from "./walletSigner";
+import { connectWallet, loadWalletSession, walletSigner, WrongNetworkError, type WalletLike } from "./walletSigner";
 
 const chain = { contractId: "blind-deal-59xtyh4b.testnet", rpcUrl: "https://rpc.example" };
 const FEE = 2_100_000_000_000_000_000_000n;
@@ -53,6 +53,21 @@ describe("connectWallet", () => {
     const session = await connectWallet({ connect: async () => fakeWallet().wallet }, chain, storage);
 
     expect(loadWalletSession(storage)).toEqual(session);
+  });
+
+  it("refuses a mainnet account from a wallet left on mainnet, and saves no session", async () => {
+    const storage = memoryStorage();
+    for (const accountId of ["alice.near", "alice.tg"]) {
+      await expect(connectWallet({ connect: async () => fakeWallet(accountId).wallet }, chain, storage)).rejects.toThrow(WrongNetworkError);
+    }
+    expect(loadWalletSession(storage)).toBeNull();
+  });
+
+  it("accepts testnet names and implicit accounts, which exist on either network", async () => {
+    for (const accountId of ["bob.testnet", "a".repeat(64), `0x${"b".repeat(40)}`]) {
+      const session = await connectWallet({ connect: async () => fakeWallet(accountId).wallet }, chain, memoryStorage());
+      expect(session.accountId).toBe(accountId);
+    }
   });
 });
 

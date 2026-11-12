@@ -1,8 +1,10 @@
 import { useEffect, useState, type MouseEvent, type ReactNode } from "react";
+import { currentAccess, type Access } from "./accounts";
 import { Chat } from "./screens/Chat";
 import { Create } from "./screens/Create";
 import { DealPage } from "./screens/DealPage";
 import { Demo } from "./screens/Demo";
+import { Handle } from "./screens/Handle";
 import { Home } from "./screens/Home";
 import { Inbox } from "./screens/Inbox";
 import { Join } from "./screens/Join";
@@ -11,6 +13,7 @@ import { Offer } from "./screens/Offer";
 import { Profile } from "./screens/Profile";
 import { Sell } from "./screens/Sell";
 import { Shell } from "./screens/Shell";
+import { SignIn } from "./screens/SignIn";
 
 export type Route =
   | { name: "home" }
@@ -21,6 +24,7 @@ export type Route =
   | { name: "inbox" }
   | { name: "chat"; dealId: number }
   | { name: "signin" }
+  | { name: "handle" }
   // Test UI from D1-10; the offer flow (MK-24) replaces these.
   | { name: "create" }
   | { name: "deal"; id: number }
@@ -33,6 +37,7 @@ const FIXED: Record<string, Route> = {
   "/sell": { name: "sell" },
   "/inbox": { name: "inbox" },
   "/signin": { name: "signin" },
+  "/handle": { name: "handle" },
   "/new": { name: "create" },
   "/demo": { name: "demo" },
 };
@@ -41,7 +46,7 @@ export function parseRoute(path: string): Route {
   const fixed = FIXED[path];
   if (fixed) return fixed;
 
-  // Same characters as account handles (accounts.ts), so a shop link is always a valid handle.
+  // Same characters as account handles (isValidHandle in accounts.ts), so a shop link is always a valid handle.
   const profile = /^\/@([a-z0-9-]{1,32})$/.exec(path);
   if (profile) return { name: "profile", handle: profile[1]! };
 
@@ -60,8 +65,21 @@ export function parseRoute(path: string): Route {
   return { name: "notFound" };
 }
 
-export function navigate(to: string): void {
-  history.pushState(null, "", to);
+// Part of signing in, so open to everyone.
+const SIGN_IN_ROUTES = new Set<Route["name"]>(["signin", "handle"]);
+// What a Google/email viewer may see; everything else buys, sells or chats and needs a wallet account.
+const BROWSE_ROUTES = new Set<Route["name"]>(["home", "profile", "listing"]);
+
+/** Where a visitor with `access` is sent instead of `route`, or null when they may stay; /signin offers the wallet. */
+export function redirectFor(route: Route, access: Access): string | null {
+  if (access === "trader" || SIGN_IN_ROUTES.has(route.name)) return null;
+  if (access === "viewer" && BROWSE_ROUTES.has(route.name)) return null;
+  return "/signin";
+}
+
+export function navigate(to: string, replace = false): void {
+  if (replace) history.replaceState(null, "", to);
+  else history.pushState(null, "", to);
   dispatchEvent(new PopStateEvent("popstate"));
 }
 
@@ -89,21 +107,21 @@ function usePath(): string {
   return path;
 }
 
-// Screens not built yet; each names the task that builds it.
-function Pending({ title, task }: { title: string; task: string }) {
-  return (
-    <main className="screen">
-      <h1 className="headline">{title}</h1>
-      <p className="muted">Coming in {task}.</p>
-    </main>
-  );
-}
-
 export function Router() {
   const path = usePath();
+  const route = parseRoute(path);
+  const access = currentAccess();
+  const redirect = redirectFor(route, access);
+
+  // Replace, not push, so Back does not return to a page that only bounces again.
+  useEffect(() => {
+    if (redirect) navigate(redirect, true);
+  }, [redirect]);
+  if (redirect) return null;
+
   return (
-    <Shell path={path}>
-      <Page route={parseRoute(path)} />
+    <Shell path={path} signedIn={access !== "none"}>
+      <Page route={route} />
     </Shell>
   );
 }
@@ -125,7 +143,9 @@ function Page({ route }: { route: Route }) {
     case "chat":
       return <Chat dealId={route.dealId} />;
     case "signin":
-      return <Pending title="Sign in" task="MK-20" />;
+      return <SignIn />;
+    case "handle":
+      return <Handle />;
     case "create":
       return <Create />;
     case "deal":

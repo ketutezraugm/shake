@@ -48,6 +48,7 @@ export type Negotiation = {
 /** Sent with a Supabase access token as `Authorization: Bearer`; the relayer creates `handle.<parent>` for the browser's key. */
 export type CreateAccountReq = { handle: string; publicKey: string };
 export type CreateAccountRes = { accountId: string };
+export type AccountOfLoginRes = { accountId: string; handle: string };
 
 /** Public seller fields; the Supabase user id and the sign-in method never leave the relayer. */
 export type Profile = { handle: string; displayName: string; avatarUrl: string | null; bio: string; city: string };

@@ -274,6 +274,16 @@ describe("profiles", () => {
     expect(edited.json).toMatchObject({ handle: "alice", city: "Bali" });
   });
 
+  it("returns the caller's own profile, or 404 before one exists", async () => {
+    const wallet = person("alice.testnet");
+    expect((await call(wallet, "GET", "/me/profile")).status).toBe(404);
+    await call(wallet, "PUT", "/me/profile", { ...profileBody, handle: "alice" });
+    const own = await call(wallet, "GET", "/me/profile");
+    expect(own.status).toBe(200);
+    expect(own.json).toMatchObject({ handle: "alice" });
+    expect((await call(null, "GET", "/me/profile")).status).toBe(401);
+  });
+
   it("refuses a handle another account already holds", async () => {
     store.profiles.push({ accountId: "bob.testnet", handle: "taken", auth: "email", supabaseUserId: "u2" });
     const { status } = await call(person("alice.testnet"), "PUT", "/me/profile", { ...profileBody, handle: "taken" });

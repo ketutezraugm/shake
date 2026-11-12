@@ -16,6 +16,14 @@ const KEY_CALL_GAS = 30_000_000_000_000n;
 const KEY_GAS_ALLOWANCE = "1000000000000000000000000"; // 1 NEAR
 // A function-call key cannot attach money, so deposit is left out: it goes through the wallet.
 const KEY_METHODS = ["create_deal", "submit_limit", "cancel", "confirm_received", "refund", "expire"];
+// Some wallets ignore the requested network and sign in with whatever network they are on; implicit ids exist on both.
+const TESTNET_ACCOUNT = /(\.testnet$)|(^[0-9a-f]{64}$)|(^0x[0-9a-f]{40}$)/;
+
+export class WrongNetworkError extends Error {
+  constructor(accountId: string) {
+    super(`${accountId} is a mainnet account. Switch your wallet to testnet, then connect again.`);
+  }
+}
 
 /**
  * Signs in with a NEAR wallet and asks it to add a limited key (generated here) to the user's account, valid only for
@@ -38,6 +46,7 @@ export async function connectWallet(
   });
   const [account] = await wallet.getAccounts({ network: "testnet" });
   if (!account) throw new Error("the wallet returned no account");
+  if (!TESTNET_ACCOUNT.test(account.accountId)) throw new WrongNetworkError(account.accountId);
   const session = { accountId: account.accountId, secretKey: key.toString() };
   storage.setItem(SESSION_KEY, JSON.stringify(session));
   return session;

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseRoute } from "./routes";
+import { parseRoute, redirectFor } from "./routes";
 
 describe("parseRoute", () => {
   it("maps the marketplace paths", () => {
@@ -13,6 +13,7 @@ describe("parseRoute", () => {
     expect(parseRoute("/chat/12")).toEqual({ name: "chat", dealId: 12 });
     expect(parseRoute("/chat/abc")).toEqual({ name: "notFound" });
     expect(parseRoute("/signin")).toEqual({ name: "signin" });
+    expect(parseRoute("/handle")).toEqual({ name: "handle" });
   });
 
   it("keeps the test UI paths until the offer flow replaces them", () => {
@@ -27,5 +28,23 @@ describe("parseRoute", () => {
     expect(parseRoute("/@Demo")).toEqual({ name: "notFound" });
     expect(parseRoute("/deals/abc")).toEqual({ name: "notFound" });
     expect(parseRoute("/l/a/b")).toEqual({ name: "notFound" });
+  });
+});
+
+describe("redirectFor", () => {
+  it("keeps a signed-out visitor on the sign-in screens and sends every other page to /signin", () => {
+    for (const path of ["/signin", "/handle"]) expect(redirectFor(parseRoute(path), "none")).toBeNull();
+    for (const path of ["/", "/sell", "/inbox", "/@demo", "/l/abc", "/deals/3", "/chat/3", "/nowhere"]) {
+      expect(redirectFor(parseRoute(path), "none")).toBe("/signin");
+    }
+  });
+
+  it("lets a Google/email viewer browse, and sends buying, selling and chat to /signin for a wallet", () => {
+    for (const path of ["/", "/@demo", "/l/abc", "/signin", "/handle"]) expect(redirectFor(parseRoute(path), "viewer")).toBeNull();
+    for (const path of ["/sell", "/inbox", "/deals/3", "/chat/3", "/new"]) expect(redirectFor(parseRoute(path), "viewer")).toBe("/signin");
+  });
+
+  it("lets a wallet trader see everything", () => {
+    for (const path of ["/", "/sell", "/inbox", "/deals/3", "/@demo", "/signin"]) expect(redirectFor(parseRoute(path), "trader")).toBeNull();
   });
 });
