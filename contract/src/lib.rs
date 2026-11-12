@@ -6,7 +6,7 @@ use near_sdk::json_types::U128;
 use near_sdk::serde::Deserialize;
 use near_sdk::serde_json::{self, json};
 use near_sdk::store::LookupMap;
-use near_sdk::{env, near, require, AccountId, Gas, PanicOnDefault, Promise};
+use near_sdk::{env, near, require, AccountId, Gas, NearToken, PanicOnDefault, Promise};
 
 const MAX_TITLE_BYTES: usize = 100;
 const MAX_DESCRIPTION_BYTES: usize = 1000;
@@ -17,6 +17,11 @@ const REQUEST_GAS: Gas = Gas::from_tgas(200);
 const CALLBACK_GAS: Gas = Gas::from_tgas(20);
 const YOCTO_PER_NEAR: u128 = 1_000_000_000_000_000_000_000_000;
 const MAX_RESULT_BYTES: usize = 1024;
+const DAY_NS: u64 = 86_400_000_000_000;
+/// The buyer can reclaim a funded deposit this long after funding if never confirmed.
+const DELIVERY_WINDOW_NS: u64 = 7 * DAY_NS;
+/// A matched deal nobody funded can be closed by anyone after this long.
+const FUNDING_WINDOW_NS: u64 = DAY_NS;
 
 /// Waiting = one side has submitted this round; Retry = no deal this round, more rounds left.
 #[near(serializers = [json, borsh])]
@@ -136,11 +141,7 @@ impl Contract {
         link_token: Option<String>,
     ) {
         let caller = env::predecessor_account_id();
-        let mut deal = self
-            .deals
-            .get(&deal_id)
-            .cloned()
-            .unwrap_or_else(|| env::panic_str("no such deal"));
+        let mut deal = self.deal_or_panic(deal_id);
         require!(
             matches!(deal.state, State::Created | State::Waiting | State::Retry),
             "deal is not accepting limits"
@@ -205,11 +206,7 @@ impl Contract {
             env::predecessor_account_id() == env::current_account_id(),
             "on_outlayer_result is private"
         );
-        let mut deal = self
-            .deals
-            .get(&deal_id)
-            .cloned()
-            .unwrap_or_else(|| env::panic_str("no such deal"));
+        let mut deal = self.deal_or_panic(deal_id);
         require!(deal.state == State::Computing, "deal is not computing");
         match self.matched_price(deal_id) {
             Some(price) => {
@@ -226,27 +223,66 @@ impl Contract {
         self.deals.insert(deal_id, deal);
     }
 
-    /// Buyer funds exactly the matched price.
+    /// Buyer funds exactly the matched price; the delivery window starts now.
     #[payable]
     pub fn deposit(&mut self, deal_id: u64) {
-        unimplemented!()
+        let mut deal = self.deal_or_panic(deal_id);
+        require!(deal.state == State::Matched, "deal is not matched");
+        require!(
+            deal.buyer.as_ref() == Some(&env::predecessor_account_id()),
+            "only the buyer can deposit"
+        );
+        let price = deal
+            .price
+            .unwrap_or_else(|| env::panic_str("matched deal without a price"))
+            .0;
+        require!(
+            env::attached_deposit().as_yoctonear() == price,
+            "attach exactly the price"
+        );
+        deal.state = State::Funded;
+        deal.deadline_ns = Some(env::block_timestamp() + DELIVERY_WINDOW_NS);
+        self.deals.insert(deal_id, deal);
     }
 
-    pub fn confirm_received(&mut self, deal_id: u64) {
-        unimplemented!()
+    /// The buyer confirms receipt and the escrow pays the seller.
+    pub fn confirm_received(&mut self, deal_id: u64) -> Promise {
+        let mut deal = self.deal_or_panic(deal_id);
+        require!(deal.state == State::Funded, "deal is not funded");
+        require!(
+            deal.buyer.as_ref() == Some(&env::predecessor_account_id()),
+            "only the buyer can confirm"
+        );
+        deal.state = State::Released; // before the transfer, so a second call cannot pay twice
+        let payout = Promise::new(deal.seller.clone()).transfer(Self::escrowed(&deal));
+        self.deals.insert(deal_id, deal);
+        payout
     }
 
-    pub fn refund(&mut self, deal_id: u64) {
-        unimplemented!()
+    /// Anyone can return the deposit to the buyer once the delivery window has passed.
+    pub fn refund(&mut self, deal_id: u64) -> Promise {
+        let mut deal = self.deal_or_panic(deal_id);
+        require!(deal.state == State::Funded, "deal is not funded");
+        let deadline = deal
+            .deadline_ns
+            .unwrap_or_else(|| env::panic_str("funded deal without a deadline"));
+        require!(
+            env::block_timestamp() > deadline,
+            "the deadline has not passed"
+        );
+        let buyer = deal
+            .buyer
+            .clone()
+            .unwrap_or_else(|| env::panic_str("funded deal without a buyer"));
+        deal.state = State::Refunded;
+        let payout = Promise::new(buyer).transfer(Self::escrowed(&deal));
+        self.deals.insert(deal_id, deal);
+        payout
     }
 
     /// The seller withdraws a deal before both sides have submitted. It ends as NoDeal.
     pub fn cancel(&mut self, deal_id: u64) {
-        let mut deal = self
-            .deals
-            .get(&deal_id)
-            .cloned()
-            .unwrap_or_else(|| env::panic_str("no such deal"));
+        let mut deal = self.deal_or_panic(deal_id);
         require!(
             env::predecessor_account_id() == deal.seller,
             "only the seller can cancel"
@@ -259,8 +295,19 @@ impl Contract {
         self.deals.insert(deal_id, deal);
     }
 
+    /// Anyone can close a matched deal the buyer never funded.
     pub fn expire(&mut self, deal_id: u64) {
-        unimplemented!()
+        let mut deal = self.deal_or_panic(deal_id);
+        require!(deal.state == State::Matched, "deal is not matched");
+        let matched_at = deal
+            .matched_at_ns
+            .unwrap_or_else(|| env::panic_str("matched deal without a time"));
+        require!(
+            env::block_timestamp() > matched_at + FUNDING_WINDOW_NS,
+            "too early to expire"
+        );
+        deal.state = State::NoDeal;
+        self.deals.insert(deal_id, deal);
     }
 
     pub fn get_deal(&self, deal_id: u64) -> Option<Deal> {
@@ -268,7 +315,7 @@ impl Contract {
     }
 
     pub fn get_state(&self, deal_id: u64) -> Option<State> {
-        unimplemented!()
+        self.deals.get(&deal_id).map(|deal| deal.state)
     }
 }
 
@@ -288,6 +335,21 @@ struct MatchResult {
 }
 
 impl Contract {
+    fn deal_or_panic(&self, deal_id: u64) -> Deal {
+        self.deals
+            .get(&deal_id)
+            .cloned()
+            .unwrap_or_else(|| env::panic_str("no such deal"))
+    }
+
+    fn escrowed(deal: &Deal) -> NearToken {
+        NearToken::from_yoctonear(
+            deal.price
+                .unwrap_or_else(|| env::panic_str("deal without a price"))
+                .0,
+        )
+    }
+
     /// The matched price in yoctoNEAR, or None for a no-deal and for anything malformed.
     fn matched_price(&self, deal_id: u64) -> Option<u128> {
         let bytes = env::promise_result_checked(0, MAX_RESULT_BYTES).ok()?;
