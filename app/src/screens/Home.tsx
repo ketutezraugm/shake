@@ -1,17 +1,10 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { CATEGORIES, type Category } from "../../../relayer/src/types";
+import { CATEGORY_LABELS } from "../categories";
+import priceTag from "../design/assets/stickers/price-tag.svg";
 import type { ShopListing } from "../market";
 import { market } from "../marketSource";
 import { ListingCard } from "./ListingCard";
-
-const CATEGORY_LABELS: Record<Category, string> = {
-  electronics: "Electronics",
-  fashion: "Fashion",
-  home: "Home",
-  vehicles: "Vehicles",
-  hobbies: "Hobbies",
-  other: "Other",
-};
 
 export function Home() {
   const [draft, setDraft] = useState("");
@@ -60,41 +53,50 @@ export function Home() {
   }
 
   return (
-    <main className="screen">
-      <h1 className="headline">Blind deal</h1>
-
-      <form role="search" onSubmit={search}>
+    <main className="page">
+      <form role="search" className="search" onSubmit={search}>
         <label>
-          Search
-          <input type="search" value={draft} onChange={(e) => setDraft(e.target.value)} />
+          <span className="sr-only">Search listings</span>
+          <input type="search" value={draft} onChange={(e) => setDraft(e.target.value)} placeholder="Search cameras, bikes, jackets…" />
         </label>
-        <button>Search</button>
       </form>
 
-      <label>
-        Category
-        <select value={category} onChange={(e) => setCategory(e.target.value as Category | "")}>
-          <option value="">All categories</option>
-          {CATEGORIES.map((c) => (
-            <option key={c} value={c}>
-              {CATEGORY_LABELS[c]}
-            </option>
-          ))}
-        </select>
-      </label>
+      <section className="card-hero">
+        <div>
+          <h1>Post your price, keep your floor.</h1>
+          <p>Every item shows its asking price. Offer it or less; the seller never sees your number.</p>
+        </div>
+        <img className="sticker" src={priceTag} alt="" />
+      </section>
+
+      <nav aria-label="Categories" className="chips">
+        <button className="chip" aria-pressed={category === ""} onClick={() => setCategory("")}>
+          All
+        </button>
+        {CATEGORIES.map((c) => (
+          <button key={c} className="chip" aria-pressed={category === c} onClick={() => setCategory(c)}>
+            {CATEGORY_LABELS[c]}
+          </button>
+        ))}
+      </nav>
+
+      <div className="section-head">
+        <h2>Fresh listings</h2>
+        {listings && <span className="num muted">{listings.length} items</span>}
+      </div>
 
       {error && <p className="error" role="alert">{error}</p>}
       {listings === null && !error && <p className="muted">Loading…</p>}
       {listings?.length === 0 && <p className="muted">Nothing found.</p>}
       {listings && listings.length > 0 && (
-        <ul>
+        <ul className="grid">
           {listings.map((listing) => (
             <ListingCard key={listing.id} listing={listing} />
           ))}
         </ul>
       )}
       {cursor && (
-        <button disabled={loadingMore} onClick={() => void loadMore()}>
+        <button className="more" disabled={loadingMore} onClick={() => void loadMore()}>
           Show more
         </button>
       )}
