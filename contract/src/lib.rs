@@ -1,7 +1,4 @@
 // Deal contract. Methods and storage: docs/ARCHITECTURE.md.
-// D1-04 stub: signatures only. M1-01..M1-04 fill in the bodies and drop this allow.
-#![allow(dead_code, unused_variables)]
-
 use near_sdk::json_types::U128;
 use near_sdk::serde::Deserialize;
 use near_sdk::serde_json::{self, json};
@@ -17,6 +14,8 @@ const REQUEST_GAS: Gas = Gas::from_tgas(200);
 const CALLBACK_GAS: Gas = Gas::from_tgas(20);
 const YOCTO_PER_NEAR: u128 = 1_000_000_000_000_000_000_000_000;
 const MAX_RESULT_BYTES: usize = 1024;
+/// An ECIES limit is about 200 bytes; the cap stops callers filling contract-paid storage.
+const MAX_CT_BYTES: usize = 512;
 const DAY_NS: u64 = 86_400_000_000_000;
 /// The buyer can reclaim a funded deposit this long after funding if never confirmed.
 const DELIVERY_WINDOW_NS: u64 = 7 * DAY_NS;
@@ -140,6 +139,7 @@ impl Contract {
         commit: [u8; 32],
         link_token: Option<String>,
     ) {
+        require!(ct.len() <= MAX_CT_BYTES, "ciphertext too large");
         let caller = env::predecessor_account_id();
         let mut deal = self.deal_or_panic(deal_id);
         require!(
@@ -185,6 +185,11 @@ impl Contract {
             self.deals.insert(deal_id, deal);
             return;
         }
+        // Without a fee OutLayer refuses the call and the round would be lost as a no-deal.
+        require!(
+            !fee.is_zero(),
+            "attach the OutLayer fee on the call that completes the round"
+        );
         deal.state = State::Computing;
         let request = self.outlayer_request(&deal);
         self.deals.insert(deal_id, deal);
