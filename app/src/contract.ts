@@ -51,9 +51,17 @@ export interface ContractClient {
   getState(dealId: number): Promise<State | null>;
 }
 
-/** `input_data` of an OutLayer execution. Ciphertexts are hex, one per round. */
+/** `input_data` of an OutLayer execution. Ciphertexts and commitments are hex, one per round. */
 export type OutLayerRequest =
-  | { action: "match"; deal_id: number; round: number; seller_cts: string[]; buyer_cts: string[] }
+  | {
+      action: "match";
+      deal_id: number;
+      round: number;
+      seller_cts: string[];
+      buyer_cts: string[];
+      seller_commits: string[];
+      buyer_commits: string[];
+    }
   | { action: "get_pubkey" };
 
 export type MatchResult =
