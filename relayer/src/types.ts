@@ -45,4 +45,8 @@ export type Negotiation = {
   linkToken: string;
 };
 
+/** Sent with a Supabase access token as `Authorization: Bearer`; the relayer creates `handle.<parent>` for the browser's key. */
+export type CreateAccountReq = { handle: string; publicKey: string };
+export type CreateAccountRes = { accountId: string };
+
 export type ErrorRes = { error: string };

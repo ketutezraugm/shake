@@ -103,7 +103,7 @@ export function supabaseStore(url: string, serviceKey: string): Store {
     async addPhoto(id, contentType) {
       const path = `${id}/${randomUUID()}.${EXTENSIONS[contentType]}`;
       const current = check(await db.from("listings").select("photo_paths").eq("id", id).single<{ photo_paths: string[] }>());
-      check(await db.from("listings").update({ photo_paths: [...current.photo_paths, path] }).eq("id", id));
+      check(await db.from("listings").update({ photo_paths: [...current.photo_paths, path] }).eq("id", id).select("id").single());
       const signed = check(await db.storage.from(BUCKET).createSignedUploadUrl(path));
       return { uploadUrl: signed.signedUrl, photoUrl: photoUrl(path) };
     },
@@ -129,6 +129,26 @@ export function supabaseStore(url: string, serviceKey: string): Store {
       return slot ? { dealId: slot.deal_id, linkToken: slot.link_token } : null;
     },
 
+    async hasProfileForUser(supabaseUserId) {
+      const row = optional(await db.from("profiles").select("account_id").eq("supabase_user_id", supabaseUserId).maybeSingle());
+      return row !== null;
+    },
+
+    async handleTaken(handle) {
+      return optional(await db.from("profiles").select("account_id").eq("handle", handle).maybeSingle()) !== null;
+    },
+
+    async createProfile(profile) {
+      const { error } = await db.from("profiles").insert({
+        account_id: profile.accountId,
+        handle: profile.handle,
+        auth: profile.auth,
+        supabase_user_id: profile.supabaseUserId,
+      });
+      if (error?.code === UNIQUE_VIOLATION) throw new HttpError(409, "handle or login already has an account");
+      if (error) throw new Error(error.message);
+    },
+
     async negotiationsOf(buyer) {
       const rows = check(
         await db
@@ -150,7 +170,7 @@ export function supabaseStore(url: string, serviceKey: string): Store {
     },
 
     async setStatus(id, status, reservedDeal = null) {
-      check(await db.from("listings").update({ status, reserved_deal_id: reservedDeal }).eq("id", id));
+      check(await db.from("listings").update({ status, reserved_deal_id: reservedDeal }).eq("id", id).select("id").single());
     },
 
     async reservedDealOf(id) {
