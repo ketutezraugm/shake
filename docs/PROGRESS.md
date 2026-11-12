@@ -29,7 +29,7 @@ Mirrors docs/plans/IMPLEMENTATION.md (marketplace plan, Revision B: slots and tw
 
 ## Asking price (decided 2026-11-13)
 - [ ] **MK-15** Asking price in the API (BI)
-- [ ] **MK-26** Asking price in the screens (FE)
+- [ ] **MK-26** Asking price in the screens (FE): sell form, cards and shop done in PR; offer-field cap waits on MK-24; real `askingPrice` field waits on MK-15
 - [ ] **MK-32** Asking price in the frames (DP)
 
 ## Block C: 2026-11-13 12:00-24:00 UTC

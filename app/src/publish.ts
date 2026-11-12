@@ -13,7 +13,9 @@ export type PublishInput = {
   description: string;
   category: Category;
   maxRounds: number;
-  /** Whole Rupiah as digits; it only ever leaves this browser sealed to the TEE. */
+  /** Whole Rupiah as digits; public, shown on every card. */
+  askingPrice: string;
+  /** Whole Rupiah as digits, at or below the asking price; it only ever leaves this browser sealed to the TEE. */
   minimum: string;
   photos: Blob[];
   slotCount: number;
@@ -31,6 +33,9 @@ export type PublishStep =
 const byteLength = (text: string) => new TextEncoder().encode(text).length;
 const isPhotoType = (type: string): type is PhotoType => (PHOTO_TYPES as readonly string[]).includes(type);
 
+/** Canonical Rupiah: digits only, no leading zero, nonzero, fits u64 like the TEE and contract. */
+const isRupiah = (text: string) => /^[1-9]\d*$/.test(text) && BigInt(text) <= U64_MAX;
+
 /** Checks everything the relayer and contract would refuse, so the seller finds out before any request or fee. */
 function validate(input: PublishInput): void {
   const titleBytes = byteLength(input.title.trim());
@@ -39,8 +44,10 @@ function validate(input: PublishInput): void {
   if (!Number.isInteger(input.maxRounds) || input.maxRounds < 1 || input.maxRounds > 3) {
     throw new Error("Choose 1 to 3 rounds");
   }
-  if (!/^[1-9]\d*$/.test(input.minimum) || BigInt(input.minimum) > U64_MAX) {
-    throw new Error("Enter the minimum price as whole Rupiah, digits only");
+  if (!isRupiah(input.askingPrice)) throw new Error("Enter the asking price as whole Rupiah, digits only");
+  if (!isRupiah(input.minimum)) throw new Error("Enter the minimum price as whole Rupiah, digits only");
+  if (BigInt(input.minimum) > BigInt(input.askingPrice)) {
+    throw new Error("Your lowest price must be at or below the asking price");
   }
   if (input.photos.length > MAX_PHOTOS) throw new Error(`Add up to ${MAX_PHOTOS} photos`);
   for (const photo of input.photos) {
@@ -87,7 +94,13 @@ export async function publishListing(input: PublishInput): Promise<string> {
     relayerUrl,
     signer,
     "/listings",
-    { title: input.title.trim(), description: input.description.trim(), category: input.category, maxRounds: input.maxRounds },
+    {
+      title: input.title.trim(),
+      description: input.description.trim(),
+      category: input.category,
+      maxRounds: input.maxRounds,
+      askingPrice: input.askingPrice,
+    },
     "Creating the listing",
   );
 

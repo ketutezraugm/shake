@@ -6,6 +6,7 @@ import type { Signer } from "./signer";
 // A real compressed secp256k1 public key (the TEE test key); sealing needs a valid one.
 const TEE_PUBKEY = "02466d7fcae563e5cb09a0d1870bb580344804617879a14949cf22285f1bae3f27";
 const MINIMUM = "4137000"; // distinctive so a leak into any request body is easy to spot
+const ASKING = "5000000";
 const RELAYER = "http://relayer.test";
 
 const signer: Signer = {
@@ -53,6 +54,7 @@ function input(overrides: Partial<PublishInput> = {}): PublishInput {
     description: "Body only",
     category: "electronics",
     maxRounds: 2,
+    askingPrice: ASKING,
     minimum: MINIMUM,
     photos: [photo(), photo("image/png"), photo("image/webp")],
     slotCount: 3,
@@ -102,6 +104,14 @@ describe("publishListing", () => {
     expect(JSON.parse(calls[1]!.body as string)).toEqual({ contentType: "image/png" });
   });
 
+  it("accepts a minimum equal to the asking price and sends the asking price with the listing", async () => {
+    const calls = fakeRelayer();
+
+    await publishListing(input({ minimum: ASKING, photos: [], slotCount: 1 }));
+
+    expect(JSON.parse(calls[0]!.body as string)).toMatchObject({ askingPrice: ASKING });
+  });
+
   it("never sends the minimum in a request body", async () => {
     const calls = fakeRelayer();
 
@@ -116,6 +126,9 @@ describe("publishListing", () => {
     ["more than 4 photos", { photos: Array.from({ length: 5 }, () => photo()) }, "up to 4 photos"],
     ["a non-image file", { photos: [photo("application/pdf")] }, "JPEG, PNG or WebP"],
     ["a photo over 2 MB", { photos: [photo("image/jpeg", 2 * 1024 * 1024 + 1)] }, "2 MB"],
+    ["a minimum above the asking price", { minimum: "5000001" }, "at or below the asking price"],
+    ["a zero asking price", { askingPrice: "0" }, "asking price"],
+    ["an asking price with a decimal", { askingPrice: "5000000.5" }, "asking price"],
     ["a zero minimum", { minimum: "0" }, "whole Rupiah"],
     ["a decimal minimum", { minimum: "1.5" }, "whole Rupiah"],
     ["a minimum with a comma", { minimum: "4,000" }, "whole Rupiah"],

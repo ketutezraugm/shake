@@ -7,9 +7,19 @@ const profiles: Profile[] = [
   { handle: "demo", displayName: "Demo Shop", avatarUrl: null, bio: "Pre-loved gear, honest condition notes.", city: "Yogyakarta" },
 ];
 
+const ASKING_PRICES: Record<string, string> = {
+  "seed-camera": "4500000",
+  "seed-lens": "1800000",
+  "seed-jacket": "250000",
+  "seed-chair": "600000",
+  "seed-bike": "1500000",
+  "seed-lamp": "350000",
+};
+
 function seed(id: string, title: string, category: ShopListing["category"], hoursAgo: number, extra: Partial<ShopListing> = {}): ShopListing {
   return {
     id,
+    askingPrice: ASKING_PRICES[id] ?? "1000000",
     sellerAccount: DEMO,
     title,
     description: "",

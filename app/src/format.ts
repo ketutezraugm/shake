@@ -8,6 +8,11 @@ export function groupThousands(digits: string): string {
   return digits.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
 
+/** A Rupiah digit string as shown to people: "5000000" -> "Rp 5,000,000". */
+export function formatRp(digits: string): string {
+  return `Rp ${groupThousands(digits)}`;
+}
+
 // Same demo rate as the contract's RP_PER_NEAR: 1 NEAR = Rp 100,000,000.
 const YOCTO_PER_RP = 10n ** 16n;
 
