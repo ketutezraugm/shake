@@ -28,6 +28,16 @@ pub fn at(predecessor: usize, deposit: u128) {
         .build());
 }
 
+/// Like `at`, with the block timestamp (ns).
+pub fn at_time(predecessor: usize, deposit: u128, timestamp_ns: u64) {
+    testing_env!(VMContextBuilder::new()
+        .current_account_id(accounts(0))
+        .predecessor_account_id(accounts(predecessor))
+        .attached_deposit(NearToken::from_yoctonear(deposit))
+        .block_timestamp(timestamp_ns)
+        .build());
+}
+
 pub fn new_contract() -> Contract {
     at(0, 0);
     Contract::new(accounts(OUTLAYER), vec![2; 33], PROJECT.to_string())
@@ -111,4 +121,17 @@ pub fn callback_failed_context() {
 pub fn matched(deal_id: u64, price: &str) -> String {
     near_sdk::serde_json::json!({ "success": true, "result": { "deal_id": deal_id, "matched": true, "price": price } })
         .to_string()
+}
+
+/// Rp 4.3M at the demo rate, in yoctoNEAR.
+pub const PRICE: u128 = 43_000_000_000_000_000_000_000;
+pub const DAY_NS: u64 = 86_400_000_000_000;
+
+/// A deal matched at `NOW_NS` for `PRICE`.
+pub fn matched_deal(c: &mut Contract) -> u64 {
+    let id = deal(c, 2);
+    play_round(c, id, Some("tok"));
+    callback_context(&matched(id, "4300000"));
+    c.on_outlayer_result(id);
+    id
 }
