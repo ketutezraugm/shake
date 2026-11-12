@@ -40,7 +40,7 @@ from listings l;
 -- Returns the buyer's existing slot or locks a free one; no row means the listing is full.
 create function claim_slot(p_listing uuid, p_buyer text)
 returns table (deal_id bigint, link_token text)
-language plpgsql as $$
+language plpgsql set search_path = public as $$
 declare
   s slots%rowtype;
 begin
@@ -69,6 +69,7 @@ $$;
 
 revoke all on function claim_slot(uuid, text) from public, anon, authenticated;
 revoke all on listing_cards from anon, authenticated;
+revoke all on listings, slots from anon, authenticated;
 
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
 values ('listing-photos', 'listing-photos', true, 2097152, array['image/jpeg', 'image/png', 'image/webp'])
