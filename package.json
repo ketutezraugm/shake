@@ -12,7 +12,8 @@
     "build": "npm run build --workspaces",
     "typecheck": "npm run typecheck --workspaces",
     "lint": "eslint . --max-warnings 0",
-    "test": "npm test --workspaces"
+    "test": "npm test --workspaces",
+    "dev:relayer": "tsx scripts/dev-relayer.mts"
   },
   "devDependencies": {
     "eciesjs": "0.5.0",
