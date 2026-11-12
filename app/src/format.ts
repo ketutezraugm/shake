@@ -7,3 +7,11 @@ export function digitsOnly(text: string): string {
 export function groupThousands(digits: string): string {
   return digits.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
+
+// Same demo rate as the contract's RP_PER_NEAR: 1 NEAR = Rp 100,000,000.
+const YOCTO_PER_RP = 10n ** 16n;
+
+/** A contract price (yoctoNEAR string) as grouped Rupiah digits. */
+export function rpFromYocto(yocto: string): string {
+  return groupThousands((BigInt(yocto) / YOCTO_PER_RP).toString());
+}
