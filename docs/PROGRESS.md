@@ -25,7 +25,7 @@ Mirrors docs/plans/IMPLEMENTATION.md. Tick a box only after the task's done-chec
 - [x] **M1-04** Contract: escrow (TDD) (EZ)
 - [x] **M1-05** WASM matching + commitment (TDD) (EZ)
 - [x] **M1-06** WASM: `get_pubkey`, build, deploy to OutLayer (EZ)
-- [ ] **M1-07** Contract on testnet + OutLayer round trip
+- [x] **M1-07** Contract on testnet + OutLayer round trip (EZ)
 - [ ] **M1-08** Relayer with rate limits
 - [ ] **M1-09** Frontend flow on mocks
 - [ ] **M1-10** Frontend ECIES + commitment
@@ -33,8 +33,8 @@ Mirrors docs/plans/IMPLEMENTATION.md. Tick a box only after the task's done-chec
 - [ ] **M1-12** Seed script
 - [ ] **M1-13** End-to-end happy path (one test)
 - [ ] **M1-14** Hand screens and assets to frontend
-- [ ] **G1** Decision gate: end of 11-11 (owner: lead, CT reports)
-- [ ] **F-01** Fallback matcher (contingent)
+- [x] **G1** Decision gate: end of 11-11 (owner: lead, CT reports): passed, no fallback needed
+- [x] **F-01** Fallback matcher (contingent): not needed, G1 passed
 
 ## Day 3: 2026-11-12 (Should items; M1 must be done by noon)
 

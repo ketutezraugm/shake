@@ -22,7 +22,7 @@ Each session edits only its own workstream section below.
 - **Artifacts:** style tiles https://claude.ai/artifact/N3gwoQ5biN7HzEoD2ZntvZ · design system (Abel owns) https://claude.ai/artifact/MZUADs1rMt3bbtCbXChzke
 
 ## Contracts & TEE
-- Owner: Ezra (ketutezraugm). Next: M1-07 contract on testnet and round trip (scripts/deploy-contract.sh, scripts/roundtrip.mjs). TEE pubkey and project are in DECISIONS.md (M1-06). Done: D1-08 spike (answers in DECISIONS.md; testnet account `spike-82nkvzn7.testnet` is throwaway; `outlayer` CLI v0.2.3 is a manual download), D1-04 stub, D1-05 TS types, M1-05 matcher, M1-01 create_deal (vectors in tee/testvectors.json for FE M1-10). In progress: none. Blockers: none.
+- Owner: Ezra (ketutezraugm). Next: lock the secret to the WASM build before the demo; help FE with M1-10/M1-11 wiring; S-items. Contract id, TEE pubkey and project are in DECISIONS.md (M1-06, M1-07). Done: D1-08 spike (answers in DECISIONS.md; testnet account `spike-82nkvzn7.testnet` is throwaway; `outlayer` CLI v0.2.3 is a manual download), D1-04 stub, D1-05 TS types, M1-05 matcher, M1-01 create_deal (vectors in tee/testvectors.json for FE M1-10). In progress: none. Blockers: none.
 
 ## Backend & integration
 - Owner: Harfi (SyuraMoons), also the integrator: runs /review-pr on every needs-review PR first. Next: D1-02 CI, D1-03 Render hello-world, D1-06, D1-09 relayer. In progress: D1-01 scaffold, in review. Blockers: none.
