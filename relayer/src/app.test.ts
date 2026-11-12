@@ -43,7 +43,7 @@ function chainDeal(id: number, seller: string, token: string, patch: Partial<Cha
   return { id, seller, buyer: null, link_hash, max_rounds: 2, round: 1, state: "Waiting", ...patch };
 }
 
-const listingBody = { title: "Used bike", description: "Works fine", category: "vehicles", maxRounds: 2 };
+const listingBody = { title: "Used bike", description: "Works fine", category: "vehicles", maxRounds: 2, askingPrice: "1500000" };
 
 async function newListing(seller: Person): Promise<Listing> {
   const { json } = await call(seller, "POST", "/listings", listingBody);
@@ -181,6 +181,26 @@ describe("claim", () => {
   });
 });
 
+describe("asking price", () => {
+  it("create_listing_requires_asking_price", async () => {
+    const seller = person("ann.test");
+    expect((await call(seller, "POST", "/listings", { ...listingBody, askingPrice: undefined })).status).toBe(400);
+    for (const askingPrice of ["0", "01", "1.5", "-5", "1,000", "", 1500000, "9007199254740992"]) {
+      expect((await call(seller, "POST", "/listings", { ...listingBody, askingPrice })).status).toBe(400);
+    }
+    expect((await call(seller, "POST", "/listings", { ...listingBody, askingPrice: "9007199254740991" })).status).toBe(201);
+  });
+
+  it("listing_responses_carry_asking_price", async () => {
+    const seller = person("ann.test");
+    const created = await call(seller, "POST", "/listings", listingBody);
+    expect(created.json.askingPrice).toBe("1500000");
+    expect((await call(null, "GET", `/listings/${created.json.id}`)).json.askingPrice).toBe("1500000");
+    expect((await call(null, "GET", "/listings")).json.listings[0].askingPrice).toBe("1500000");
+    expect((await call(seller, "GET", "/me/listings")).json[0].askingPrice).toBe("1500000");
+  });
+});
+
 describe("sync", () => {
   async function listingWithDeals(count: number) {
     const seller = person("ann.test");
@@ -200,6 +220,18 @@ describe("sync", () => {
     setDeal(1, { state: "Matched" });
     expect(await sync(listing)).toBe("reserved");
     expect((await call(null, "GET", "/listings")).json.listings).toHaveLength(0);
+  });
+
+  it("returns the reserving deal on the listing while it is reserved, and null otherwise", async () => {
+    const listing = await listingWithDeals(2);
+    const read = async () => (await call(null, "GET", `/listings/${listing.id}`)).json.reservedDealId;
+    expect(await read()).toBeNull();
+    setDeal(2, { state: "Matched" });
+    expect((await call(null, "POST", `/listings/${listing.id}/sync`)).json.reservedDealId).toBe(2);
+    expect(await read()).toBe(2);
+    setDeal(2, { state: "Released" });
+    expect((await call(null, "POST", `/listings/${listing.id}/sync`)).json.reservedDealId).toBeNull();
+    expect(await read()).toBeNull();
   });
 
   it("sells the listing once a deal is released", async () => {

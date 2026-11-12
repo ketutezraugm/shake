@@ -73,7 +73,7 @@ const check = (ok: boolean, label: string) => {
 
 /** One listing with `slots` deals; the buyer claims one, offers, and waits for OutLayer. Returns the finished deal. */
 async function play(title: string, slots: number, minimum: string, maximum: string) {
-  const created = await api(seller, "POST", "/listings", { title, description: "", category: "electronics", maxRounds: 1 });
+  const created = await api(seller, "POST", "/listings", { title, description: "", category: "electronics", maxRounds: 1, askingPrice: maximum });
   const listingId = created.json.id as string;
   await createSlots({
     listingId,
