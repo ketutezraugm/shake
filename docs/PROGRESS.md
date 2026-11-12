@@ -5,7 +5,7 @@ Mirrors docs/plans/IMPLEMENTATION.md. Tick a box only after the task's done-chec
 
 ## Day 1: 2026-11-10 (scaffold, shared contracts, spikes)
 
-- [ ] **D1-01** Monorepo scaffold
+- [x] **D1-01** Monorepo scaffold (HA)
 - [ ] **D1-02** CI
 - [ ] **D1-03** Render hello-world
 - [ ] **D1-04** Contract stub (signatures)
