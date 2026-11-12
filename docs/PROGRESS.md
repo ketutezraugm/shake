@@ -12,7 +12,7 @@ Mirrors docs/plans/IMPLEMENTATION.md (marketplace plan, Revision B: slots and tw
 - [ ] **D1-03** Render hello-world (BI)
 
 ## Block A: 2026-11-12 evening
-- [ ] **MK-04** Client crypto, real contract client, slot helper (CT)
+- [x] **MK-04** Client crypto, real contract client, slot helper (EZ)
 - [ ] **MK-10** Supabase: apply 0001, add 0002 (BI)
 - [ ] **MK-30** Marketplace screens in Claude Design (DP)
 
