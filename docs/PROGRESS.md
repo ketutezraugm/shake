@@ -20,7 +20,7 @@ Mirrors docs/plans/IMPLEMENTATION.md. Tick a box only after the task's done-chec
 ## Day 2: 2026-11-11, Milestone M1 (demo slice)
 
 - [x] **M1-01** Contract: `new` + `create_deal` (TDD) (EZ)
-- [ ] **M1-02** Contract: `submit_limit`, link token, rounds (TDD)
+- [x] **M1-02** Contract: `submit_limit`, link token, rounds (TDD) (EZ)
 - [ ] **M1-03** Contract: `on_outlayer_result` (TDD)
 - [ ] **M1-04** Contract: escrow (TDD)
 - [x] **M1-05** WASM matching + commitment (TDD) (EZ)

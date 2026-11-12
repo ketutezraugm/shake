@@ -6,7 +6,11 @@ fn contract() -> Contract {
     testing_env!(VMContextBuilder::new()
         .predecessor_account_id(accounts(1))
         .build());
-    Contract::new(accounts(0), vec![2; 33])
+    Contract::new(
+        accounts(0),
+        vec![2; 33],
+        "spike.testnet/blind-deal".to_string(),
+    )
 }
 
 fn create(c: &mut Contract, title: &str, description: &str) -> u64 {
@@ -28,22 +32,19 @@ mod create_deal {
     fn title_and_description_length_bounded() {
         let mut c = contract();
         create(&mut c, &"t".repeat(100), &"d".repeat(1000)); // exactly at the limits
-        let too_long = [
-            ("", "ok"),
-            (&"t".repeat(101), "ok"),
-            ("ok", &"d".repeat(1001)),
+        let bad = [
+            ("", "ok", "title must be"),
+            (&"t".repeat(101), "ok", "title must be"),
+            ("ok", &"d".repeat(1001), "description must be"),
         ];
-        for (title, description) in too_long {
+        for (title, description, msg) in bad {
             let mut c = contract();
             let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
                 create(&mut c, title, description)
             }));
-            assert!(
-                result.is_err(),
-                "title {} bytes, description {} bytes",
-                title.len(),
-                description.len()
-            );
+            let err = result.expect_err("expected a panic");
+            let text = err.downcast_ref::<String>().cloned().unwrap_or_default();
+            assert!(text.contains(msg), "{text:?} should contain {msg:?}");
         }
     }
 

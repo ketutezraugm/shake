@@ -3,13 +3,17 @@
 #![allow(dead_code, unused_variables)]
 
 use near_sdk::json_types::U128;
+use near_sdk::serde_json::json;
 use near_sdk::store::LookupMap;
-use near_sdk::{env, near, require, AccountId, PanicOnDefault};
+use near_sdk::{env, near, require, AccountId, Gas, PanicOnDefault, Promise};
 
 const MAX_TITLE_BYTES: usize = 100;
 const MAX_DESCRIPTION_BYTES: usize = 1000;
 /// Demo rate: Rp 4.2M escrows 0.042 testnet NEAR.
 const RP_PER_NEAR: u128 = 100_000_000;
+/// Gas for the OutLayer call and for our callback; tune against a real round trip (M1-07).
+const REQUEST_GAS: Gas = Gas::from_tgas(200);
+const CALLBACK_GAS: Gas = Gas::from_tgas(20);
 
 /// Waiting = one side has submitted this round; Retry = no deal this round, more rounds left.
 #[near(serializers = [json, borsh])]
@@ -57,6 +61,8 @@ pub struct Contract {
     next_id: u64,
     tee_pubkey: Vec<u8>,
     outlayer: AccountId,
+    /// OutLayer project that runs the matcher, `owner.testnet/name`; its owner holds the secret.
+    project_id: String,
     /// Fixed demo rate, Rupiah per NEAR. No setter, so no admin.
     rp_per_near: u128,
 }
@@ -64,12 +70,14 @@ pub struct Contract {
 #[near]
 impl Contract {
     #[init]
-    pub fn new(outlayer: AccountId, tee_pubkey: Vec<u8>) -> Self {
+    pub fn new(outlayer: AccountId, tee_pubkey: Vec<u8>, project_id: String) -> Self {
+        require!(project_id.contains('/'), "project_id must be owner/name");
         Self {
             deals: LookupMap::new(b"d"),
             next_id: 0,
             tee_pubkey,
             outlayer,
+            project_id,
             rp_per_near: RP_PER_NEAR,
         }
     }
@@ -82,6 +90,7 @@ impl Contract {
         link_hash: [u8; 32],
         max_rounds: u8,
     ) -> u64 {
+        require!((1..=3).contains(&max_rounds), "max_rounds must be 1-3");
         require!(
             !title.is_empty() && title.len() <= MAX_TITLE_BYTES,
             "title must be 1-100 bytes"
@@ -114,7 +123,7 @@ impl Contract {
         id
     }
 
-    /// The call that completes a round attaches the OutLayer fee.
+    /// The call that completes a round attaches the OutLayer fee; any other call attaches nothing.
     #[payable]
     pub fn submit_limit(
         &mut self,
@@ -123,13 +132,84 @@ impl Contract {
         commit: [u8; 32],
         link_token: Option<String>,
     ) {
-        unimplemented!()
+        let caller = env::predecessor_account_id();
+        let mut deal = self
+            .deals
+            .get(&deal_id)
+            .cloned()
+            .unwrap_or_else(|| env::panic_str("no such deal"));
+        require!(
+            matches!(deal.state, State::Created | State::Waiting | State::Retry),
+            "deal is not accepting limits"
+        );
+        let is_seller = caller == deal.seller;
+        if !is_seller {
+            match &deal.buyer {
+                Some(buyer) => require!(*buyer == caller, "only the deal's buyer can submit"),
+                None => {
+                    require!(deal.state == State::Waiting, "the seller submits first");
+                    let token = link_token.unwrap_or_else(|| env::panic_str("link token required"));
+                    require!(
+                        env::sha256_array(token.as_bytes()) == deal.link_hash,
+                        "invalid link token"
+                    );
+                    deal.buyer = Some(caller);
+                }
+            }
+        }
+        let (cts, commits) = if is_seller {
+            (&mut deal.seller_cts, &mut deal.seller_commits)
+        } else {
+            (&mut deal.buyer_cts, &mut deal.buyer_commits)
+        };
+        require!(
+            cts.len() < usize::from(deal.round),
+            "already submitted this round"
+        );
+        cts.push(ct);
+        commits.push(commit);
+
+        let round = usize::from(deal.round);
+        let complete = deal.seller_cts.len() == round && deal.buyer_cts.len() == round;
+        let fee = env::attached_deposit();
+        if !complete {
+            require!(
+                fee.is_zero(),
+                "attach the fee only on the call that completes the round"
+            );
+            deal.state = State::Waiting;
+            self.deals.insert(deal_id, deal);
+            return;
+        }
+        deal.state = State::Computing;
+        let request = self.outlayer_request(&deal);
+        self.deals.insert(deal_id, deal);
+        let promise = Promise::new(self.outlayer.clone())
+            .function_call("request_execution".to_string(), request, fee, REQUEST_GAS)
+            .then(
+                Self::ext(env::current_account_id())
+                    .with_static_gas(CALLBACK_GAS)
+                    .on_outlayer_result(deal_id),
+            );
+        drop(promise); // near-sdk schedules a promise when it is dropped; a failed call must not undo the submit
     }
 
-    /// Callback from OutLayer; reads `promise_result(0)`.
+    /// Callback from OutLayer. M1-03 adds the matched path; until then every result is a no-deal.
     #[private]
     pub fn on_outlayer_result(&mut self, deal_id: u64) {
-        unimplemented!()
+        let mut deal = self
+            .deals
+            .get(&deal_id)
+            .cloned()
+            .unwrap_or_else(|| env::panic_str("no such deal"));
+        require!(deal.state == State::Computing, "deal is not computing");
+        if deal.round < deal.max_rounds {
+            deal.round += 1;
+            deal.state = State::Retry;
+        } else {
+            deal.state = State::NoDeal;
+        }
+        self.deals.insert(deal_id, deal);
     }
 
     /// Buyer funds exactly the matched price.
@@ -146,8 +226,23 @@ impl Contract {
         unimplemented!()
     }
 
+    /// The seller withdraws a deal before both sides have submitted. It ends as NoDeal.
     pub fn cancel(&mut self, deal_id: u64) {
-        unimplemented!()
+        let mut deal = self
+            .deals
+            .get(&deal_id)
+            .cloned()
+            .unwrap_or_else(|| env::panic_str("no such deal"));
+        require!(
+            env::predecessor_account_id() == deal.seller,
+            "only the seller can cancel"
+        );
+        require!(
+            matches!(deal.state, State::Created | State::Waiting),
+            "too late to cancel"
+        );
+        deal.state = State::NoDeal;
+        self.deals.insert(deal_id, deal);
     }
 
     pub fn expire(&mut self, deal_id: u64) {
@@ -160,5 +255,33 @@ impl Contract {
 
     pub fn get_state(&self, deal_id: u64) -> Option<State> {
         unimplemented!()
+    }
+}
+
+impl Contract {
+    /// The `request_execution` arguments for the matcher; the OutLayer refund goes to the caller who paid.
+    fn outlayer_request(&self, deal: &Deal) -> Vec<u8> {
+        let hex_all = |v: &[Vec<u8>]| v.iter().map(hex::encode).collect::<Vec<_>>();
+        let commits_hex = |v: &[[u8; 32]]| v.iter().map(hex::encode).collect::<Vec<_>>();
+        let input = json!({
+            "action": "match",
+            "deal_id": deal.id,
+            "round": deal.round,
+            "seller_cts": hex_all(&deal.seller_cts),
+            "buyer_cts": hex_all(&deal.buyer_cts),
+            "seller_commits": commits_hex(&deal.seller_commits),
+            "buyer_commits": commits_hex(&deal.buyer_commits),
+        });
+        let secrets_owner = self.project_id.split('/').next().unwrap_or_default();
+        json!({
+            "source": { "Project": { "project_id": self.project_id, "version_key": null } },
+            "input_data": input.to_string(),
+            "resource_limits": { "max_instructions": 1_000_000_000u64, "max_memory_mb": 128, "max_execution_seconds": 10 },
+            "secrets_ref": { "profile": "production", "account_id": secrets_owner },
+            "response_format": "Json",
+            "payer_account_id": env::predecessor_account_id(),
+        })
+        .to_string()
+        .into_bytes()
     }
 }
