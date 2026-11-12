@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-12 -12 144 144" width="144" height="144" role="img" aria-label="Price pin">
+  <!-- Source: Blind deal design system (Claude Design, Abel), sticker "price pin": the fair price. -->
+  <path d="M60 8C40 8 26 22 26 42C26 66 60 108 60 108C60 108 94 66 94 42C94 22 80 8 60 8Z" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="30" stroke-linejoin="round"/>
+  <path d="M60 8C40 8 26 22 26 42C26 66 60 108 60 108C60 108 94 66 94 42C94 22 80 8 60 8Z" fill="#1D1C1A" stroke="#1D1C1A" stroke-width="18" stroke-linejoin="round"/>
+  <path d="M60 8C40 8 26 22 26 42C26 66 60 108 60 108C60 108 94 66 94 42C94 22 80 8 60 8Z" fill="#8EC9F5"/>
+  <circle cx="60" cy="42" r="16" fill="#FFD23F" stroke="#1D1C1A" stroke-width="9"/>
+</svg>

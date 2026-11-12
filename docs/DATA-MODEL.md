@@ -29,6 +29,9 @@ erDiagram
     ROUND ||--o{ LIMIT_PLAINTEXT : "decrypts to, TEE only"
     ROUND ||--o| OUTLAYER_RESPONSE : "result of"
     RELAYER ||--o{ ACCOUNT : "creates and funds"
+    ACCOUNT ||--o{ LISTING : "seller"
+    LISTING ||--o{ SLOT : "up to 10"
+    SLOT ||--|| DEAL : "deal_id, verified on chain"
 
     profiles ||--o{ listings : "seller_id"
     listings ||--o{ questions : "listing_id"

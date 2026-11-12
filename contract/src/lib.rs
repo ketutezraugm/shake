@@ -17,9 +17,9 @@ const MAX_RESULT_BYTES: usize = 1024;
 /// An ECIES limit is about 200 bytes; the cap stops callers filling contract-paid storage.
 const MAX_CT_BYTES: usize = 512;
 const DAY_NS: u64 = 86_400_000_000_000;
-/// The buyer can reclaim a funded deposit this long after funding if never confirmed.
-const DELIVERY_WINDOW_NS: u64 = 7 * DAY_NS;
-/// A matched deal nobody funded can be closed by anyone after this long.
+/// The buyer can reclaim a funded deposit this long after funding if never confirmed (default).
+const DEFAULT_DELIVERY_WINDOW_NS: u64 = 7 * DAY_NS;
+/// A matched deal can be funded for this long; after it anyone can close it, and a late deposit is refused.
 const FUNDING_WINDOW_NS: u64 = DAY_NS;
 
 /// Waiting = one side has submitted this round; Retry = no deal this round, more rounds left.
@@ -72,13 +72,25 @@ pub struct Contract {
     project_id: String,
     /// Fixed demo rate, Rupiah per NEAR. No setter, so no admin.
     rp_per_near: u128,
+    delivery_window_ns: u64,
 }
 
 #[near]
 impl Contract {
     #[init]
-    pub fn new(outlayer: AccountId, tee_pubkey: Vec<u8>, project_id: String) -> Self {
+    /// `delivery_window_secs` shortens the refund wait for test deployments; leave it empty for 7 days.
+    pub fn new(
+        outlayer: AccountId,
+        tee_pubkey: Vec<u8>,
+        project_id: String,
+        delivery_window_secs: Option<u64>,
+    ) -> Self {
         require!(project_id.contains('/'), "project_id must be owner/name");
+        let delivery_window_ns = delivery_window_secs.map_or(DEFAULT_DELIVERY_WINDOW_NS, |secs| {
+            require!(secs >= 1, "delivery window must be at least one second");
+            secs.checked_mul(1_000_000_000)
+                .unwrap_or_else(|| env::panic_str("delivery window too long"))
+        });
         Self {
             deals: LookupMap::new(b"d"),
             next_id: 0,
@@ -86,6 +98,7 @@ impl Contract {
             outlayer,
             project_id,
             rp_per_near: RP_PER_NEAR,
+            delivery_window_ns,
         }
     }
 
@@ -237,6 +250,13 @@ impl Contract {
             deal.buyer.as_ref() == Some(&env::predecessor_account_id()),
             "only the buyer can deposit"
         );
+        let matched_at = deal
+            .matched_at_ns
+            .unwrap_or_else(|| env::panic_str("matched deal without a time"));
+        require!(
+            env::block_timestamp() <= matched_at + FUNDING_WINDOW_NS,
+            "the funding window has passed"
+        );
         let price = deal
             .price
             .unwrap_or_else(|| env::panic_str("matched deal without a price"))
@@ -246,7 +266,7 @@ impl Contract {
             "attach exactly the price"
         );
         deal.state = State::Funded;
-        deal.deadline_ns = Some(env::block_timestamp() + DELIVERY_WINDOW_NS);
+        deal.deadline_ns = Some(env::block_timestamp() + self.delivery_window_ns);
         self.deals.insert(deal_id, deal);
     }
 

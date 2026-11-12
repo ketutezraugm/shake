@@ -138,6 +138,61 @@ mod escrow {
     }
 
     #[test]
+    fn deposit_after_expire_panics() {
+        let mut c = new_contract();
+        let id = matched_deal(&mut c);
+        at_time(OUTSIDER, 0, NOW_NS + DAY_NS + 1);
+        c.expire(id);
+        at_time(BUYER, PRICE, NOW_NS + DAY_NS + 2);
+        panics_with("not matched", || c.deposit(id));
+        assert_eq!(c.get_deal(id).unwrap().state, State::NoDeal);
+    }
+
+    #[test]
+    fn deposit_after_funding_window_panics() {
+        // Nobody has called `expire` yet, but the 24 h are over: the seller can rely on that.
+        let mut c = new_contract();
+        let id = matched_deal(&mut c);
+        at_time(BUYER, PRICE, NOW_NS + DAY_NS + 1);
+        panics_with("funding window", || c.deposit(id));
+        assert_eq!(c.get_deal(id).unwrap().state, State::Matched);
+        at_time(BUYER, PRICE, NOW_NS + DAY_NS); // the last instant it still works
+        c.deposit(id);
+        assert_eq!(c.get_deal(id).unwrap().state, State::Funded);
+    }
+
+    #[test]
+    fn refund_by_third_party_pays_buyer() {
+        let mut c = new_contract();
+        let id = funded_deal(&mut c);
+        let deadline = c.get_deal(id).unwrap().deadline_ns.unwrap();
+        at_time(SELLER, 0, deadline + 1); // even the seller cannot redirect it
+        drop(c.refund(id));
+        assert_eq!(c.get_deal(id).unwrap().state, State::Refunded);
+        assert_eq!(transfers_to(BUYER), vec![PRICE]);
+        assert!(transfers_to(SELLER).is_empty());
+        at_time(OUTSIDER, 0, deadline + 2);
+        panics_with("not funded", || {
+            drop(c.refund(id)); // no second refund
+        });
+    }
+
+    #[test]
+    fn delivery_window_can_be_set_at_init() {
+        let mut c = new_contract_with_window(Some(30));
+        let id = matched_deal(&mut c);
+        at_time(BUYER, PRICE, NOW_NS + 1_000);
+        c.deposit(id);
+        assert_eq!(
+            c.get_deal(id).unwrap().deadline_ns,
+            Some(NOW_NS + 1_000 + 30 * 1_000_000_000)
+        );
+        panics_with("at least one second", || {
+            new_contract_with_window(Some(0));
+        });
+    }
+
+    #[test]
     fn get_state_returns_state_or_null() {
         let mut c = new_contract();
         let id = deal(&mut c, 2);

@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-12 -12 144 144" width="144" height="144" role="img" aria-label="Two price tags clipped together">
+  <!-- Source: Blind deal design system (Claude Design, Abel), sticker "clipped tags": the deal. -->
+  <g stroke-linejoin="round">
+    <path transform="rotate(-14 60 60) translate(-12 4)" d="M34 22H86Q94 22 94 30V68A28 28 0 0 1 66 96H54A28 28 0 0 1 26 68V30Q26 22 34 22Z" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="30"/>
+    <path transform="rotate(10 60 60) translate(12 6)" d="M34 22H86Q94 22 94 30V68A28 28 0 0 1 66 96H54A28 28 0 0 1 26 68V30Q26 22 34 22Z" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="30"/>
+    <rect x="46" y="8" width="30" height="18" rx="4" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="30"/>
+    <path transform="rotate(-14 60 60) translate(-12 4)" d="M34 22H86Q94 22 94 30V68A28 28 0 0 1 66 96H54A28 28 0 0 1 26 68V30Q26 22 34 22Z" fill="#1D1C1A" stroke="#1D1C1A" stroke-width="18"/>
+    <path transform="rotate(-14 60 60) translate(-12 4)" d="M34 22H86Q94 22 94 30V68A28 28 0 0 1 66 96H54A28 28 0 0 1 26 68V30Q26 22 34 22Z" fill="#FF8A65"/>
+    <path transform="rotate(10 60 60) translate(12 6)" d="M34 22H86Q94 22 94 30V68A28 28 0 0 1 66 96H54A28 28 0 0 1 26 68V30Q26 22 34 22Z" fill="#1D1C1A" stroke="#1D1C1A" stroke-width="18"/>
+    <path transform="rotate(10 60 60) translate(12 6)" d="M34 22H86Q94 22 94 30V68A28 28 0 0 1 66 96H54A28 28 0 0 1 26 68V30Q26 22 34 22Z" fill="#FFD23F"/>
+    <rect x="46" y="8" width="30" height="18" rx="4" fill="#1D1C1A" stroke="#1D1C1A" stroke-width="9"/>
+  </g>
+</svg>
