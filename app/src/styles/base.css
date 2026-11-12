@@ -1,0 +1,120 @@
+/* Structural base from IDENTITY.md tokens only; screen visuals come from the Claude Design frames (M1-09). */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--ground);
+  color: var(--ink);
+  font-family: var(--font-text);
+  font-weight: var(--weight-text);
+  font-size: var(--text-16);
+  line-height: var(--leading-text);
+}
+
+.screen {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: var(--space-48) var(--gutter-phone);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-24);
+}
+
+.headline {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: var(--weight-display-heavy);
+  font-size: var(--text-48);
+  line-height: var(--leading-display);
+  text-transform: uppercase;
+}
+
+p {
+  margin: 0;
+}
+
+.muted,
+.hint {
+  color: var(--ink-muted);
+}
+
+.hint {
+  font-size: var(--text-13);
+}
+
+.error {
+  color: var(--danger);
+}
+
+.steps {
+  margin: 0;
+  padding-left: var(--space-24);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+}
+
+.panel {
+  background: var(--surface);
+  border-radius: var(--radius-panel);
+  padding: var(--space-24);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  font-weight: var(--weight-text-bold);
+}
+
+input,
+textarea,
+select {
+  min-height: var(--touch-min);
+  padding: var(--space-12);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-button);
+  background: var(--check);
+  color: var(--ink);
+  font: inherit;
+  font-weight: var(--weight-text);
+}
+
+.price-input {
+  font-family: var(--font-display);
+  font-weight: var(--weight-display-heavy);
+  font-size: var(--text-28);
+  font-variant-numeric: tabular-nums;
+}
+
+.link {
+  overflow-wrap: anywhere;
+  color: var(--ink-muted);
+  font-size: var(--text-13);
+}
+
+.primary {
+  min-height: var(--touch-min);
+  padding: 0 var(--space-24);
+  border: 0;
+  border-radius: var(--radius-button);
+  background: var(--tag);
+  color: var(--check);
+  font: inherit;
+  font-weight: var(--weight-text-bold);
+  cursor: pointer;
+  transition: opacity var(--dur-instant) var(--ease-std);
+}
+
+.primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
