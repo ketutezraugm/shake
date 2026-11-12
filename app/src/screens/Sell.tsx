@@ -1,20 +1,13 @@
 import { useState, type FormEvent } from "react";
 import { CATEGORIES, type Category } from "../../../relayer/src/types";
 import { currentAccount } from "../accounts";
+import { CATEGORY_LABELS } from "../categories";
 import { chainFor } from "../client";
 import { relayerUrl, SLOTS_AT_PUBLISH } from "../config";
 import { digitsOnly, groupThousands } from "../format";
 import { publishListing, type PublishStep } from "../publish";
 import { Link, navigate } from "../routes";
 
-const CATEGORY_LABELS: Record<Category, string> = {
-  electronics: "Electronics",
-  fashion: "Fashion",
-  home: "Home",
-  vehicles: "Vehicles",
-  hobbies: "Hobbies",
-  other: "Other",
-};
 
 function progressText(step: PublishStep | null): string {
   if (!step) return "";
