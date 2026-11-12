@@ -49,4 +49,24 @@ describe("keys", () => {
     expect(bodies[0]).toContain(identity.publicKey);
     expect(bodies[0]).not.toContain(secret);
   });
+
+  it("imports an exported key and becomes the same identity", async () => {
+    const { loadIdentity, exportSecretKey, importSecretKey } = await freshKeysModule();
+    const original = loadIdentity().publicKey;
+    const secret = exportSecretKey();
+
+    localStorage.clear();
+    const imported = importSecretKey(`  ${secret}\n`);
+
+    expect(imported.publicKey).toBe(original);
+    expect(loadIdentity().publicKey).toBe(original);
+  });
+
+  it("refuses text that is not a key and keeps the current one", async () => {
+    const { loadIdentity, importSecretKey } = await freshKeysModule();
+    const before = loadIdentity().publicKey;
+
+    expect(() => importSecretKey("hello")).toThrow("not a valid key");
+    expect(loadIdentity().publicKey).toBe(before);
+  });
 });
