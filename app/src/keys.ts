@@ -22,3 +22,15 @@ export function loadIdentity(storage: Storage = localStorage): Identity {
 export function exportSecretKey(storage: Storage = localStorage): string {
   return loadOrCreate(storage).toString();
 }
+
+/** For the "Import key" screen: replaces this browser's key with one exported from another device. */
+export function importSecretKey(secret: string, storage: Storage = localStorage): Identity {
+  let key: KeyPair;
+  try {
+    key = KeyPair.fromString(secret.trim() as KeyPairString);
+  } catch {
+    throw new Error("that is not a valid key");
+  }
+  storage.setItem(STORAGE_KEY, key.toString());
+  return { publicKey: key.getPublicKey().toString() };
+}

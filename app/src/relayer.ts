@@ -22,12 +22,11 @@ export async function signedGet<T>(relayerUrl: string, signer: Signer, path: str
   return (await response.json()) as T;
 }
 
-/** POSTs JSON to the relayer signed as `signer`; failures read as "<what> failed: <reason>". */
-export async function signedPost<T>(relayerUrl: string, signer: Signer, path: string, payload: object, what: string): Promise<T> {
+async function signedWrite<T>(method: "POST" | "PUT", relayerUrl: string, signer: Signer, path: string, payload: object, what: string): Promise<T> {
   const body = JSON.stringify(payload);
   const response = await fetch(relayerUrl + path, {
-    method: "POST",
-    headers: { "content-type": "application/json", ...(await signer.signRequest("POST", path, body)) },
+    method,
+    headers: { "content-type": "application/json", ...(await signer.signRequest(method, path, body)) },
     body,
   }).catch(() => {
     throw new Error(`${what} failed: could not reach the relayer`);
@@ -37,4 +36,14 @@ export async function signedPost<T>(relayerUrl: string, signer: Signer, path: st
     throw new RelayerError(`${what} failed: ${error ?? `relayer answered ${response.status}`}`, response.status);
   }
   return (await response.json()) as T;
+}
+
+/** POSTs JSON to the relayer signed as `signer`; failures read as "<what> failed: <reason>". */
+export function signedPost<T>(relayerUrl: string, signer: Signer, path: string, payload: object, what: string): Promise<T> {
+  return signedWrite("POST", relayerUrl, signer, path, payload, what);
+}
+
+/** PUTs JSON to the relayer signed as `signer`; used by a wallet user to create their profile. */
+export function signedPut<T>(relayerUrl: string, signer: Signer, path: string, payload: object, what: string): Promise<T> {
+  return signedWrite("PUT", relayerUrl, signer, path, payload, what);
 }

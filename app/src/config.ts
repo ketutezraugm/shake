@@ -1,3 +1,4 @@
+import type { AuthConfig } from "./auth";
 import type { ChainConfig } from "./signer";
 
 const env = import.meta.env as Record<string, string | undefined>;
@@ -13,3 +14,7 @@ export const chain: ChainConfig = {
 
 // 3 deals take about 15 s; each further one adds 4-6 s of waiting while the seller watches.
 export const SLOTS_AT_PUBLISH = 3;
+
+/** Supabase Auth for Google and email sign-in; undefined runs the app with a stand-in sign-in for local work. */
+export const authConfig: AuthConfig | undefined =
+  env.VITE_SUPABASE_URL && env.VITE_SUPABASE_ANON_KEY ? { url: env.VITE_SUPABASE_URL, anonKey: env.VITE_SUPABASE_ANON_KEY } : undefined;

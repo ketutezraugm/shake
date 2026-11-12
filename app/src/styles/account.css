@@ -1,0 +1,119 @@
+/* Sign in, handle and keys screens, from Abel's frames "Sign in", "Pick a handle" and "Keys". Tokens only. */
+
+.auth-page {
+  max-width: 480px;
+  width: 100%;
+  margin: 0 auto;
+  padding-bottom: var(--space-48);
+}
+
+.auth-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-16);
+}
+
+.auth-email {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+.auth-divider {
+  margin: var(--space-8) 0 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-12);
+  font-size: var(--text-13);
+  color: var(--ink-muted);
+}
+
+.auth-divider span {
+  flex: 1;
+  height: 1px;
+  background: var(--line);
+}
+
+.auth-foot {
+  text-align: center;
+}
+
+.status-box {
+  padding: 12px 14px;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-8);
+  border-radius: var(--radius-field);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  font-size: var(--text-14);
+}
+
+.status-box.ok {
+  background: var(--mint);
+  border-color: transparent;
+  color: var(--mint-ink);
+}
+
+.status-box.bad {
+  color: var(--danger);
+}
+
+.handle-field {
+  min-height: 56px;
+  padding: 0 16px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 2px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-field);
+  color: var(--ink-muted);
+  font-weight: var(--weight-label);
+}
+
+.handle-field input {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--ink);
+}
+
+.handle-field:focus-within {
+  border-color: var(--ink);
+}
+
+.handle-field.bad {
+  border: 2px solid var(--danger);
+}
+
+.suggestions {
+  margin-top: var(--space-8);
+  display: flex;
+  gap: var(--space-8);
+  flex-wrap: wrap;
+}
+
+.key-box {
+  padding: 12px 14px;
+  border-radius: var(--radius-field);
+  background: var(--ground);
+  color: var(--ink-muted);
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: var(--text-13);
+  overflow-wrap: anywhere;
+}
+
+/* A link inside a sentence reads as a link: ink, bold, underlined. */
+.auth-page p a {
+  color: var(--ink);
+  font-weight: var(--weight-text-bold);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}

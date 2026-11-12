@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
+import { currentAccount } from "../accounts";
 import type { Shop } from "../market";
 import { market } from "../marketSource";
+import { Link } from "../routes";
 import { ListingCard } from "./ListingCard";
 import { ErrorState, NotFound } from "./States";
 
@@ -60,6 +62,11 @@ export function Profile({ handle }: { handle: string }) {
         <button className="outline-button" onClick={() => void copyLink()}>
           {copied ? "Link copied" : "Copy shop link"}
         </button>
+        {currentAccount()?.split(".")[0] === profile.handle && (
+          <Link to="/keys" className="link-button">
+            Use on another device
+          </Link>
+        )}
       </section>
 
       <div className="profile-listings">
