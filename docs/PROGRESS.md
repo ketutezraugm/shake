@@ -12,7 +12,7 @@ Mirrors docs/plans/IMPLEMENTATION.md. Tick a box only after the task's done-chec
 - [x] **D1-05** Shared TS contract types (EZ)
 - [ ] **D1-06** Relayer API types
 - [ ] **D1-07** Design tokens CSS
-- [ ] **D1-08** OutLayer spike (2-3 h, time-boxed)
+- [x] **D1-08** OutLayer spike (2-3 h, time-boxed) (EZ)
 - [ ] **D1-09** Relayer spike
 - [ ] **D1-10** Frontend skeleton on mocks
 - [ ] **D1-11** Screens in Claude Design
