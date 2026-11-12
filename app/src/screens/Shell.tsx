@@ -1,7 +1,8 @@
-import type { ReactNode } from "react";
-import { currentHandle } from "../accounts";
-import { Link } from "../routes";
-import { AccountMenu } from "./AccountMenu";
+import { useState, type FormEvent, type ReactNode } from "react";
+import { currentAccount } from "../accounts";
+import lockup from "../design/assets/logo/shake-lockup.svg";
+import { Link, navigate } from "../routes";
+import { OfflineBanner } from "./States";
 
 type Tab = { to: string; label: string; icon: ReactNode };
 
@@ -48,32 +49,68 @@ const SHOP = (handle: string): Tab => ({
   ),
 });
 
-/** Abel's frame around every screen: the shake wordmark, a sign-in or account chip, and the bottom tabs. */
-export function Shell({ path, signedIn, children }: { path: string; signedIn: boolean; children: ReactNode }) {
-  const handle = currentHandle();
+/**
+ * Abel's frame around every screen. On a phone: the wordmark, an account chip and the bottom tab bar.
+ * On a wide screen (frames "Desktop 1-9"): a white header with the logo, a search field and the main links.
+ */
+export function Shell({ path, children }: { path: string; children: ReactNode }) {
+  const account = currentAccount();
+  const handle = account?.split(".")[0];
   const tabs = [BROWSE, SELL, INBOX, ...(handle ? [SHOP(handle)] : [])];
+  const [draft, setDraft] = useState(() => new URLSearchParams(location.search).get("q") ?? "");
+
+  function search(event: FormEvent) {
+    event.preventDefault();
+    const q = draft.trim();
+    navigate(q ? `/?q=${encodeURIComponent(q)}` : "/");
+  }
+
+  const chip = handle ? (
+    <Link to={`/@${handle}`} className="pill">
+      @{handle}
+    </Link>
+  ) : (
+    <Link to="/signin" className="pill">
+      Sign in
+    </Link>
+  );
 
   return (
     <div className="shell">
+      <OfflineBanner />
       <header className="topbar">
-        <Link to="/" className="brand">
+        <Link to="/" className="brand mobile-only">
           shake
         </Link>
-        <AccountMenu />
+        <Link to="/" className="brand-logo desktop-only">
+          <img src={lockup} alt="Shake home" />
+        </Link>
+        <form role="search" className="header-search desktop-only" onSubmit={search}>
+          <label>
+            <span className="sr-only">Search listings</span>
+            <input type="search" value={draft} onChange={(e) => setDraft(e.target.value)} placeholder="Search cameras, bikes, jackets…" />
+          </label>
+        </form>
+        <nav className="desk-nav desktop-only" aria-label="Main">
+          {tabs.map((tab) => (
+            <Link key={tab.to} to={tab.to} className="desk-link" current={path === tab.to}>
+              {tab.label}
+            </Link>
+          ))}
+        </nav>
+        {chip}
       </header>
       {children}
-      {signedIn && (
-        <div className="tabs">
-          <nav aria-label="Main">
-            {tabs.map((tab) => (
-              <Link key={tab.to} to={tab.to} className="tab" current={path === tab.to}>
-                {tab.icon}
-                {tab.label}
-              </Link>
-            ))}
-          </nav>
-        </div>
-      )}
+      <div className="tabs">
+        <nav aria-label="Main">
+          {tabs.map((tab) => (
+            <Link key={tab.to} to={tab.to} className="tab" current={path === tab.to}>
+              {tab.icon}
+              {tab.label}
+            </Link>
+          ))}
+        </nav>
+      </div>
     </div>
   );
 }

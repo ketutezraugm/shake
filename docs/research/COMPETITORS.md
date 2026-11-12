@@ -43,3 +43,31 @@
 4. **Design is a gap.** Most entries are solo-built, README-heavy and plainly styled; several READMEs read as AI bulk. With a dedicated designer we can be the best-packaged entry in any small track.
 5. **Head start problem.** Top competitors started 10-20..11-05 and have 40-370 commits. We have ~5 days. Pick a scope where a narrow, polished loop is the whole point (games, social rituals), not depth-of-protocol (DeFi, security benches).
 6. **What "polished" looks like here:** live hosted demo, `make demo` / one-command repro, tests count stated in README, contract on testnet (mainnet for the top tier), "do X, see Y" README steps, X video of one complete moment.
+
+
+## Re-scan: 2026-11-13 (marketplace pivot)
+
+**Sources:** the public gallery API (`/api/projects?page=1..100`, 783 entries; names, tracks and X links only), NEAR Hunt (`nearhunt.xyz`, project pages with descriptions), `gh search repos` for repos created since 10-19 (the index is thin: it found one relevant repo), and web search. Not checked: X timelines, Discord, Telegram.
+
+**The field doubled.** 373 entries on 11-09, 783 now (410 new). Our tracks grew with it: privacy 68 to 156, realworld 78 to 184, agents 179 to 335, social 28 to 83. The "under-contested" tracks in the first scan are no longer thin.
+
+**Nobody else sells second-hand goods with a sealed floor.** Name and description checks across all 783 entries found no marketplace where a seller's minimum and a buyer's maximum are both hidden and a deal lands at a price inside the overlap. The nearest entries:
+
+| Project | Tracks | What it is | Overlap with us |
+|---|---|---|---|
+| NEAR Private OTC | defi | Finds OTC counterparties on NEAR Intents; repo `Watchmeecryt/near-private-otc` | Same problem family, but the page explains no privacy mechanism and shows no usage; DeFi traders, not goods |
+| StreetMarket AI (GhostTech) | business, swarms, agents, realworld | AI storefronts bid on jobs; a contract stops a shop bidding below its floor; one on-chain USDC job and NEAR escrow demo | A floor, but it is enforced publicly on agent jobs, not sealed between two people |
+| VeilProcure | privacy | Deadline-sealed bids, testnet escrow, attested AI evaluation for procurement | One-sided sealed bids for institutions; same stack ideas (sealed, escrow, TEE) |
+| SealedChoice | privacy, security, realworld | Tender bids that cannot leak or change | One-sided tenders; no negotiation |
+| Blindsight | privacy, business | Pay to query sealed datasets, answers from a NEAR AI enclave | Different product; same "private AI" angle |
+| Sealwell | privacy, defi | Sealed-bid batch auctions for NEAR Intents, MPC unlock; shielded pool live on testnet | Strong privacy build, but token auctions |
+| Ashes of the Ninth Heaven, Nims, Emporium, Taskbond | agents, games, swarms | Agent merchants and shops, some "haggle" | Agents trading with agents, no human second-hand sellers |
+
+**"Sealed" is a crowded word.** About 20 entries have sealed, blind, veil, private or confidential in the name (Sealed Exploit, Sealed Dossier, Sealed Ledger, SealedBounty, SealedSwarm, BlindBench, Veil, VeilProof and others), plus sealed-bid projects without it (BEFEWER, Assay, Hivebuy, HiveBid, Sealwell). Judges will see the vocabulary many times.
+
+**What this changes in the pitch.**
+1. Lead with the people and the item, not the mechanism: a student sells a camera, the buyer never learns the floor, the seller never learns the buyer's maximum, and they still get one fair price. Say "both sides hidden", which the sealed-bid projects are not (theirs are one-sided).
+2. Say the mechanism is a known one (sealed-bid double auction) and that the new part is making it usable by normal people with escrow and walletless accounts (already in ENDGAME.md).
+3. Real second-hand listings by real sellers (S-08) is the differentiator no other entry can claim; the gallery shows no marketplace with real users.
+4. The field's median entry is README-heavy and unstyled; Abel's frames and the restyle are an advantage only if the demo is hosted and clickable (S-06, MK-40).
+5. Track choice: privacy (156 entries) is now crowded; realworld (184) is larger still. Keep the proposed list, but weight the video toward the realworld story and use privacy for the sealed-limits proof.

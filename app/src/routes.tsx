@@ -1,5 +1,4 @@
 import { useEffect, useState, type MouseEvent, type ReactNode } from "react";
-import { currentAccess, type Access } from "./accounts";
 import { Chat } from "./screens/Chat";
 import { Create } from "./screens/Create";
 import { DealPage } from "./screens/DealPage";
@@ -8,11 +7,13 @@ import { Handle } from "./screens/Handle";
 import { Home } from "./screens/Home";
 import { Inbox } from "./screens/Inbox";
 import { Join } from "./screens/Join";
+import { Keys } from "./screens/Keys";
 import { Listing } from "./screens/Listing";
 import { Offer } from "./screens/Offer";
 import { Profile } from "./screens/Profile";
 import { Sell } from "./screens/Sell";
 import { Shell } from "./screens/Shell";
+import { NotFound } from "./screens/States";
 import { SignIn } from "./screens/SignIn";
 
 export type Route =
@@ -24,7 +25,8 @@ export type Route =
   | { name: "inbox" }
   | { name: "chat"; dealId: number }
   | { name: "signin" }
-  | { name: "handle" }
+  | { name: "signup" }
+  | { name: "keys" }
   // Test UI from D1-10; the offer flow (MK-24) replaces these.
   | { name: "create" }
   | { name: "deal"; id: number }
@@ -37,7 +39,8 @@ const FIXED: Record<string, Route> = {
   "/sell": { name: "sell" },
   "/inbox": { name: "inbox" },
   "/signin": { name: "signin" },
-  "/handle": { name: "handle" },
+  "/signup": { name: "signup" },
+  "/keys": { name: "keys" },
   "/new": { name: "create" },
   "/demo": { name: "demo" },
 };
@@ -46,7 +49,7 @@ export function parseRoute(path: string): Route {
   const fixed = FIXED[path];
   if (fixed) return fixed;
 
-  // Same characters as account handles (isValidHandle in accounts.ts), so a shop link is always a valid handle.
+  // Same characters as account handles (accounts.ts), so a shop link is always a valid handle.
   const profile = /^\/@([a-z0-9-]{1,32})$/.exec(path);
   if (profile) return { name: "profile", handle: profile[1]! };
 
@@ -65,21 +68,8 @@ export function parseRoute(path: string): Route {
   return { name: "notFound" };
 }
 
-// Part of signing in, so open to everyone.
-const SIGN_IN_ROUTES = new Set<Route["name"]>(["signin", "handle"]);
-// What a Google/email viewer may see; everything else buys, sells or chats and needs a wallet account.
-const BROWSE_ROUTES = new Set<Route["name"]>(["home", "profile", "listing"]);
-
-/** Where a visitor with `access` is sent instead of `route`, or null when they may stay; /signin offers the wallet. */
-export function redirectFor(route: Route, access: Access): string | null {
-  if (access === "trader" || SIGN_IN_ROUTES.has(route.name)) return null;
-  if (access === "viewer" && BROWSE_ROUTES.has(route.name)) return null;
-  return "/signin";
-}
-
-export function navigate(to: string, replace = false): void {
-  if (replace) history.replaceState(null, "", to);
-  else history.pushState(null, "", to);
+export function navigate(to: string): void {
+  history.pushState(null, "", to);
   dispatchEvent(new PopStateEvent("popstate"));
 }
 
@@ -97,10 +87,11 @@ export function Link({ to, className, current, children }: { to: string; classNa
   );
 }
 
+/** The current path plus its query string, so a search from the header re-renders the page. */
 function usePath(): string {
-  const [path, setPath] = useState(location.pathname);
+  const [path, setPath] = useState(location.pathname + location.search);
   useEffect(() => {
-    const onChange = () => setPath(location.pathname);
+    const onChange = () => setPath(location.pathname + location.search);
     addEventListener("popstate", onChange);
     return () => removeEventListener("popstate", onChange);
   }, []);
@@ -108,28 +99,18 @@ function usePath(): string {
 }
 
 export function Router() {
-  const path = usePath();
-  const route = parseRoute(path);
-  const access = currentAccess();
-  const redirect = redirectFor(route, access);
-
-  // Replace, not push, so Back does not return to a page that only bounces again.
-  useEffect(() => {
-    if (redirect) navigate(redirect, true);
-  }, [redirect]);
-  if (redirect) return null;
-
+  const [path = "/", query = ""] = usePath().split("?");
   return (
-    <Shell path={path} signedIn={access !== "none"}>
-      <Page route={route} />
+    <Shell path={path}>
+      <Page route={parseRoute(path)} query={query} />
     </Shell>
   );
 }
 
-function Page({ route }: { route: Route }) {
+function Page({ route, query }: { route: Route; query: string }) {
   switch (route.name) {
     case "home":
-      return <Home />;
+      return <Home key={query} initialQuery={new URLSearchParams(query).get("q") ?? ""} />;
     case "profile":
       return <Profile handle={route.handle} />;
     case "listing":
@@ -144,8 +125,10 @@ function Page({ route }: { route: Route }) {
       return <Chat dealId={route.dealId} />;
     case "signin":
       return <SignIn />;
-    case "handle":
+    case "signup":
       return <Handle />;
+    case "keys":
+      return <Keys />;
     case "create":
       return <Create />;
     case "deal":
@@ -155,6 +138,6 @@ function Page({ route }: { route: Route }) {
     case "demo":
       return <Demo />;
     case "notFound":
-      return <main className="screen"><h1>Not found</h1></main>;
+      return <NotFound />;
   }
 }

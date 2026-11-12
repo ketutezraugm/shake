@@ -1,15 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { isValidHandle, saveAccount } from "../accounts";
-import { loadIdentity } from "../keys";
-
-// Mock chain only: the test UI skips sign-in and makes an account in this browser (real sign-in is screens/SignIn.tsx).
-async function createMockAccount(name: string, storage: Storage): Promise<string> {
-  if (!isValidHandle(name)) throw new Error("use 2-32 lowercase letters, digits or single dashes");
-  loadIdentity(storage);
-  const accountId = `${name}.blind-deal.testnet`;
-  saveAccount(accountId, name, storage);
-  return accountId;
-}
+import { createAccount, isValidName } from "../accounts";
 
 type Props = { onReady: (accountId: string) => void; storage?: Storage };
 
@@ -24,7 +14,7 @@ export function AccountStep({ onReady, storage = localStorage }: Props) {
     setBusy(true);
     setError(null);
     try {
-      onReady(await createMockAccount(name, storage));
+      onReady(await createAccount(name, storage));
     } catch (e) {
       setError((e as Error).message);
       setBusy(false);
@@ -48,7 +38,7 @@ export function AccountStep({ onReady, storage = localStorage }: Props) {
           />
         </label>
         {error && <p className="error">{error}</p>}
-        <button className="primary" disabled={busy || !isValidHandle(name)}>
+        <button className="primary" disabled={busy || !isValidName(name)}>
           Continue
         </button>
       </form>

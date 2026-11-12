@@ -16,7 +16,9 @@ type CardRow = {
   category: Category;
   photo_paths: string[];
   max_rounds: number;
+  asking_price: number;
   status: ListingStatus;
+  reserved_deal_id: number | null;
   created_at: string;
   free_slots: number;
 };
@@ -79,7 +81,9 @@ export function supabaseStore(url: string, serviceKey: string): Store {
     category: row.category,
     photoUrls: row.photo_paths.map(photoUrl),
     maxRounds: row.max_rounds,
+    askingPrice: String(row.asking_price),
     status: row.status,
+    reservedDealId: row.status === "reserved" ? row.reserved_deal_id : null,
     createdAt: row.created_at,
     freeSlots: row.free_slots,
   });
@@ -133,6 +137,7 @@ export function supabaseStore(url: string, serviceKey: string): Store {
             description: req.description,
             category: req.category,
             max_rounds: req.maxRounds,
+            asking_price: req.askingPrice,
           })
           .select("id")
           .single<{ id: string }>(),
@@ -169,11 +174,9 @@ export function supabaseStore(url: string, serviceKey: string): Store {
       return slot ? { dealId: slot.deal_id, linkToken: slot.link_token } : null;
     },
 
-    async accountOfUser(supabaseUserId) {
-      const row = optional(
-        await db.from("profiles").select("account_id, handle").eq("supabase_user_id", supabaseUserId).maybeSingle<{ account_id: string; handle: string }>(),
-      );
-      return row ? { accountId: row.account_id, handle: row.handle } : null;
+    async hasProfileForUser(supabaseUserId) {
+      const row = optional(await db.from("profiles").select("account_id").eq("supabase_user_id", supabaseUserId).maybeSingle());
+      return row !== null;
     },
 
     async handleTaken(handle) {

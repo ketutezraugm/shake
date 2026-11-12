@@ -566,43 +566,187 @@
   color: var(--ink-muted);
 }
 
-.account {
-  position: relative;
+/* Phones show the wordmark and the tab bar; wide screens (Abel's "Desktop" frames) show the logo, search and links. */
+.desktop-only {
+  display: none;
 }
 
-button.pill {
-  cursor: pointer;
-  font-family: inherit;
+.shell {
+  --desk-gutter: clamp(24px, 6vw, 80px);
 }
 
-.account-menu {
-  position: absolute;
-  right: 0;
-  top: calc(100% + var(--space-8));
-  min-width: 200px;
-  padding: var(--space-8);
+.gallery-wrap {
   display: flex;
   flex-direction: column;
   gap: var(--space-8);
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 16px;
-  z-index: 10;
 }
 
-.account-item {
-  min-height: 44px;
-  padding: 0 var(--space-8);
+.listing-layout,
+.listing-info,
+.profile-listings {
   display: flex;
-  align-items: center;
-  background: none;
-  border: 0;
-  border-radius: 12px;
-  font: inherit;
-  font-weight: 700;
-  font-size: var(--text-14);
-  color: var(--ink);
-  text-align: left;
-  text-decoration: none;
-  cursor: pointer;
+  flex-direction: column;
+  gap: var(--space-16);
+}
+
+.listing-media {
+  min-width: 0;
+}
+
+.profile-layout {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+}
+
+@media (min-width: 900px) {
+  .mobile-only {
+    display: none;
+  }
+
+  .desktop-only {
+    display: flex;
+  }
+
+  .shell {
+    max-width: none;
+    padding-bottom: 0;
+  }
+
+  .topbar {
+    height: 80px;
+    padding: 0 var(--desk-gutter);
+    gap: 32px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--line);
+  }
+
+  .brand-logo img {
+    width: 132px;
+    height: auto;
+    display: block;
+  }
+
+  .header-search {
+    flex: 1;
+    max-width: 520px;
+  }
+
+  .header-search label {
+    display: block;
+  }
+
+  .header-search input {
+    width: 100%;
+    height: 48px;
+    padding: 0 20px;
+    border-radius: 999px;
+    background: var(--ground);
+  }
+
+  .desk-nav {
+    margin-left: auto;
+    align-items: center;
+    gap: var(--space-8);
+  }
+
+  .desk-link {
+    min-height: 44px;
+    padding: 0 14px;
+    display: inline-flex;
+    align-items: center;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--ink-muted);
+    text-decoration: none;
+  }
+
+  .desk-link[aria-current="page"] {
+    font-weight: 800;
+    color: var(--ink);
+    text-decoration: underline;
+    text-underline-offset: 6px;
+    text-decoration-thickness: 2px;
+  }
+
+  .tabs {
+    display: none;
+  }
+
+  .page {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 40px var(--desk-gutter);
+    gap: var(--space-24);
+  }
+
+  .page.narrow {
+    max-width: 880px;
+  }
+
+  .search {
+    display: none; /* the header carries the search on a wide screen */
+  }
+
+  .card-hero {
+    padding: 32px 40px;
+  }
+
+  .card-hero h1 {
+    font-size: var(--text-40);
+  }
+
+  .card-hero .sticker {
+    width: 120px;
+    height: 120px;
+  }
+
+  .grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 20px;
+  }
+
+  .listing-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+    gap: 40px;
+    align-items: start;
+  }
+
+  .gallery-wrap:has(.thumbs) {
+    display: grid;
+    grid-template-columns: 88px minmax(0, 1fr);
+    gap: var(--space-12);
+    align-items: start;
+  }
+
+  .gallery-wrap .thumbs {
+    flex-direction: column;
+    order: -1;
+  }
+
+  .thumb {
+    width: 88px;
+    height: 88px;
+  }
+
+  .gallery {
+    aspect-ratio: 4 / 3;
+  }
+
+  .profile-layout {
+    display: grid;
+    grid-template-columns: 340px minmax(0, 1fr);
+    gap: 40px;
+    align-items: start;
+  }
+
+  .profile-layout .grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.card-hero > div {
+  flex: 1;
+  min-width: 0;
 }

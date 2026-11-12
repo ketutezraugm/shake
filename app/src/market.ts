@@ -1,12 +1,6 @@
-import type { Category, Listing, ListingStatus, Question } from "../../relayer/src/types";
+import type { Category, Listing, Question } from "../../relayer/src/types";
 
-// Until MK-12 and MK-15 land these in relayer/src/types.ts: `reserved` status, `askingPrice` and the public shop shape.
-export type ShopListing = Omit<Listing, "status"> & {
-  status: ListingStatus | "reserved";
-  askingPrice: string;
-  /** The deal holding the reservation. Not returned by the relayer yet; without it "another buyer got there first" never shows. */
-  reservedDealId?: number | null;
-};
+export type ShopListing = Listing;
 export type Profile = { handle: string; displayName: string; avatarUrl: string | null; bio: string; city: string };
 /** `GET /profiles/:handle` as proposed to Harfi: open and reserved listings, newest first, plus the sold count. */
 export type Shop = { profile: Profile; listings: ShopListing[]; soldCount: number };

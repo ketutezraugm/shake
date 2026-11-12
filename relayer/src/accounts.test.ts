@@ -84,25 +84,6 @@ describe("POST /accounts", () => {
   });
 });
 
-describe("GET /accounts/me", () => {
-  const me = (token: string | null) =>
-    app.request("/accounts/me", { headers: token ? { authorization: `Bearer ${token}` } : {} });
-
-  it("answers 401 without a valid login", async () => {
-    expect((await me(null)).status).toBe(401);
-    expect((await me("forged")).status).toBe(401);
-  });
-
-  it("answers 404 until the login has an account, then its account id and handle", async () => {
-    expect((await me("token-ann")).status).toBe(404);
-    await signUp({ handle: "ann", publicKey: publicKey() });
-    const response = await me("token-ann");
-    expect(response.status).toBe(200);
-    expect(await response.json()).toEqual({ accountId: "ann.parent.test", handle: "ann" });
-    expect((await me("token-bob")).status).toBe(404);
-  });
-});
-
 describe("nearToYocto", () => {
   it("converts decimal NEAR exactly", () => {
     expect(nearToYocto("1")).toBe(10n ** 24n);

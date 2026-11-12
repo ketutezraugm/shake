@@ -1,3 +1,4 @@
+import type { AuthConfig } from "./auth";
 import type { ChainConfig } from "./signer";
 
 const env = import.meta.env as Record<string, string | undefined>;
@@ -6,10 +7,6 @@ const env = import.meta.env as Record<string, string | undefined>;
 export const relayerUrl = env.VITE_RELAYER_URL;
 export const teePubkey = env.VITE_TEE_PUBKEY;
 
-/** Supabase Auth only (Google and email links); the anon key cannot read marketplace data, which RLS locks to the relayer. */
-export const supabaseUrl = env.VITE_SUPABASE_URL;
-export const supabaseAnonKey = env.VITE_SUPABASE_ANON_KEY;
-
 export const chain: ChainConfig = {
   contractId: env.VITE_CONTRACT_ID ?? "",
   rpcUrl: env.VITE_NEAR_RPC_URL ?? "https://test.rpc.fastnear.com",
@@ -17,3 +14,7 @@ export const chain: ChainConfig = {
 
 // 3 deals take about 15 s; each further one adds 4-6 s of waiting while the seller watches.
 export const SLOTS_AT_PUBLISH = 3;
+
+/** Supabase Auth for Google and email sign-in; undefined runs the app with a stand-in sign-in for local work. */
+export const authConfig: AuthConfig | undefined =
+  env.VITE_SUPABASE_URL && env.VITE_SUPABASE_ANON_KEY ? { url: env.VITE_SUPABASE_URL, anonKey: env.VITE_SUPABASE_ANON_KEY } : undefined;

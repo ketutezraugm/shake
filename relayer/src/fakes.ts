@@ -35,7 +35,7 @@ export class FakeStore implements Store {
   }
 
   private view(listing: Listing): Listing {
-    return { ...listing, freeSlots: this.free(listing.id) };
+    return { ...listing, reservedDealId: listing.status === "reserved" ? (this.reservedDeals.get(listing.id) ?? null) : null, freeSlots: this.free(listing.id) };
   }
 
   async list({ q, category, limit }: Parameters<Store["list"]>[0]) {
@@ -62,6 +62,7 @@ export class FakeStore implements Store {
       ...req,
       photoUrls: [],
       status: "open",
+      reservedDealId: null,
       createdAt: new Date().toISOString(),
       freeSlots: 0,
     };
@@ -90,9 +91,8 @@ export class FakeStore implements Store {
     return { dealId: slot.dealId, linkToken: slot.linkToken };
   }
 
-  async accountOfUser(supabaseUserId: string) {
-    const profile = this.profiles.find((p) => p.supabaseUserId === supabaseUserId);
-    return profile ? { accountId: profile.accountId, handle: profile.handle } : null;
+  async hasProfileForUser(supabaseUserId: string) {
+    return this.profiles.some((p) => p.supabaseUserId === supabaseUserId);
   }
 
   async handleTaken(handle: string) {

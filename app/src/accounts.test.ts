@@ -1,80 +1,82 @@
 // @vitest-environment jsdom
-import { KeyPair } from "near-api-js";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { claimHandle, currentAccess, currentAccount, currentHandle, handleOf, isValidHandle, markViewer, signOut } from "./accounts";
-import { keySigner } from "./signer";
+import { currentAccount, exportBackup, handleSuggestions, importBackup, isHandleTaken, isValidHandle, openAccount } from "./accounts";
+import { loadIdentity } from "./keys";
 
-const RELAYER = "http://relayer.test";
-type Call = { url: string; init: RequestInit };
-let calls: Call[];
-
-function relayerAnswers(status: number, body: object) {
-  vi.stubGlobal("fetch", async (url: string, init: RequestInit = {}) => {
-    calls.push({ url, init });
-    return new Response(JSON.stringify(body), { status });
-  });
+function fakeStorage(): Storage {
+  const data = new Map<string, string>();
+  return {
+    get length() {
+      return data.size;
+    },
+    clear: () => data.clear(),
+    getItem: (key) => data.get(key) ?? null,
+    key: (index) => [...data.keys()][index] ?? null,
+    removeItem: (key) => void data.delete(key),
+    setItem: (key, value) => void data.set(key, value),
+  };
 }
 
-beforeEach(() => {
-  calls = [];
-  localStorage.clear();
-});
-afterEach(() => vi.unstubAllGlobals());
+describe("accounts", () => {
+  beforeEach(() => localStorage.clear());
+  afterEach(() => vi.unstubAllGlobals());
 
-describe("isValidHandle", () => {
-  it("matches the relayer's rule: 2-32 lowercase letters and digits, single dashes inside", () => {
-    for (const ok of ["ab", "dita-jogja", "a1", "x".repeat(32)]) expect(isValidHandle(ok)).toBe(true);
-    for (const bad of ["a", "-ab", "ab-", "a--b", "Ab", "a.b", "x".repeat(33), ""]) expect(isValidHandle(bad)).toBe(false);
-  });
-});
-
-describe("wallet users", () => {
-  const signer = () => keySigner("alice.testnet", KeyPair.fromRandom("ed25519").toString(), { contractId: "c.testnet", rpcUrl: "http://rpc.test" });
-
-  it("finds the handle of an account with a profile, null without one", async () => {
-    relayerAnswers(200, { handle: "alice" });
-    expect(await handleOf(RELAYER, signer())).toBe("alice");
-    relayerAnswers(404, { error: "no profile yet" });
-    expect(await handleOf(RELAYER, signer())).toBeNull();
+  it("accepts the relayer's handles and nothing else", () => {
+    expect(["dita", "dita-shop", "a1"].every(isValidHandle)).toBe(true);
+    expect(["a", "-dita", "dita-", "di--ta", "Dita", "di.ta"].some(isValidHandle)).toBe(false);
   });
 
-  it("claims the handle with a signed PUT and remembers it", async () => {
-    relayerAnswers(200, { handle: "alice" });
-
-    await claimHandle(RELAYER, signer(), "alice");
-
-    const [call] = calls;
-    expect(call?.init.method).toBe("PUT");
-    expect(call?.url).toBe(`${RELAYER}/me/profile`);
-    expect(JSON.parse(String(call?.init.body))).toMatchObject({ handle: "alice", displayName: "", avatarUrl: null });
-    expect(currentAccount()).toBe("alice.testnet");
-    expect(currentHandle()).toBe("alice");
+  it("suggests valid handles, shortening a long one to fit", () => {
+    expect(handleSuggestions("dita")).toEqual(["dita-shop", "dita-preloved"]);
+    expect(handleSuggestions("a".repeat(32)).every(isValidHandle)).toBe(true);
   });
-});
 
-describe("currentAccess", () => {
-  it("is none when signed out, viewer after a Google/email login, trader once a wallet account has a handle", async () => {
-    expect(currentAccess()).toBe("none");
-    markViewer();
-    expect(currentAccess()).toBe("viewer");
+  it("opens an account with the login token and only the public key", async () => {
+    const calls: { url: string; init: RequestInit }[] = [];
+    vi.stubGlobal("fetch", async (url: string, init: RequestInit) => {
+      calls.push({ url, init });
+      return new Response(JSON.stringify({ accountId: "dita.app.testnet" }));
+    });
 
-    relayerAnswers(200, { handle: "alice" });
-    await claimHandle(RELAYER, keySigner("alice.testnet", KeyPair.fromRandom("ed25519").toString(), { contractId: "c.testnet", rpcUrl: "http://rpc.test" }), "alice");
-    expect(currentAccess()).toBe("trader");
+    const account = await openAccount("http://relayer", "jwt-123", "dita");
+
+    expect(account).toBe("dita.app.testnet");
+    expect(currentAccount()).toBe("dita.app.testnet");
+    expect((calls[0]?.init.headers as Record<string, string>).authorization).toBe("Bearer jwt-123");
+    const body = String(calls[0]?.init.body);
+    expect(JSON.parse(body)).toEqual({ handle: "dita", publicKey: loadIdentity().publicKey });
+    expect(body).not.toContain(String(localStorage.getItem("blind-deal:key")).replace(/^ed25519:/, ""));
   });
-});
 
-describe("signOut", () => {
-  it("forgets the account, the handle, the viewer login and any wallet session", () => {
-    localStorage.setItem("blind-deal:account", "alice.testnet");
-    localStorage.setItem("blind-deal:handle", "alice");
-    markViewer();
-    localStorage.setItem("blind-deal:wallet-session", JSON.stringify({ accountId: "alice.testnet", secretKey: "ed25519:x" }));
+  it("tells a taken handle from other refusals", async () => {
+    vi.stubGlobal("fetch", async () => new Response(JSON.stringify({ error: "that handle is taken" }), { status: 409 }));
+    const taken = await openAccount("http://relayer", "jwt", "dita").catch((e: unknown) => e);
 
-    signOut();
+    vi.stubGlobal("fetch", async () => new Response(JSON.stringify({ error: "this login already has an account" }), { status: 409 }));
+    const second = await openAccount("http://relayer", "jwt", "dita").catch((e: unknown) => e);
 
-    expect(currentAccess()).toBe("none");
-    expect(currentHandle()).toBeNull();
-    expect(localStorage.getItem("blind-deal:wallet-session")).toBeNull();
+    expect(isHandleTaken(taken)).toBe(true);
+    expect(isHandleTaken(second)).toBe(false);
+  });
+
+  it("moves an account to another device with one backup key", () => {
+    const here = fakeStorage();
+    here.setItem("blind-deal:account", "dita.app.testnet");
+    const there = fakeStorage();
+
+    const account = importBackup(exportBackup(here), there);
+
+    expect(account).toBe("dita.app.testnet");
+    expect(currentAccount(there)).toBe("dita.app.testnet");
+    expect(loadIdentity(there).publicKey).toBe(loadIdentity(here).publicKey);
+  });
+
+  it("refuses a backup key that is cut short or not a key", () => {
+    expect(() => importBackup("ed25519:abc", fakeStorage())).toThrow("looks incomplete");
+    expect(() => importBackup("dita.app.testnet:not-a-key", fakeStorage())).toThrow("not a valid key");
+  });
+
+  it("will not export before there is an account", () => {
+    expect(() => exportBackup(fakeStorage())).toThrow("sign in first");
   });
 });

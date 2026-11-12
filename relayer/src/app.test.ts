@@ -43,7 +43,7 @@ function chainDeal(id: number, seller: string, token: string, patch: Partial<Cha
   return { id, seller, buyer: null, link_hash, max_rounds: 2, round: 1, state: "Waiting", ...patch };
 }
 
-const listingBody = { title: "Used bike", description: "Works fine", category: "vehicles", maxRounds: 2 };
+const listingBody = { title: "Used bike", description: "Works fine", category: "vehicles", maxRounds: 2, askingPrice: "1500000" };
 
 async function newListing(seller: Person): Promise<Listing> {
   const { json } = await call(seller, "POST", "/listings", listingBody);
@@ -181,6 +181,26 @@ describe("claim", () => {
   });
 });
 
+describe("asking price", () => {
+  it("create_listing_requires_asking_price", async () => {
+    const seller = person("ann.test");
+    expect((await call(seller, "POST", "/listings", { ...listingBody, askingPrice: undefined })).status).toBe(400);
+    for (const askingPrice of ["0", "01", "1.5", "-5", "1,000", "", 1500000, "9007199254740992"]) {
+      expect((await call(seller, "POST", "/listings", { ...listingBody, askingPrice })).status).toBe(400);
+    }
+    expect((await call(seller, "POST", "/listings", { ...listingBody, askingPrice: "9007199254740991" })).status).toBe(201);
+  });
+
+  it("listing_responses_carry_asking_price", async () => {
+    const seller = person("ann.test");
+    const created = await call(seller, "POST", "/listings", listingBody);
+    expect(created.json.askingPrice).toBe("1500000");
+    expect((await call(null, "GET", `/listings/${created.json.id}`)).json.askingPrice).toBe("1500000");
+    expect((await call(null, "GET", "/listings")).json.listings[0].askingPrice).toBe("1500000");
+    expect((await call(seller, "GET", "/me/listings")).json[0].askingPrice).toBe("1500000");
+  });
+});
+
 describe("sync", () => {
   async function listingWithDeals(count: number) {
     const seller = person("ann.test");
@@ -200,6 +220,18 @@ describe("sync", () => {
     setDeal(1, { state: "Matched" });
     expect(await sync(listing)).toBe("reserved");
     expect((await call(null, "GET", "/listings")).json.listings).toHaveLength(0);
+  });
+
+  it("returns the reserving deal on the listing while it is reserved, and null otherwise", async () => {
+    const listing = await listingWithDeals(2);
+    const read = async () => (await call(null, "GET", `/listings/${listing.id}`)).json.reservedDealId;
+    expect(await read()).toBeNull();
+    setDeal(2, { state: "Matched" });
+    expect((await call(null, "POST", `/listings/${listing.id}/sync`)).json.reservedDealId).toBe(2);
+    expect(await read()).toBe(2);
+    setDeal(2, { state: "Released" });
+    expect((await call(null, "POST", `/listings/${listing.id}/sync`)).json.reservedDealId).toBeNull();
+    expect(await read()).toBeNull();
   });
 
   it("sells the listing once a deal is released", async () => {
@@ -272,16 +304,6 @@ describe("profiles", () => {
 
     const edited = await call(wallet, "PUT", "/me/profile", { ...profileBody, handle: "other", city: "Bali" });
     expect(edited.json).toMatchObject({ handle: "alice", city: "Bali" });
-  });
-
-  it("returns the caller's own profile, or 404 before one exists", async () => {
-    const wallet = person("alice.testnet");
-    expect((await call(wallet, "GET", "/me/profile")).status).toBe(404);
-    await call(wallet, "PUT", "/me/profile", { ...profileBody, handle: "alice" });
-    const own = await call(wallet, "GET", "/me/profile");
-    expect(own.status).toBe(200);
-    expect(own.json).toMatchObject({ handle: "alice" });
-    expect((await call(null, "GET", "/me/profile")).status).toBe(401);
   });
 
   it("refuses a handle another account already holds", async () => {
@@ -374,6 +396,25 @@ describe("inbox", () => {
     const { json } = await call(seller, "GET", "/me/inbox");
     expect(json.roundsWaiting).toEqual([{ listingId: listing.id, title: "Used bike", dealId: 1, round: 2 }]);
     expect((await call(buyer, "GET", "/me/inbox")).json.roundsWaiting).toEqual([]);
+  });
+
+  it("inbox_keeps_the_round_request_after_the_buyer_raises_first", async () => {
+    const seller = person("seller.testnet");
+    const buyer = person("buyer.testnet");
+    const listing = await newListing(seller);
+    await store.addSlots(listing.id, [
+      { dealId: 1, linkToken: "a" },
+      { dealId: 2, linkToken: "b" },
+    ]);
+    await store.claim(listing.id, buyer.account);
+    await store.claim(listing.id, person("other.testnet").account);
+    // Deal 1: the buyer already submitted round 2, so the chain says Waiting, but the seller's round-2 limit is still missing.
+    near.deals.set(1, chainDeal(1, seller.account, "a", { buyer: buyer.account, state: "Waiting", round: 2, seller_cts: [{}] }));
+    // Deal 2: round 1, the seller's only limit is in, so nothing is owed.
+    near.deals.set(2, chainDeal(2, seller.account, "b", { buyer: "other.testnet", state: "Waiting", round: 1, seller_cts: [{}] }));
+
+    const { json } = await call(seller, "GET", "/me/inbox");
+    expect(json.roundsWaiting).toEqual([{ listingId: listing.id, title: "Used bike", dealId: 1, round: 2 }]);
   });
 
   it("lists unanswered questions for the seller and matches for both sides, with unread messages", async () => {

@@ -1,181 +1,136 @@
 import { useEffect, useState, type FormEvent } from "react";
-import { currentAccess, currentHandle, finishWalletSignIn, markViewer } from "../accounts";
-import { accessToken, authConfigured, sendEmailLink, signInWithGoogle } from "../auth";
-import { chain, relayerUrl } from "../config";
-import { Link, navigate } from "../routes";
-import { leave } from "../session";
-import { disconnectWallet, nearConnector } from "../wallet";
-import { connectWallet, WrongNetworkError } from "../walletSigner";
+import { currentAccount } from "../accounts";
+import { errorFromHash, googleSignInUrl, saveSession, sendEmailLink, sessionFromHash } from "../auth";
+import { authConfig, chain } from "../config";
 import backIcon from "../design/assets/icons/back.svg";
-import handUnderCloth from "../design/assets/stickers/hand-under-cloth.svg";
+import checkIcon from "../design/assets/icons/check.svg";
+import shakeMark from "../design/assets/logo/shake-mark.svg";
+import { Link, navigate } from "../routes";
+import { signInWithWallet } from "../wallet";
 
-async function leaveAndReturn() {
-  await leave();
-  navigate("/signin");
-}
+type WalletState = "idle" | "connecting" | "rejected";
 
+// Without a Supabase project there is no email to send, so local work signs in with a short-lived stand-in token.
+const STAND_IN_HOUR = 60 * 60 * 1000;
+
+/** Frame "Sign in": Google, an email link, or a NEAR wallet; a new login then picks a shop handle. */
 export function SignIn() {
-  const handle = currentHandle();
-  if (handle) return <SignedIn handle={handle} />;
-  if (!relayerUrl || !authConfigured) {
-    return (
-      <main className="screen">
-        <h1 className="headline">Sign in to Shake</h1>
-        <p className="error" role="alert">
-          Sign-in needs VITE_RELAYER_URL, VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in the app's environment.
-        </p>
-      </main>
-    );
-  }
-  if (currentAccess() === "viewer") return <Viewer relayerUrl={relayerUrl} />;
-  return <SignInForm relayerUrl={relayerUrl} />;
-}
-
-function SignedIn({ handle }: { handle: string }) {
-  return (
-    <main className="screen">
-      <h1 className="headline">You are signed in</h1>
-      <p className="muted">
-        As <Link to={`/@${handle}`}>@{handle}</Link>.
-      </p>
-      <button className="outline-button" onClick={() => void leaveAndReturn()}>Sign out</button>
-    </main>
-  );
-}
-
-/** A Google/email login can browse; this is where it is sent to connect a wallet before buying or selling. */
-function Viewer({ relayerUrl }: { relayerUrl: string }) {
-  return (
-    <main className="screen">
-      <img className="sticker" src={handUnderCloth} alt="" width={72} height={72} />
-      <h1 className="headline">Connect a NEAR wallet to buy or sell</h1>
-      <p className="muted">Your Google or email sign-in lets you browse. Offers, payments and your shop run on NEAR, so they need a wallet.</p>
-      <ConnectWallet relayerUrl={relayerUrl} />
-      <Link to="/" className="outline-button">Keep browsing</Link>
-      <button className="outline-button" onClick={() => void leaveAndReturn()}>Sign out</button>
-    </main>
-  );
-}
-
-type Wallet = "idle" | "connecting" | "declined";
-
-function ConnectWallet({ relayerUrl }: { relayerUrl: string }) {
-  const [wallet, setWallet] = useState<Wallet>("idle");
-  const [error, setError] = useState<string | null>(null);
-
-  async function connect() {
-    setError(null);
-    setWallet("connecting");
-    let session;
-    try {
-      session = await connectWallet(await nearConnector(), chain);
-    } catch (e) {
-      if (e instanceof WrongNetworkError) {
-        // Drop the mainnet login so the next attempt opens the wallet fresh instead of reusing it.
-        await disconnectWallet();
-        setError(e.message);
-        setWallet("idle");
-        return;
-      }
-      // A closed or refused popup is a choice, not a failure worth an error message.
-      setWallet("declined");
-      return;
-    }
-    try {
-      const handle = await finishWalletSignIn(relayerUrl, session);
-      navigate(handle ? `/@${handle}` : "/handle");
-    } catch (e) {
-      setError((e as Error).message);
-      setWallet("idle");
-    }
-  }
-
-  return (
-    <>
-      <button className="outline-button" disabled={wallet === "connecting"} onClick={() => void connect()}>
-        Connect NEAR wallet
-      </button>
-      {wallet === "connecting" && <p role="status">Connecting… Approve in your wallet.</p>}
-      {wallet === "declined" && <p role="status">Not connected. You said no in the wallet. Try again?</p>}
-      {error && <p className="error" role="alert">{error}</p>}
-    </>
-  );
-}
-
-function SignInForm({ relayerUrl }: { relayerUrl: string }) {
   const [email, setEmail] = useState("");
-  const [linkSentTo, setLinkSentTo] = useState<string | null>(null);
-  const [finishing, setFinishing] = useState(false);
+  const [sentTo, setSentTo] = useState<string | null>(null);
+  const [wallet, setWallet] = useState<WalletState>("idle");
   const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const redirectTo = `${location.origin}/signin`;
 
-  // Google and the email link both land back here with a Supabase login, which only unlocks browsing.
+  // Google and the email link both send the browser back here with the session (or an error) after the `#`.
   useEffect(() => {
-    let live = true;
-    void accessToken().then((token) => {
-      if (!token || !live) return;
-      setFinishing(true);
-      markViewer();
+    const session = sessionFromHash(location.hash);
+    if (session) {
+      saveSession(session);
+      history.replaceState(null, "", location.pathname);
+      navigate("/signup");
+    } else if (errorFromHash(location.hash)) {
+      setError(errorFromHash(location.hash));
+    } else if (currentAccount()) {
       navigate("/");
-    });
-    return () => {
-      live = false;
-    };
+    }
   }, []);
 
-  async function google() {
-    setError(null);
-    try {
-      await signInWithGoogle();
-    } catch (e) {
-      setError((e as Error).message);
-    }
+  function standIn() {
+    saveSession({ accessToken: "stand-in", expiresAt: Date.now() + STAND_IN_HOUR });
+    navigate("/signup");
   }
 
-  async function emailLink(event: FormEvent) {
+  async function sendLink(event: FormEvent) {
     event.preventDefault();
+    if (!authConfig) return standIn();
+    setBusy(true);
     setError(null);
     try {
-      await sendEmailLink(email.trim());
-      setLinkSentTo(email.trim());
+      await sendEmailLink(authConfig, email.trim(), redirectTo);
+      setSentTo(email.trim());
     } catch (e) {
       setError((e as Error).message);
     }
+    setBusy(false);
   }
 
-  if (finishing) {
-    return (
-      <main className="screen">
-        <h1 className="headline">Signing you in…</h1>
-        <p className="muted" role="status">This takes a few seconds.</p>
-      </main>
-    );
+  function google() {
+    if (!authConfig) return standIn();
+    location.assign(googleSignInUrl(authConfig, redirectTo));
+  }
+
+  async function connectWallet() {
+    setWallet("connecting");
+    try {
+      await signInWithWallet();
+      navigate("/signup");
+    } catch {
+      setWallet("rejected");
+    }
   }
 
   return (
-    <main className="screen">
+    <main className="page auth-page">
       <Link to="/" className="pill">
         <img src={backIcon} alt="" width={16} height={16} /> Back
       </Link>
-      <img className="sticker" src={handUnderCloth} alt="" width={72} height={72} />
-      <h1 className="headline">Sign in to Shake</h1>
-      <p className="muted">Browse with Google or email. Make offers, open your shop and chat with a NEAR wallet.</p>
 
-      <button className="primary" onClick={() => void google()}>Continue with Google</button>
+      <div className="auth-head">
+        <h1 className="headline">Sign in to Shake</h1>
+        <img className="sticker" src={shakeMark} alt="" width={72} height={72} style={{ transform: "rotate(6deg)" }} />
+      </div>
+      <p className="muted">Make offers, open your shop, chat after a deal.</p>
 
-      <form className="panel" onSubmit={(e) => void emailLink(e)}>
+      <button className="primary big" onClick={google} disabled={busy}>
+        Continue with Google
+      </button>
+
+      <form className="auth-email" onSubmit={sendLink}>
         <label>
           Or use your email
-          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" required />
+          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" required disabled={busy} />
         </label>
-        <button className="outline-button" disabled={!email}>Email me a sign-in link</button>
-        {linkSentTo && <p role="status">Link sent to {linkSentTo}. Open it on this device.</p>}
+        <button className="outline-button" disabled={busy || !email}>
+          Email me a sign-in link
+        </button>
       </form>
 
-      <p className="muted">To buy or sell</p>
-      <ConnectWallet relayerUrl={relayerUrl} />
+      {sentTo && (
+        <p className="status-box ok" role="status">
+          <img src={checkIcon} alt="" width={20} height={20} />
+          Link sent to {sentTo}. Open it on this phone.
+        </p>
+      )}
+      {error && (
+        <p className="error" role="alert">
+          {error}
+        </p>
+      )}
+      {!authConfig && <p className="hint">Local mode: no Supabase project is set, so signing in skips the email.</p>}
 
-      {error && <p className="error" role="alert">{error}</p>}
-      <p className="muted">Testnet only.</p>
+      <p className="auth-divider" aria-hidden="true">
+        <span />
+        Already use NEAR?
+        <span />
+      </p>
+
+      <button className="outline-button" onClick={() => void connectWallet()} disabled={!chain.contractId || wallet === "connecting"}>
+        Connect NEAR wallet
+      </button>
+      {!chain.contractId && <p className="hint">Wallet sign-in needs VITE_CONTRACT_ID in the app's environment.</p>}
+      {wallet === "connecting" && (
+        <p className="status-box" role="status">
+          <b>Connecting…</b> Approve in your wallet.
+        </p>
+      )}
+      {wallet === "rejected" && (
+        <p className="status-box bad" role="alert">
+          <b>Not connected.</b> You said no in the wallet. Try again?
+        </p>
+      )}
+
+      <p className="hint auth-foot">No crypto needed. We set up your account behind the scenes. Testnet only.</p>
     </main>
   );
 }

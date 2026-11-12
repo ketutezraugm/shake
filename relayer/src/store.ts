@@ -31,8 +31,7 @@ export interface Store {
   slotsOf(id: string): Promise<SlotRow[]>;
   /** The buyer's existing slot, a newly claimed one, or null when the listing is full. */
   claim(id: string, buyer: string): Promise<ClaimRes | null>;
-  /** The account a Supabase login owns, or null before it has opened one. */
-  accountOfUser(supabaseUserId: string): Promise<{ accountId: string; handle: string } | null>;
+  hasProfileForUser(supabaseUserId: string): Promise<boolean>;
   handleTaken(handle: string): Promise<boolean>;
   /** Throws a 409 HttpError when the handle or the user already has a profile. */
   createProfile(profile: NewProfile): Promise<void>;

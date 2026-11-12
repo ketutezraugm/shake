@@ -21,14 +21,6 @@ export function formatRp(digits: string): string {
 // Same demo rate as the contract's RP_PER_NEAR: 1 NEAR = Rp 100,000,000.
 const YOCTO_PER_RP = 10n ** 16n;
 
-const YOCTO_PER_CENTI_NEAR = 10n ** 22n;
-
-/** A yoctoNEAR amount as NEAR with two decimals, rounded down so it never shows more than the wallet holds. */
-export function nearFromYocto(yocto: string): string {
-  const cents = BigInt(yocto) / YOCTO_PER_CENTI_NEAR;
-  return `${cents / 100n}.${(cents % 100n).toString().padStart(2, "0")}`;
-}
-
 /** A contract price (yoctoNEAR string) as grouped Rupiah digits. */
 export function rpFromYocto(yocto: string): string {
   return groupThousands((BigInt(yocto) / YOCTO_PER_RP).toString());
