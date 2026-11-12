@@ -1,4 +1,4 @@
-# PRD: Blind deal (working title)
+# PRD: Shake (formerly Blind deal)
 
 Deadline 2026-11-14T23:59Z (hard wall, buffer only). Feature freeze 2026-11-14 00:00 UTC. Submit by 12:00 UTC 11-14. Decisions come from BUILD-BRIEF.md and, for the marketplace pivot, docs/superpowers/specs/2026-11-12-marketplace-pivot-design.md (Revision B wins); this file does not change them.
 

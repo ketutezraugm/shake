@@ -1,4 +1,4 @@
-# Blind deal (working name)
+# Shake (formerly Blind deal)
 
 NEAR HACKATHON 2026 entry. A second-hand marketplace (seller profiles linked from social bios, listings with photos, an AI product assistant, public Q&A, chat after a deal) where every listing shows an asking price and the seller seals their real floor below it; each buyer makes a blind offer; code in a TEE (OutLayer) compares them; if they overlap, the deal closes at a random price inside the overlap, otherwise the buyer sees only "no deal". Up to 3 private rounds per buyer, chosen by the seller. The buyer pays into a NEAR escrow contract released on "Received". Marketplace data lives in Supabase, reached only through the relayer; money and sealed limits stay on the unchanged contract, with up to 10 pre-created deals ("slots") per listing. Sign-in: Google/email or a NEAR wallet. Testnet only.
 
