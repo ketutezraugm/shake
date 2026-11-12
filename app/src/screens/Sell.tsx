@@ -20,7 +20,7 @@ export function Sell() {
   const account = currentAccount();
   if (!account) {
     return (
-      <main className="screen">
+      <main className="page">
         <h1 className="headline">Sell something</h1>
         <p className="muted">
           <Link to="/signin">Sign in</Link> first so your listing has a seller account.
@@ -30,7 +30,7 @@ export function Sell() {
   }
   if (!relayerUrl) {
     return (
-      <main className="screen">
+      <main className="page">
         <h1 className="headline">Sell something</h1>
         <p className="error" role="alert">
           Selling needs VITE_RELAYER_URL in the app's environment.
@@ -84,11 +84,11 @@ function SellForm({ account, relayerUrl }: FormProps) {
   }
 
   return (
-    <main className="screen">
+    <main className="page">
       <h1 className="headline">Sell something</h1>
       <p className="muted">Signed in as {account}</p>
 
-      <form className="panel" onSubmit={submit}>
+      <form className="flow-card" onSubmit={submit}>
         <label>
           What are you selling?
           <input value={title} onChange={(e) => setTitle(e.target.value)} maxLength={100} required disabled={busy} />
@@ -161,7 +161,7 @@ function SellForm({ account, relayerUrl }: FormProps) {
         {error && <p className="error" role="alert">{error}</p>}
         {busy && <p className="muted" role="status">{progressText(step)}</p>}
         <button className="primary" disabled={busy || title.trim() === "" || askingPrice === "" || minimum === ""}>
-          Publish listing
+          Seal and publish
         </button>
       </form>
     </main>

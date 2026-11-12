@@ -1,0 +1,377 @@
+/* Offer, sell, inbox and chat screens, from Abel's frames 7-13. Tokens only; animation moves transform and opacity only. */
+
+.item-line {
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: var(--space-12);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-panel);
+}
+
+.item-line .thumb-box {
+  flex: none;
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-field);
+  background: var(--sky-tint);
+}
+
+.item-line p {
+  font-size: 13px;
+  color: var(--ink-muted);
+}
+
+.item-line strong {
+  display: block;
+  font-size: 15px;
+  color: var(--ink);
+}
+
+.corner-sticker {
+  position: absolute;
+  top: -18px;
+  right: 16px;
+  transform: rotate(6deg);
+}
+
+.flow-card {
+  position: relative;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-hero);
+}
+
+.flow-card h2 {
+  margin: 0;
+  font-size: var(--text-20);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.eyebrow {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-muted);
+}
+
+.amount-field {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-8);
+  padding: 0 16px;
+  min-height: 64px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-field);
+  background: var(--surface);
+}
+
+.amount-field span {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--ink-muted);
+}
+
+.amount-field input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  padding: 0;
+  font-size: 32px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+  background: transparent;
+}
+
+.amount-field input:focus {
+  outline: none;
+}
+
+.amount-field:focus-within {
+  border-color: var(--ink);
+}
+
+.big-amount {
+  font-size: 48px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+  font-variant-numeric: tabular-nums;
+}
+
+.big-amount small {
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.deal-price {
+  color: var(--deal);
+}
+
+.primary.big {
+  min-height: 56px;
+  font-size: var(--text-17);
+}
+
+.link-button {
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-8);
+  background: none;
+  border: 0;
+  font: inherit;
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--ink);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.reveal {
+  position: relative;
+  margin-top: 72px;
+  padding: 32px 24px 28px;
+  text-align: center;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-hero);
+}
+
+.reveal .cocok {
+  margin-top: var(--space-8);
+  font-size: var(--text-17);
+  font-weight: 700;
+  color: var(--deal);
+}
+
+.reveal h1 {
+  margin: var(--space-4) 0 0;
+  font-size: var(--text-40);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+}
+
+.reveal .big-amount {
+  margin-top: var(--space-16);
+}
+
+.reveal p.note {
+  margin-top: var(--space-16);
+  font-size: 15px;
+}
+
+.reveal-sticker {
+  display: block;
+  width: 150px;
+  height: 150px;
+  margin: -96px auto 0;
+  transform: rotate(-4deg);
+  filter: var(--shadow-sticker);
+  animation: pop-in var(--dur-pop) var(--ease-pop) both;
+}
+
+.reveal-card {
+  animation: handshake var(--dur-handshake) var(--ease-handshake) var(--handshake-delay) both;
+}
+
+.confetti {
+  position: absolute;
+  border-radius: 999px;
+}
+
+.confetti.a { top: 28px; left: 28px; width: 12px; height: 12px; background: var(--sun); }
+.confetti.b { top: 64px; right: 30px; width: 10px; height: 10px; background: var(--sky); }
+.confetti.c { bottom: 92px; left: 22px; width: 9px; height: 9px; background: var(--pink); }
+.confetti.d { bottom: 120px; right: 24px; width: 12px; height: 12px; background: var(--coral); }
+
+.steps-row {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-8);
+  font-size: 13px;
+  text-align: center;
+}
+
+.steps-row li {
+  padding: 10px 6px;
+  border-radius: var(--radius-field);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  color: var(--ink-muted);
+  font-weight: 600;
+}
+
+.steps-row li.done {
+  background: var(--mint);
+  border-color: var(--mint);
+  color: var(--mint-ink);
+  font-weight: 700;
+}
+
+.steps-row li.now {
+  border: 2px solid var(--ink);
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.info-card {
+  padding: 16px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-panel);
+  font-size: 14px;
+}
+
+.info-card b {
+  display: block;
+}
+
+.info-card p {
+  margin-top: var(--space-4);
+  color: var(--ink-muted);
+}
+
+.inbox-card {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-panel);
+}
+
+.inbox-card.attention {
+  background: var(--sun-tint);
+  border-color: var(--sun-tint);
+}
+
+.inbox-card h2 {
+  margin: 0;
+  font-size: var(--text-16);
+  font-weight: 800;
+}
+
+.tag {
+  align-self: flex-start;
+  height: 24px;
+  padding: 0 10px;
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  background: var(--sky-tint);
+  color: var(--sky-ink);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.actions {
+  display: flex;
+  gap: var(--space-8);
+  flex-wrap: wrap;
+}
+
+.chat-head {
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: var(--space-12);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-panel);
+}
+
+.chat-head .avatar {
+  width: 44px;
+  height: 44px;
+  font-size: var(--text-17);
+}
+
+.bubbles {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+.bubble {
+  max-width: 80%;
+  padding: 10px 14px;
+  border-radius: 18px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  align-self: flex-start;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.bubble.mine {
+  align-self: flex-end;
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--ground);
+}
+
+.composer {
+  display: flex;
+  gap: var(--space-8);
+}
+
+.composer input {
+  flex: 1;
+  min-width: 0;
+  border-radius: 999px;
+  padding: 0 16px;
+}
+
+.composer .primary {
+  min-height: var(--touch-min);
+}
+
+@keyframes pop-in {
+  0% { opacity: 0; transform: scale(0.55) rotate(-10deg); }
+  45% { opacity: 1; transform: scale(1.08) rotate(6deg); }
+  62% { transform: scale(0.97) rotate(-4deg); }
+  78% { transform: scale(1.01) rotate(2deg); }
+  90% { transform: rotate(-1deg); }
+  100% { opacity: 1; transform: rotate(-4deg); }
+}
+
+@keyframes handshake {
+  0%, 100% { transform: none; }
+  15% { transform: translateY(-10px); }
+  32% { transform: translateY(8px); }
+  50% { transform: translateY(-6px); }
+  68% { transform: translateY(3px); }
+  84% { transform: translateY(-1px); }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Tokens already shorten the durations; the pop becomes a plain fade and the handshake stops. */
+@media (prefers-reduced-motion: reduce) {
+  .reveal-sticker {
+    animation: fade-in var(--dur-pop) both;
+  }
+
+  .reveal-card {
+    animation: none;
+  }
+}

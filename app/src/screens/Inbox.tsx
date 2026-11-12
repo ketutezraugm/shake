@@ -14,7 +14,7 @@ export function Inbox() {
   const account = currentAccount();
   if (!account) {
     return (
-      <main className="screen">
+      <main className="page">
         <h1 className="headline">Inbox</h1>
         <p className="muted"><Link to="/signin">Sign in</Link> to see your inbox.</p>
       </main>
@@ -22,7 +22,7 @@ export function Inbox() {
   }
   if (!relayerUrl) {
     return (
-      <main className="screen">
+      <main className="page">
         <h1 className="headline">Inbox</h1>
         <p className="muted">The inbox needs VITE_RELAYER_URL in the app's environment.</p>
       </main>
@@ -51,15 +51,24 @@ function InboxFor({ account, relayerUrl }: { account: string; relayerUrl: string
     return () => clearInterval(timer);
   }, []);
 
-  if (!inbox) return <main className="screen"><h1 className="headline">Inbox</h1>{error ? <p className="error" role="alert">{error}</p> : <p className="muted">Loading…</p>}</main>;
+  if (!inbox) {
+    return (
+      <main className="page">
+        <h1 className="headline">Inbox</h1>
+        {error ? <p className="error" role="alert">{error}</p> : <p className="muted">Loading…</p>}
+      </main>
+    );
+  }
 
   const count = badgeCount(inbox);
   const empty = inbox.questions.length + inbox.roundsWaiting.length + inbox.matches.length + inbox.newMessages.length === 0;
 
   return (
-    <main className="screen">
-      <h1 className="headline">Inbox</h1>
-      <p className="muted">{count > 0 ? `${count} new` : "All caught up"}</p>
+    <main className="page">
+      <div className="section-head">
+        <h1 className="headline">Inbox</h1>
+        <span className="num muted">{count > 0 ? `${count} new` : "All caught up"}</span>
+      </div>
       {error && <p className="error" role="alert">{error}</p>}
       {empty && <p className="muted">Nothing yet. Questions, offers and deals land here.</p>}
 
@@ -87,10 +96,11 @@ function InboxFor({ account, relayerUrl }: { account: string; relayerUrl: string
       ))}
 
       {inbox.matches.map((m) => (
-        <section className="panel" key={m.dealId}>
-          <h2>Deal · {m.state}</h2>
-          <p>
-            {m.title} · {m.role === "seller" ? "buyer" : "seller"} {m.counterparty}
+        <section className="inbox-card" key={m.dealId}>
+          <span className="tag">Deal · {m.state}</span>
+          <h2>{m.title}</h2>
+          <p className="muted">
+            {m.role === "seller" ? "Buyer" : "Seller"}: {m.counterparty}
           </p>
           <p>
             <Link to={`/chat/${m.dealId}`}>Message</Link>
@@ -100,15 +110,14 @@ function InboxFor({ account, relayerUrl }: { account: string; relayerUrl: string
       ))}
 
       {inbox.newMessages.length > 0 && (
-        <section aria-label="New messages">
-          <h2>New messages</h2>
-          <ul>
-            {inbox.newMessages.map((m) => (
-              <li key={m.id}>
-                <Link to={`/chat/${m.dealId}`}>{m.senderAccount}</Link>: {m.body}
-              </li>
-            ))}
-          </ul>
+        <section className="stack" aria-label="New messages">
+          <h2 className="section-title">New messages</h2>
+          {inbox.newMessages.map((m) => (
+            <Link key={m.id} to={`/chat/${m.dealId}`} className="inbox-card">
+              <strong>{m.senderAccount}</strong>
+              <span>{m.body}</span>
+            </Link>
+          ))}
         </section>
       )}
     </main>
@@ -141,28 +150,36 @@ function RoundRequest({ request, onOpen }: RoundProps) {
   }
 
   return (
-    <section className="panel">
-      <h2>Round {request.round} requested</h2>
-      <p>A buyer raised their offer on {request.title}. Open round {request.round} to compare it.</p>
+    <section className="inbox-card attention">
+      <span className="tag">Round {request.round} requested</span>
+      <h2>A buyer raised their offer on {request.title}</h2>
+      <p>Open round {request.round} to compare it.</p>
       <p className="muted">
         {minimum ? `Your lowest price stays ${formatRp(minimum)}, or you can lower it.` : "Open this on the device you listed from to answer."}
       </p>
       {error && <p className="error" role="alert">{error}</p>}
       {lowering ? (
-        <form onSubmit={lower}>
+        <form className="stack" onSubmit={lower}>
           <label>
-            New lowest price (Rp)
-            <input className="price-input" value={groupThousands(limit)} onChange={(e) => setLimit(digitsOnly(e.target.value))} inputMode="numeric" />
+            New lowest price
+            <span className="amount-field">
+              <span aria-hidden="true">Rp</span>
+              <input value={groupThousands(limit)} onChange={(e) => setLimit(digitsOnly(e.target.value))} inputMode="numeric" aria-label="New lowest price in Rupiah" />
+            </span>
           </label>
-          <button className="primary" disabled={busy || limit === ""}>Open round {request.round} at this price</button>
+          <button className="primary" disabled={busy || limit === ""}>
+            Open round {request.round} at this price
+          </button>
         </form>
       ) : (
-        <>
+        <div className="actions">
           <button className="primary" disabled={busy || !minimum} onClick={() => void run()}>
             Open round {request.round}
           </button>
-          <button disabled={busy || !minimum} onClick={() => setLowering(true)}>Lower price</button>
-        </>
+          <button className="outline-button" disabled={busy || !minimum} onClick={() => setLowering(true)}>
+            Lower price
+          </button>
+        </div>
       )}
     </section>
   );
@@ -188,16 +205,18 @@ function AnswerQuestion({ title, question, onAnswer }: AnswerProps) {
   }
 
   return (
-    <form className="panel" onSubmit={submit}>
-      <h2>New question</h2>
-      <p>"{question}"</p>
+    <form className="inbox-card" onSubmit={submit}>
+      <span className="tag">New question</span>
+      <h2>"{question}"</h2>
       <p className="muted">{title} · your answer shows to everyone</p>
       <label>
         Your answer
         <input value={text} onChange={(e) => setText(e.target.value)} maxLength={1000} disabled={busy} />
       </label>
       {error && <p className="error" role="alert">{error}</p>}
-      <button className="primary" disabled={busy || text.trim() === ""}>Answer</button>
+      <button className="primary" disabled={busy || text.trim() === ""}>
+        Answer
+      </button>
     </form>
   );
 }
