@@ -1,6 +1,8 @@
 // Real testnet check of the marketplace path (MK-07): a listing with slots, a buyer claiming one, OutLayer matching,
-// escrow, and the relayer's sync. The chain and OutLayer are live; the relayer runs in-process on an in-memory store,
-// because the Supabase project is MK-10. Run: npx tsx scripts/marketplace-roundtrip.mts
+// escrow, and the relayer's sync. The chain and OutLayer are live; the relayer runs in-process. By default it uses an
+// in-memory store; with SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY set (read from relayer/.env) it uses the real
+// Supabase store and deletes the listings it created when it finishes (MK-07's Supabase half, needs migrations 0001-0003).
+// Run: npx tsx scripts/marketplace-roundtrip.mts
 // Env (optional): CONTRACT_ID, TEE_PUBKEY, SELLER_ID, BUYER_ID (accounts whose keys are in ~/.near-credentials/testnet,
 // since the faucet rate-limits new ones), SELLER_LIMIT and BUYER_LIMIT (Rupiah, default 4000000 and 4600000).
 import { readFileSync } from "node:fs";
@@ -10,9 +12,11 @@ import { nearClient } from "../app/src/nearClient";
 import { sealLimit } from "../app/src/crypto";
 import { keySigner, type Signer } from "../app/src/signer";
 import { createSlots } from "../app/src/slots";
+import { createClient } from "@supabase/supabase-js";
 import { createApp } from "../relayer/src/app";
 import { FakeStore } from "../relayer/src/fakes";
 import { rpcNearReader } from "../relayer/src/near";
+import { supabaseStore } from "../relayer/src/supabaseStore";
 
 const chain = {
   contractId: process.env.CONTRACT_ID ?? "blind-deal-59xtyh4b.testnet",
@@ -32,7 +36,13 @@ Object.assign(globalThis, {
   localStorage: { getItem: (k: string) => memory.get(k) ?? null, setItem: (k: string, v: string) => void memory.set(k, v) },
 });
 
-const store = new FakeStore();
+try {
+  process.loadEnvFile("relayer/.env");
+} catch {}
+const { SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY } = process.env;
+const live = Boolean(SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY);
+const store = live ? supabaseStore(SUPABASE_URL!, SUPABASE_SERVICE_ROLE_KEY!) : new FakeStore();
+const createdListings: string[] = [];
 const relayer = createApp({ store, near: rpcNearReader(chain.rpcUrl, chain.contractId), allowedOrigin: "*" });
 const realFetch = globalThis.fetch;
 // Requests to the relayer's address go to the in-process app; everything else (the RPC node) is real.
@@ -75,6 +85,7 @@ const check = (ok: boolean, label: string) => {
 async function play(title: string, slots: number, minimum: string, maximum: string) {
   const created = await api(seller, "POST", "/listings", { title, description: "", category: "electronics", maxRounds: 1, askingPrice: maximum });
   const listingId = created.json.id as string;
+  createdListings.push(listingId);
   await createSlots({
     listingId,
     count: slots,
@@ -107,7 +118,7 @@ async function play(title: string, slots: number, minimum: string, maximum: stri
   return { listingId, dealId, deal, waitedS: Math.round((Date.now() - started) / 1000) };
 }
 
-console.log(`contract ${chain.contractId}, seller ${SELLER_ID}, buyer ${BUYER_ID}`);
+console.log(`contract ${chain.contractId}, seller ${SELLER_ID}, buyer ${BUYER_ID}, store ${live ? "SUPABASE (live)" : "in-memory"}`);
 
 console.log("A: overlapping limits");
 const a = await play("Roundtrip camera", 2, sellerLimit, buyerLimit);
@@ -123,9 +134,16 @@ if (check(a.deal?.state === "Matched", `expected Matched, got ${a.deal?.state}`)
   check(funded?.state === "Funded", `after deposit expected Funded, got ${funded?.state}`);
   steps.push("deposit Funded");
 
-  const synced = await api(null, "POST", `/listings/${a.listingId}/sync`);
-  check(synced.json.status === "sold", `sync expected sold, got ${synced.json.status}`);
-  steps.push(`sync ${synced.json.status}`);
+  const reserved = await api(null, "POST", `/listings/${a.listingId}/sync`);
+  check(reserved.json.status === "reserved" && reserved.json.reservedDealId === a.dealId, `funded deal should reserve the listing, got ${reserved.json.status} / ${reserved.json.reservedDealId}`);
+  steps.push(`sync ${reserved.json.status} by deal ${reserved.json.reservedDealId}`);
+
+  await buyerClient.confirmReceived(a.dealId);
+  const released = await buyerClient.getDeal(a.dealId);
+  check(released?.state === "Released", `after confirm_received expected Released, got ${released?.state}`);
+  const sold = await api(null, "POST", `/listings/${a.listingId}/sync`);
+  check(sold.json.status === "sold" && sold.json.reservedDealId === null, `released deal should sell the listing, got ${sold.json.status}`);
+  steps.push(`Received -> sync ${sold.json.status}`);
 
   const again = await api(buyer, "POST", `/listings/${a.listingId}/claim`);
   check(again.status === 409, `claim after sold expected 409, got ${again.status}`);
@@ -137,6 +155,13 @@ console.log("B: limits that do not overlap");
 const b = await play("Roundtrip no deal", 1, "5000000", "4000000");
 check(b.deal?.state === "NoDeal", `expected NoDeal, got ${b.deal?.state}`);
 console.log(`state=${b.deal?.state} (${b.waitedS}s)`);
+
+if (live && createdListings.length > 0) {
+  // Slots cascade with their listing; only the rows this run created are removed.
+  const db = createClient(SUPABASE_URL!, SUPABASE_SERVICE_ROLE_KEY!, { auth: { persistSession: false } });
+  const { error } = await db.from("listings").delete().in("id", createdListings);
+  console.log(error ? `cleanup failed: ${error.message}` : `cleanup: removed ${createdListings.length} test listings`);
+}
 
 console.log(failed ? "RESULT: FAILED" : "RESULT: ok");
 process.exit(failed ? 1 : 0);
