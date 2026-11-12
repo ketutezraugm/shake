@@ -11,6 +11,8 @@ pub const OUTSIDER: usize = 3;
 pub const OUTLAYER: usize = 4;
 pub const PROJECT: &str = "spike.testnet/blind-deal";
 /// An attached deposit that covers one OutLayer execution (0.0021 NEAR).
+/// Block timestamp used by `callback_context`.
+pub const NOW_NS: u64 = 1_700_000_000_000_000_000;
 pub const FEE: u128 = 2_100_000_000_000_000_000_000;
 
 pub fn who(i: usize) -> AccountId {
@@ -45,6 +47,7 @@ pub fn callback_context(result: &str) {
         VMContextBuilder::new()
             .current_account_id(accounts(0))
             .predecessor_account_id(accounts(0))
+            .block_timestamp(NOW_NS)
             .build(),
         near_sdk::test_vm_config(),
         near_sdk::RuntimeFeesConfig::test(),
@@ -72,4 +75,40 @@ pub fn panics_with<F: FnOnce()>(msg: &str, f: F) {
         text.contains(msg),
         "panic {text:?} does not contain {msg:?}"
     );
+}
+
+/// A deal from the seller with link token "tok".
+pub fn deal(c: &mut Contract, max_rounds: u8) -> u64 {
+    at(SELLER, 0);
+    c.create_deal("bike".into(), "red".into(), token_hash("tok"), max_rounds)
+}
+
+pub fn submit(c: &mut Contract, id: u64, who: usize, deposit: u128, token: Option<&str>) {
+    at(who, deposit);
+    c.submit_limit(id, vec![1; 10], [9; 32], token.map(String::from));
+}
+
+/// Both sides submit; the buyer completes the round. The link token is only needed in round 1.
+pub fn play_round(c: &mut Contract, id: u64, token: Option<&str>) {
+    submit(c, id, SELLER, 0, None);
+    submit(c, id, BUYER, FEE, token);
+}
+
+/// The callback as it runs when OutLayer's execution failed.
+pub fn callback_failed_context() {
+    testing_env!(
+        VMContextBuilder::new()
+            .current_account_id(accounts(0))
+            .predecessor_account_id(accounts(0))
+            .build(),
+        near_sdk::test_vm_config(),
+        near_sdk::RuntimeFeesConfig::test(),
+        Default::default(),
+        vec![near_sdk::PromiseResult::Failed]
+    );
+}
+
+pub fn matched(deal_id: u64, price: &str) -> String {
+    near_sdk::serde_json::json!({ "success": true, "result": { "deal_id": deal_id, "matched": true, "price": price } })
+        .to_string()
 }

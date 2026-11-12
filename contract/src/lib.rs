@@ -3,7 +3,8 @@
 #![allow(dead_code, unused_variables)]
 
 use near_sdk::json_types::U128;
-use near_sdk::serde_json::json;
+use near_sdk::serde::Deserialize;
+use near_sdk::serde_json::{self, json};
 use near_sdk::store::LookupMap;
 use near_sdk::{env, near, require, AccountId, Gas, PanicOnDefault, Promise};
 
@@ -14,6 +15,8 @@ const RP_PER_NEAR: u128 = 100_000_000;
 /// Gas for the OutLayer call and for our callback; tune against a real round trip (M1-07).
 const REQUEST_GAS: Gas = Gas::from_tgas(200);
 const CALLBACK_GAS: Gas = Gas::from_tgas(20);
+const YOCTO_PER_NEAR: u128 = 1_000_000_000_000_000_000_000_000;
+const MAX_RESULT_BYTES: usize = 1024;
 
 /// Waiting = one side has submitted this round; Retry = no deal this round, more rounds left.
 #[near(serializers = [json, borsh])]
@@ -194,20 +197,31 @@ impl Contract {
         drop(promise); // near-sdk schedules a promise when it is dropped; a failed call must not undo the submit
     }
 
-    /// Callback from OutLayer. M1-03 adds the matched path; until then every result is a no-deal.
-    #[private]
+    /// Callback from OutLayer with the matcher's result. A failed execution and any malformed or
+    /// mismatching result count as a no-deal for the round. The caller check is explicit because
+    /// `#[private]` only guards the compiled entry point, not direct calls in tests.
     pub fn on_outlayer_result(&mut self, deal_id: u64) {
+        require!(
+            env::predecessor_account_id() == env::current_account_id(),
+            "on_outlayer_result is private"
+        );
         let mut deal = self
             .deals
             .get(&deal_id)
             .cloned()
             .unwrap_or_else(|| env::panic_str("no such deal"));
         require!(deal.state == State::Computing, "deal is not computing");
-        if deal.round < deal.max_rounds {
-            deal.round += 1;
-            deal.state = State::Retry;
-        } else {
-            deal.state = State::NoDeal;
+        match self.matched_price(deal_id) {
+            Some(price) => {
+                deal.state = State::Matched;
+                deal.price = Some(U128(price));
+                deal.matched_at_ns = Some(env::block_timestamp());
+            }
+            None if deal.round < deal.max_rounds => {
+                deal.round += 1;
+                deal.state = State::Retry;
+            }
+            None => deal.state = State::NoDeal,
         }
         self.deals.insert(deal_id, deal);
     }
@@ -258,7 +272,39 @@ impl Contract {
     }
 }
 
+#[derive(Deserialize)]
+#[serde(crate = "near_sdk::serde")]
+struct Envelope {
+    success: bool,
+    result: Option<MatchResult>,
+}
+
+#[derive(Deserialize)]
+#[serde(crate = "near_sdk::serde")]
+struct MatchResult {
+    deal_id: u64,
+    matched: Option<bool>,
+    price: Option<String>,
+}
+
 impl Contract {
+    /// The matched price in yoctoNEAR, or None for a no-deal and for anything malformed.
+    fn matched_price(&self, deal_id: u64) -> Option<u128> {
+        let bytes = env::promise_result_checked(0, MAX_RESULT_BYTES).ok()?;
+        let envelope: Envelope = serde_json::from_slice(&bytes).ok()?;
+        let result = envelope.result.filter(|_| envelope.success)?;
+        if result.deal_id != deal_id || result.matched != Some(true) {
+            return None;
+        }
+        // Canonical Rupiah: digits only, no leading zero (so nonzero), fits u64 like the matcher's.
+        let rupiah = result.price?;
+        if rupiah.starts_with('0') || !rupiah.bytes().all(|b| b.is_ascii_digit()) {
+            return None;
+        }
+        let rupiah: u64 = rupiah.parse().ok()?;
+        Some(u128::from(rupiah) * (YOCTO_PER_NEAR / self.rp_per_near))
+    }
+
     /// The `request_execution` arguments for the matcher; the OutLayer refund goes to the caller who paid.
     fn outlayer_request(&self, deal: &Deal) -> Vec<u8> {
         let hex_all = |v: &[Vec<u8>]| v.iter().map(hex::encode).collect::<Vec<_>>();
