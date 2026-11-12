@@ -9,6 +9,12 @@ const minimumKey = (listingId: string) => `blind-deal:minimum:${listingId}`;
 
 type StoredMinimum = { limit: string };
 
+/** The seller's sealed minimum for a listing, kept only in the browser that listed it; null on any other device. */
+export function storedMinimum(listingId: string): string | null {
+  const stored = localStorage.getItem(minimumKey(listingId));
+  return stored ? (JSON.parse(stored) as StoredMinimum).limit : null;
+}
+
 function randomToken(): string {
   return [...crypto.getRandomValues(new Uint8Array(16))].map((b) => b.toString(16).padStart(2, "0")).join("");
 }

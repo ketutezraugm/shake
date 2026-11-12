@@ -178,6 +178,7 @@ function OfferStep({ view, deal, negotiation, busy, onOffer, onPay, onReceived }
           <button className="primary" disabled={busy} onClick={onPay}>
             Pay Rp {rpFromYocto(view.price)}
           </button>
+          <p><Link to={`/chat/${deal.id}`}>Message the seller</Link></p>
         </section>
       );
     case "funded":
@@ -192,6 +193,7 @@ function OfferStep({ view, deal, negotiation, busy, onOffer, onPay, onReceived }
           <button className="primary" disabled={busy} onClick={onReceived}>
             Received
           </button>
+          <p><Link to={`/chat/${deal.id}`}>Message the seller</Link></p>
         </section>
       );
     case "released":
