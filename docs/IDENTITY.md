@@ -27,7 +27,7 @@ The spec, not inspiration. Every design and build step reads this. Name: Shake (
 
 Kept for code written against the first identity: `--tag` = `--ink` (primary action fill) and `--check` = `--ground` (field ground, text on ink). New code uses the role names above.
 
-Rule: the five detail colours never colour text, buttons or whole panels. A screen stays ground, surface and ink; colour appears only in stickers, dots and small tints.
+Rule: the five detail colours never colour text, buttons or whole panels. A screen stays ground, surface and ink; colour appears only in stickers, dots and small tints. One state mark counts as a small tint: the saved heart on a card or a listing fills `--pink` (its button stays surface, its outline stays ink).
 
 ## Typography
 - **One family: Manrope** (Mikhail Sharanda, OFL, https://fonts.google.com/specimen/Manrope), self-hosted as a Latin variable woff2 (400-800) in `app/public/fonts/` with its licence, `font-display: swap` and a metric-matched Arial fallback.

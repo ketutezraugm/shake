@@ -44,13 +44,13 @@ Mirrors docs/plans/IMPLEMENTATION.md (marketplace plan, Revision B: slots and tw
 - [ ] **G3** Gate 20:00 UTC: MK-24 green on testnet (lead)
 
 ## Buyer and seller roles (decided 2026-11-13; spec `docs/superpowers/specs/2026-11-13-buyer-side-design.md`)
-- [ ] **MK-50** Frames: buyer screens, refund and reopen (DP); the role choice frames are done (#125)
+- [x] **MK-50** Frames: buyer screens, refund and reopen (DP): 12 frames in `docs/design/shake-buyer-screens.html` (sign-up choice and buyer username, buyer Browse with hearts, account menu, My offers, Saved, Your sales, get my money back, reopen, proof panel, desktop My offers and Saved), drawn from the built screens (#144, #145)
 - [x] **MK-51** Role-based tabs and switching (DP, PR): buyer tabs Browse, Saved, My offers, Inbox; seller tabs as before; "Switch to buying/selling" in the account menu; unit test on the tab list per role
 - [x] **MK-52** My offers (DP, PR): `/offers`, one row per deal in progress with its state and next step, finished ones link to History; unit tests on the row text for every view and on the filter; clicked through on the mock chain (offer, no deal, row says "Raise your offer")
 - [ ] **MK-53** Get my money back after the delivery deadline (CT)
 - [ ] **MK-54** Reopen a listing whose buyer never paid (CT)
 - [x] **MK-55** Saved items, this device only (DP, PR): heart on cards and the listing page, `/saved`, survives a reload; unit test on add and remove
-- [ ] **MK-56** Seller sales view (FE, Should)
+- [x] **MK-56** Seller sales view (DP, PR): a "Your sales" section on the seller's own shop, one row per listing with its state (open with free slots and offers in progress, reserved waiting for payment, paid and waiting for Received, sold and paid out, closed); live ones first, a link to History for receipts; unit tests on every state; clicked through on the mock chain
 
 ## Should (after G3)
 - [ ] **S-02** AI negotiator

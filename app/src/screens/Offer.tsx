@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { currentAccount } from "../accounts";
 import { chainFor } from "../client";
 import { relayerUrl } from "../config";
@@ -49,9 +49,19 @@ function OfferDeal({ dealId, account, negotiation }: { dealId: number; account: 
   const [busy, setBusy] = useState(false);
   const [receipts, setReceipts] = useState<Receipt[]>([]);
   const chain = chainFor(account);
+  const syncedMatch = useRef(false);
 
   async function reload() {
     const [loaded, listing] = await Promise.all([chain.client.getDeal(dealId), market.listing(negotiation.listingId)]);
+    // A match reserves the item for this buyer, so tell the relayer once as soon as it is seen: browse and the seller's
+    // list then show it reserved, and a second buyer's match sees "Another buyer got there first".
+    if (loaded?.state === "Matched" && relayerUrl && !syncedMatch.current) {
+      syncedMatch.current = true;
+      // A failed call is tried again on the next poll.
+      syncListing(relayerUrl, negotiation.listingId).catch(() => {
+        syncedMatch.current = false;
+      });
+    }
     setDeal(loaded);
     setReservedDealId(listing?.reservedDealId ?? null);
   }
