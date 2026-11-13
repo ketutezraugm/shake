@@ -4,14 +4,15 @@
 // Supabase store and deletes the listings it created when it finishes (MK-07's Supabase half, needs migrations 0001-0003).
 // Run: npx tsx scripts/marketplace-roundtrip.mts
 // Env (optional): CONTRACT_ID, TEE_PUBKEY, SELLER_ID, BUYER_ID (accounts whose keys are in ~/.near-credentials/testnet,
-// since the faucet rate-limits new ones), SELLER_LIMIT and BUYER_LIMIT (Rupiah, default 4000000 and 4600000).
+// since the faucet rate-limits new ones), SELLER_LIMIT and BUYER_LIMIT (Rupiah, default 4000000 and 4600000), CANCEL=1 to
+// also run the seller-cancel check.
 import { readFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import { nearClient } from "../app/src/nearClient";
 import { sealLimit } from "../app/src/crypto";
 import { keySigner, type Signer } from "../app/src/signer";
-import { createSlots } from "../app/src/slots";
+import { createSlots, resubmitSeller } from "../app/src/slots";
 import { createClient } from "@supabase/supabase-js";
 import { createApp } from "../relayer/src/app";
 import { FakeStore } from "../relayer/src/fakes";
@@ -25,6 +26,7 @@ const chain = {
 const TEE_PUBKEY = process.env.TEE_PUBKEY ?? "028be3f388b0896de4519769438841d1d4eef8dc3095c06bcb3dece008de08d92e";
 const SELLER_ID = process.env.SELLER_ID ?? "rt-seller-3a6ojo95.testnet";
 const BUYER_ID = process.env.BUYER_ID ?? "rt-buyer-bms68l9a.testnet";
+const BUYER2_ID = process.env.BUYER2_ID ?? "rt-buyer-7p6svmc7.testnet"; // only signs a relayer request, never spends
 const sellerLimit = process.env.SELLER_LIMIT ?? "4000000";
 const buyerLimit = process.env.BUYER_LIMIT ?? "4600000";
 const RELAYER = "http://relayer.local";
@@ -89,6 +91,7 @@ async function api(signer: Signer | null, method: string, path: string, body?: o
 
 const seller = signerFor(SELLER_ID);
 const buyer = signerFor(BUYER_ID);
+const otherBuyer = signerFor(BUYER2_ID);
 const sellerClient = nearClient(seller, chain);
 const buyerClient = nearClient(buyer, chain);
 const steps: string[] = [];
@@ -102,15 +105,15 @@ const check = (ok: boolean, label: string) => {
 };
 
 /** One listing with `slots` deals; the buyer claims one, offers, and waits for OutLayer. Returns the finished deal. */
-async function play(title: string, slots: number, minimum: string, maximum: string) {
-  const created = await api(seller, "POST", "/listings", { title, description: "", category: "electronics", maxRounds: 1, askingPrice: maximum });
+async function play(title: string, slots: number, minimum: string, maximum: string, rounds = 1, asking = maximum) {
+  const created = await api(seller, "POST", "/listings", { title, description: "", category: "electronics", maxRounds: rounds, askingPrice: asking });
   const listingId = created.json.id as string;
   createdListings.push(listingId);
   await createSlots({
     listingId,
     count: slots,
     minimum,
-    maxRounds: 1,
+    maxRounds: rounds,
     signer: seller,
     client: sellerClient,
     teePubkey: TEE_PUBKEY,
@@ -172,6 +175,10 @@ if (check(a.deal?.state === "Matched", `expected Matched, got ${a.deal?.state}`)
   check(reserved.json.status === "reserved" && reserved.json.reservedDealId === a.dealId, `funded deal should reserve the listing, got ${reserved.json.status} / ${reserved.json.reservedDealId}`);
   steps.push(`sync ${reserved.json.status} by deal ${reserved.json.reservedDealId}`);
 
+  const second = await api(otherBuyer, "POST", `/listings/${a.listingId}/claim`);
+  check(second.status === 409, `a second buyer claiming a reserved listing expected 409, got ${second.status}`);
+  steps.push(`second buyer on the reserved listing ${second.status}`);
+
   await buyerClient.confirmReceived(a.dealId);
   const released = await buyerClient.getDeal(a.dealId);
   check(released?.state === "Released", `after confirm_received expected Released, got ${released?.state}`);
@@ -189,6 +196,45 @@ console.log("B: limits that do not overlap");
 const b = await play("Roundtrip no deal", 1, "5000000", "4000000");
 check(b.deal?.state === "NoDeal", `expected NoDeal, got ${b.deal?.state}`);
 console.log(`state=${b.deal?.state} (${b.waitedS}s)`);
+
+/** Waits out a Computing round (OutLayer is answering) and returns the deal as it then stands. */
+async function settle(dealId: number) {
+  const started = Date.now();
+  let deal = await buyerClient.getDeal(dealId);
+  while (deal?.state === "Computing" && Date.now() - started < WAIT_MS) {
+    await new Promise((r) => setTimeout(r, 2000));
+    deal = await buyerClient.getDeal(dealId);
+  }
+  return deal;
+}
+
+console.log("C: two rounds, the seller comes down and the buyer goes up");
+const c = await play("Roundtrip two rounds", 1, "4500000", "4000000", 2, "4600000");
+if (check(c.deal?.state === "Retry" && c.deal.round === 2, `round 1 expected Retry in round 2, got ${c.deal?.state} round ${c.deal?.round}`)) {
+  await resubmitSeller({ listingId: c.listingId, dealId: c.dealId, round: 2, limit: "4200000", client: sellerClient, teePubkey: TEE_PUBKEY });
+  const raised = await sealLimit(c.dealId, "buyer", 2, "4600000", TEE_PUBKEY);
+  await buyerClient.submitLimit(c.dealId, raised.ct, raised.commit, null);
+  const second = await settle(c.dealId);
+  if (check(second?.state === "Matched", `round 2 expected Matched, got ${second?.state}`)) {
+    const rupiah = BigInt(second!.price!) / 10n ** 16n;
+    check(rupiah >= 4_200_000n && rupiah <= 4_600_000n, `round 2 price Rp ${rupiah} is outside [4200000, 4600000]`);
+    console.log(`round 1 Retry -> round 2 Matched at Rp ${rupiah}`);
+  }
+}
+
+// Opt-in (CANCEL=1) until the relayer stops handing out a cancelled slot; it fails today, so the default run stays green.
+if (process.env.CANCEL) {
+  console.log("D: the seller cancels a deal that no buyer has offered on");
+  const cancelled = await api(seller, "POST", "/listings", { title: "Roundtrip cancel", description: "", category: "electronics", maxRounds: 1, askingPrice: "4600000" });
+  const cancelListing = cancelled.json.id as string;
+  createdListings.push(cancelListing);
+  const [slot] = await createSlots({ listingId: cancelListing, count: 1, minimum: "4000000", maxRounds: 1, signer: seller, client: sellerClient, teePubkey: TEE_PUBKEY, relayerUrl: RELAYER });
+  await sellerClient.cancel(slot!.dealId);
+  check((await sellerClient.getDeal(slot!.dealId))?.state === "NoDeal", "a cancelled deal should be NoDeal");
+  const claimDead = await api(buyer, "POST", `/listings/${cancelListing}/claim`);
+  check(claimDead.status === 409, `claiming a cancelled slot expected 409, got ${claimDead.status}`);
+  console.log(`claim on a cancelled slot answered ${claimDead.status}`);
+}
 
 if (live && createdListings.length > 0) {
   // Slots cascade with their listing; only the rows this run created are removed.
