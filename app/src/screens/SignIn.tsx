@@ -1,6 +1,6 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { currentAccount } from "../accounts";
-import { errorFromHash, googleSignInUrl, saveSession, sendEmailLink, sessionFromHash } from "../auth";
+import { errorFromHash, googleSignInUrl, saveSession, sendEmailLink } from "../auth";
 import { authConfig, chain } from "../config";
 import backIcon from "../design/assets/icons/back.svg";
 import checkIcon from "../design/assets/icons/check.svg";
@@ -22,14 +22,9 @@ export function SignIn() {
   const [busy, setBusy] = useState(false);
   const redirectTo = `${location.origin}/signin`;
 
-  // Google and the email link both send the browser back here with the session (or an error) after the `#`.
+  // main.tsx takes a returned session; a cancelled Google or an expired link comes back here with an error after the `#`.
   useEffect(() => {
-    const session = sessionFromHash(location.hash);
-    if (session) {
-      saveSession(session);
-      history.replaceState(null, "", location.pathname);
-      navigate("/signup");
-    } else if (errorFromHash(location.hash)) {
+    if (errorFromHash(location.hash)) {
       setError(errorFromHash(location.hash));
     } else if (currentAccount()) {
       navigate("/");

@@ -29,7 +29,7 @@ A buyer taps the bio link and lands in the seller's shop, where every item has a
 
 ## Scope (from the design doc, Revision B)
 **Must (by the freeze, 2026-11-14 00:00 UTC):**
-1. Sign-in with Google or email, or a NEAR wallet. Google or email creates a profile and, behind it, `handle.<parent>.testnet` funded by the relayer. A wallet login uses the user's own NEAR account.
+1. Sign-in with Google or email, or a NEAR wallet. Google or email browses and asks (assistant, public questions) but has no NEAR account; selling and buying need a NEAR wallet, which pays its own fees (DECISIONS.md, 2026-11-13).
 2. Seller profile at `/@handle`: avatar, display name, bio, city, active listings, sold count. This is the bio link.
 3. Create listing: title, description, up to 4 photos, category, rounds (1-3, default 2), a required asking price (shown publicly) and a sealed minimum at or below it (never shown). The app creates up to 10 slots (pre-created deals) for it.
 4. Public browse: home grid of open listings with their asking prices, text search, category filter.
@@ -53,7 +53,7 @@ Anti-goals (a failure even if it works): any path where a buyer sees or infers t
 ## Feature specs and acceptance criteria (Must)
 | # | Acceptance criteria (each is testable) |
 |---|---|
-| 1 | Google or email: signing in gives a Supabase session, and `POST /accounts` with that JWT returns `{accountId}` within 15 s; the account exists on testnet with the browser key as full-access key. No JWT returns 401; a second account for the same user or a taken handle returns 409; the per-IP limit returns 429; the secret key is never sent to the relayer. Wallet: sign-in yields a function-call access key on the deal contract; a relayer request signed with that key is accepted, one signed with an unknown key gets 401. A `profiles` row exists for either path, keyed by NEAR account id. |
+| 1 | Google or email: signing in gives a Supabase session; `POST /assistant` and `POST /listings/:id/questions` accept its bearer token, every other route answers 401 to it, and `POST /accounts` no longer exists. Wallet: sign-in yields a function-call access key on the deal contract; a relayer request signed with that key is accepted, one signed with an unknown key gets 401. A `profiles` row exists for either path, keyed by NEAR account id. |
 | 2 | A signed-out visitor to `/@handle` (`GET /profiles/:handle`) sees avatar, display name, bio, city, active listings and sold count; an unknown handle shows "not found". Sold count equals the seller's listings with status `sold`. `PUT /me/profile` changes only the caller's row. |
 | 3 | Creating a listing with 4 photos succeeds and a 5th returns 409. `maxRounds` outside 1..=3 is refused. `POST /listings/:id/slots` accepts a slot only when the deal is on chain, belongs to the caller, is `Waiting` with no buyer, has the listing's `max_rounds`, and the link token hashes to `link_hash`; otherwise 400. An 11th slot returns 409. `askingPrice` is required, whole Rupiah, nonzero (else 400). The app refuses a minimum above the asking price before any request. No minimum appears in the page, the Supabase row, a response or the photo metadata. |
 | 4 | The home grid, signed out, shows only listings with status `open`, each with its asking price. A search term matches title or description; the category filter narrows the grid; both work together. |
@@ -68,7 +68,7 @@ Anti-goals (a failure even if it works): any path where a buyer sees or infers t
 ## Success criteria (rubric, equal weights)
 - Gate, reproducible: README "do X, see Y" passes on a clean machine; hosted demo up until 11-25.
 - Technical: Rust contract with tests; sub-accounts, TEE via OutLayer, cross-contract callback; commitments on-chain; relayer tests for auth, claim and sync; Supabase closed to the anon key.
-- Design: IDENTITY.md applied; chain invisible for Google or email users (no gas, no seed prompt); the shop arrival and the reveal as the signature moments.
+- Design: IDENTITY.md applied; chain invisible while browsing and asking as a Google or email user; the shop arrival and the reveal as the signature moments.
 - Impact: outcomes logged in `docs/real-deals.md` if time allows; metric "deals that would have failed to start". No count is promised.
 - Originality: blind-price negotiation inside a second-hand marketplace. The earlier claim (373 entries, only negotiation entry, per IDEAS.md) is not re-checked for the marketplace version.
 - Sustainability: UNVERIFIED path; candidate is a small fee on escrowed deals. State it as a hypothesis in the README.

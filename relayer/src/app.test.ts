@@ -464,3 +464,38 @@ describe("assistant", () => {
     expect((await call(buyer, "POST", "/assistant", { listingId: listing.id, question: "ok?" })).status).toBe(503);
   });
 });
+
+describe("login without a NEAR account", () => {
+  const post = (path: string, body: unknown, token: string) =>
+    app.request(path, { method: "POST", headers: { "content-type": "application/json", authorization: `Bearer ${token}` }, body: JSON.stringify(body) });
+
+  beforeEach(() => {
+    app = createApp({
+      store,
+      near,
+      allowedOrigin: "http://localhost:5173",
+      chat: async () => "Works fine.",
+      verifyJwt: async (token) => (token === "token-ann" ? "user-ann" : null),
+    });
+  });
+
+  it("lets a valid login ask the assistant and the seller, and refuses a bad one", async () => {
+    const listing = await newListing(person("seller.testnet"));
+    const ask = { listingId: listing.id, question: "ok?" };
+
+    expect((await post("/assistant", ask, "token-ann")).status).toBe(200);
+    expect((await post(`/listings/${listing.id}/questions`, { question: "Box?" }, "token-ann")).status).toBe(201);
+    expect((await post("/assistant", ask, "token-bad")).status).toBe(401);
+    expect((await post(`/listings/${listing.id}/questions`, { question: "Box?" }, "token-bad")).status).toBe(401);
+  });
+
+  it("keeps every other route for NEAR-signed callers", async () => {
+    const listing = await newListing(person("seller.testnet"));
+    expect((await post(`/listings/${listing.id}/claim`, {}, "token-ann")).status).toBe(401);
+    expect((await post("/listings", listingBody, "token-ann")).status).toBe(401);
+  });
+
+  it("has no POST /accounts any more", async () => {
+    expect((await post("/accounts", { handle: "dita" }, "token-ann")).status).toBe(404);
+  });
+});

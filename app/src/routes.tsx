@@ -7,7 +7,6 @@ import { Handle } from "./screens/Handle";
 import { Home } from "./screens/Home";
 import { Inbox } from "./screens/Inbox";
 import { Join } from "./screens/Join";
-import { Keys } from "./screens/Keys";
 import { Listing } from "./screens/Listing";
 import { Offer } from "./screens/Offer";
 import { Profile } from "./screens/Profile";
@@ -26,7 +25,6 @@ export type Route =
   | { name: "chat"; dealId: number }
   | { name: "signin" }
   | { name: "signup" }
-  | { name: "keys" }
   // Test UI from D1-10; the offer flow (MK-24) replaces these.
   | { name: "create" }
   | { name: "deal"; id: number }
@@ -40,7 +38,6 @@ const FIXED: Record<string, Route> = {
   "/inbox": { name: "inbox" },
   "/signin": { name: "signin" },
   "/signup": { name: "signup" },
-  "/keys": { name: "keys" },
   "/new": { name: "create" },
   "/demo": { name: "demo" },
 };
@@ -127,8 +124,6 @@ function Page({ route, query }: { route: Route; query: string }) {
       return <SignIn />;
     case "signup":
       return <Handle />;
-    case "keys":
-      return <Keys />;
     case "create":
       return <Create />;
     case "deal":

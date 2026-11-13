@@ -16,7 +16,7 @@ Account creation (Google or email path) happens once before the first step. Wall
 ```
 Seller SPA    Relayer     Supabase    Contract    OutLayer/WASM    Buyer SPA
  |-sign in (Supabase Auth, or wallet key)-->|          |               |
- |-POST /accounts (JWT, {handle, publicKey})->|-profile|              |
+ |-PUT /me/profile (signed)---------------->|-profile|              |
  |<-accountId-|            |            |            |               |
  |-POST /listings (signed)->|-insert--->|            |               |
  |-POST /listings/:id/photos, PUT bytes to uploadUrl->|              |
@@ -121,7 +121,6 @@ Revision B, to build:
 
 | Endpoint | Auth | Purpose | Limit |
 |---|---|---|---|
-| POST /accounts | Supabase JWT | `{handle, publicKey}` -> `{accountId}`; creates `handle.<parent>.testnet` with the key as full-access key and funds it; writes the profile; 401 without JWT, 409 for a second account or a taken handle, 429, 503 when the relayer runs low (D1-09 not yet in `app.ts`; MK-11) | 3 per IP per hour, global daily cap; one account per Supabase user |
 | GET /profiles/:handle | none | Public profile: handle, display name, avatar, bio, city; 404 if unknown | default |
 | PUT /me/profile | signed | Updates the caller's profile row (CORS `allowMethods` must add PUT) | default |
 | GET /listings/:id/questions | none | Answered questions only | default |
@@ -136,7 +135,7 @@ Funding is a fixed small amount (set in env). The relayer account is funded from
 
 ## Auth
 **Signed requests** (`relayer/src/auth.ts`). Headers: `x-account-id`, `x-public-key`, `x-timestamp` (ms), `x-signature` (base64 ed25519). The signature covers the exact string `blind-deal-relayer:v1|{METHOD}|{path}|{sha256 hex of the raw body}|{timestamp}`, path without query. The relayer rejects a timestamp more than 5 minutes off (`MAX_SKEW_MS`), checks the signature, then checks on chain that the key belongs to the account (any access key, full or function-call; cached 60 s). 401 on any failure.
-**Supabase JWT, `POST /accounts` only.** The Google or email user signs in with Supabase Auth; the app sends the access token as `Authorization: Bearer`. The relayer verifies it and maps the Supabase user to one NEAR account. The browser generates the ed25519 key and sends only the public key. After this, the user signs relayer requests like any account.
+**Supabase JWT, `POST /assistant` and `POST /listings/:id/questions` only.** A Google or email login has no NEAR account, because the app does not fund accounts (DECISIONS.md, 2026-11-13). It sends its Supabase access token as `Authorization: Bearer`; the relayer verifies it with Supabase and names the caller `supabase:<user id>`. Every other route needs a request signed by a NEAR account (a wallet user's own account).
 **Wallet function-call key.** NEAR Connect sign-in asks the wallet to add a function-call access key on the deal contract for the account. The browser keeps that key and signs relayer requests with it (the relayer accepts any access key of the account) and non-payable contract calls (`create_deal`, the seller's `submit_limit`, `cancel`, `confirm_received`). Payable calls (the buyer's round-completing `submit_limit` with the fee, `deposit`) go through the wallet. No relayer call is needed for wallet users.
 
 ## AI assistant

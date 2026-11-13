@@ -1,4 +1,3 @@
-import { PublicKey } from "near-api-js";
 import { HttpError } from "./errors.js";
 import {
   CATEGORIES,
@@ -7,7 +6,6 @@ import {
   type AskReq,
   type AssistantReq,
   type Category,
-  type CreateAccountReq,
   type CreateListingReq,
   type PhotoReq,
   type RegisterSlotsReq,
@@ -65,17 +63,6 @@ export function parseSlots(body: unknown): RegisterSlotsReq {
 
 // Same rule as the profiles.handle check in migration 0002.
 const HANDLE = /^[a-z0-9](-?[a-z0-9]){1,31}$/;
-
-export function parseCreateAccount(body: unknown): CreateAccountReq {
-  const { handle, publicKey } = record(body);
-  if (typeof handle !== "string" || !HANDLE.test(handle)) throw bad("handle must be 2-32 lowercase letters, digits or single dashes");
-  try {
-    if (typeof publicKey !== "string" || PublicKey.fromString(publicKey).keyType !== 0) throw new Error();
-  } catch {
-    throw bad("publicKey must be an ed25519 key");
-  }
-  return { handle, publicKey: publicKey as string };
-}
 
 export function parsePhotoReq(body: unknown): PhotoReq {
   const { contentType } = record(body);

@@ -22,7 +22,7 @@ export function Offer({ dealId }: { dealId: number }) {
     return (
       <main className="page">
         <h1 className="headline">Your offer</h1>
-        <p className="muted"><Link to="/signin">Sign in</Link> to see your offer.</p>
+        <p className="muted"><Link to="/signin">Connect a NEAR wallet</Link> to see your offer.</p>
       </main>
     );
   }

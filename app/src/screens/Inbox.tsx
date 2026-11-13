@@ -16,7 +16,7 @@ export function Inbox() {
     return (
       <main className="page narrow">
         <h1 className="headline">Inbox</h1>
-        <p className="muted"><Link to="/signin">Sign in</Link> to see your inbox.</p>
+        <p className="muted"><Link to="/signin">Connect a NEAR wallet</Link> to see your inbox.</p>
       </main>
     );
   }
