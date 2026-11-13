@@ -2,7 +2,7 @@ import { KeyPair } from "near-api-js";
 import { describe, expect, it, vi } from "vitest";
 import { connectWallet, loadWalletSession, walletSigner, type WalletLike } from "./walletSigner";
 
-const chain = { contractId: "blind-deal-59xtyh4b.testnet", rpcUrl: "https://rpc.example" };
+const chain = { contractId: "blind-deal-1wxklib7.testnet", rpcUrl: "https://rpc.example" };
 const FEE = 2_100_000_000_000_000_000_000n;
 
 function memoryStorage() {

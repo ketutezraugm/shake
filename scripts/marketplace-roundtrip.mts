@@ -19,7 +19,7 @@ import { rpcNearReader } from "../relayer/src/near";
 import { supabaseStore } from "../relayer/src/supabaseStore";
 
 const chain = {
-  contractId: process.env.CONTRACT_ID ?? "blind-deal-59xtyh4b.testnet",
+  contractId: process.env.CONTRACT_ID ?? "blind-deal-1wxklib7.testnet",
   rpcUrl: "https://test.rpc.fastnear.com", // the legacy rpc.testnet.near.org rate-limits and is deprecated
 };
 const TEE_PUBKEY = process.env.TEE_PUBKEY ?? "028be3f388b0896de4519769438841d1d4eef8dc3095c06bcb3dece008de08d92e";

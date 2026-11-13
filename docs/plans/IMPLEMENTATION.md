@@ -13,7 +13,7 @@
 ## Global Constraints
 
 - Now 2026-11-12. **Feature freeze 2026-11-14 00:00 UTC.** Submit by 2026-11-14 12:00 UTC; hard wall 23:59 UTC is buffer only.
-- Testnet only. Contract `blind-deal-59xtyh4b.testnet` and the TEE are not changed or redeployed. Commitments stay `blind-deal:v1` (`tee/testvectors.json`). Limits are canonical decimal Rupiah strings; rate 100,000,000 Rp per NEAR.
+- Testnet only. Demo contract `blind-deal-1wxklib7.testnet` (redeployed 2026-11-13 for the failed-run retry, DECISIONS) and the TEE. Commitments stay `blind-deal:v1` (`tee/testvectors.json`). Limits are canonical decimal Rupiah strings; rate 100,000,000 Rp per NEAR.
 - Slots: at most 10 per listing; one per buyer per listing; claims only while the listing is `open`. Listing status `open | reserved | sold | closed`, set only by `POST /listings/:id/sync` (and `close`).
 - Every listing shows a required asking price; the seller's floor (sealed minimum) is at or below it and never leaves the browser unsealed; the app caps offers at the asking price. No chat before a deal is Matched. The AI assistant never receives a limit; nothing server-side has one.
 - Supabase tables are reached only by the relayer's service role. The app's anon key is for Auth only.

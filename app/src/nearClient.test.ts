@@ -4,7 +4,7 @@ import { nearClient } from "./nearClient";
 import type { Signer } from "./signer";
 
 const FEE = 2_100_000_000_000_000_000_000n;
-const chain = { contractId: "blind-deal-59xtyh4b.testnet", rpcUrl: "https://rpc.example" };
+const chain = { contractId: "blind-deal-1wxklib7.testnet", rpcUrl: "https://rpc.example" };
 
 const base: Deal = {
   id: 7,
