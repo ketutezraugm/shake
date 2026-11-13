@@ -38,7 +38,7 @@ Written 2026-11-11, with a pivot addendum 2026-11-12. Short on purpose: the buil
 | Relayer must fund accounts with gas plus escrow (a Rp 4.2M deal = 0.42 test NEAR). Faucet limits could starve demos. | M | Collect testnet NEAR today; fund buyers on demand up to a cap; demo deals use small prices. Faucet limits are **unverified** (official faucet page gone; third-party claims conflict), so the test rate is now Rp 100M per NEAR (a 4.2M deal escrows 0.042 NEAR). Backend verifies the real faucet output on day 1 and records it in ASSUMPTIONS.md. |
 | Abel may change the identity, so Frontend could build against moving tokens. | M | **Token freeze 11-12 12:00 UTC.** After that, only copy and asset swaps. |
 | Two identities in one browser for the split-screen demo. | M | The demo page keeps two keys under separate localStorage namespaces; spec'd in D1-10/M1-11. |
-| The OutLayer fee is paid by the second submitter: walletless accounts need enough balance. | L | Relayer funding covers it; amount set after the spike. |
+| The OutLayer fee is paid by the second submitter: the buyer's wallet needs enough balance. | L | The buyer attaches it on `make_offer` and `raise_offer`; the unused part is refunded. |
 | Product name still open: it blocks the parent account, README, X post and logo. | H | **Pick the name today.** Candidates: Kode Jari, Harga Pas, Sarung (clear); Marosok (unchecked). |
 
 ### Contradictions found
@@ -100,7 +100,7 @@ Field: privacy has 68 entries on 11-09, likely ~120 at the deadline, with Pensto
 |---|---|
 | Rules checked, no disqualification risk left | ✅ (RECON.md) |
 | PRD, architecture, plan, team, design brief approved and consistent | ✅ (contradictions above resolved) |
-| Accounts and keys: NEAR testnet parent account, relayer key, OutLayer payment key, Render account, NEAR AI key (Should) | ❌ not created: Backend + Contracts roles, today |
+| Accounts and keys: OutLayer payment key, Render account, NEAR AI key (Should) | ❌ not created: Backend + Contracts roles, today |
 | Repo created, teammates added | ⚠️ repo yes (private); collaborators not added |
 | Branch protection | ⚠️ unavailable on a free private repo; team habit until public |
 | CI green on empty scaffold, hello-world deploy | ❌ D1-01..03 |
