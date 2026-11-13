@@ -15,13 +15,13 @@ Testing also found two promises the app makes but cannot keep:
    - Sellers keep today's flow.
    - Buyers pick a username (same handle rules), land on `/`, and get the tabs Browse · Saved · My offers · Inbox.
    - The account menu switches between the two at any time.
-2. **My offers (MK-52).** Every deal the buyer made an offer on, with its state and next step: raise in round 2, pay, mark received, get my money back, or no deal.
+2. **My offers (MK-52).** Every deal the buyer made an offer on that is still in progress, with its state and next step: raise in round 2, pay, mark received, get my money back, or no deal. Finished purchases link to `/history` (MK-41, #131) for their receipts.
 3. **Get my money back (MK-53).** A paid deal past its delivery deadline shows a button that calls `refund`.
 4. **Reopen listing (MK-54).** A seller whose buyer matched but never paid within 24 h gets a button that calls `expire`, then syncs the listing.
 
 **Should:**
 5. **Saved items (MK-55).** A heart on cards and the listing page, and a Saved page. Kept on this device only.
-6. **Seller sales view (MK-56).** Every listing with its state: open with its free slots, offers in progress, reserved (waiting for payment, or paid and waiting for Received), sold and paid out, or closed.
+6. **Seller sales view (MK-56).** Finished sales and their receipts already live on `/history` (MK-41, #131), so this adds only the live states. Every listing with its state: open with its free slots, offers in progress, reserved (waiting for payment, or paid and waiting for Received), sold and paid out, or closed.
 
 ## Non-goals and anti-goals
 - **No shopping cart.** Every item is its own blind negotiation, its price is known only at the match, and it is paid into its own escrow. There is nothing to total or pay together. Saved items cover "collect what I want".

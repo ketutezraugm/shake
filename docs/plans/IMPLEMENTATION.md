@@ -238,7 +238,7 @@ Spec and reasons: `docs/superpowers/specs/2026-11-13-buyer-side-design.md`. No r
 ### MK-52 My offers
 - **Owner:** FE. **Deps:** MK-50, MK-51.
 - **Files:** `app/src/screens/MyOffers.tsx` (route `/offers`), `app/src/myOffers.ts`.
-- **Data:** `GET /me/negotiations` (listing, title, seller, deal id), plus `get_deal` per deal turned into a state by `offerView` (`app/src/offer.ts`), so the labels match the offer screen. Each row opens `/offer/:dealId`.
+- **Data:** `GET /me/negotiations` (listing, title, seller, deal id), plus `get_deal` per deal turned into a state by `offerView` (`app/src/offer.ts`), so the labels match the offer screen. Each row opens `/offer/:dealId`. My offers covers deals still in progress. Finished purchases and their receipts are on `/history` (MK-41, #131), and a released or refunded deal links there instead of repeating it.
 - **Done:** the buyer from the MK-06 run sees one row per deal with its state and next action: raise in round 2, pay, mark received, get my money back, or no deal. Unit test on the row for each `OfferView` kind.
 
 ### MK-53 Get my money back after the delivery deadline
@@ -262,7 +262,8 @@ Spec and reasons: `docs/superpowers/specs/2026-11-13-buyer-side-design.md`. No r
 - **Done:** save from a card, see it on `/saved`, and still see it after a reload. Unit test on add and remove.
 
 ### MK-56 Seller sales view (Should)
-- **Owner:** FE. **Deps:** MK-50.
+- **Owner:** FE. **Deps:** MK-50, MK-41 (#131).
+- **Overlap:** finished sales with receipts are already on `/history` (MK-41). MK-56 adds only the live states and links to `/history` for sold ones. If time is short, MK-41 alone covers it.
 - **Files:** a Sales section on the seller's own shop, or `app/src/screens/Sales.tsx`.
 - **Data:** `GET /me/listings`, plus the reserving deal's state for reserved listings.
 - **Behaviour:** every listing with its state: open (free slots), offers in progress, reserved (waiting for payment, or paid and waiting for Received), sold and paid out, or closed.
