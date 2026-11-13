@@ -14,7 +14,7 @@ import { createApp } from "../relayer/src/app";
 import { FakeStore } from "../relayer/src/fakes";
 import { rpcNearReader } from "../relayer/src/near";
 
-const chain = { contractId: process.env.CONTRACT_ID ?? "blind-deal-59xtyh4b.testnet", rpcUrl: "https://test.rpc.fastnear.com" };
+const chain = { contractId: process.env.CONTRACT_ID ?? "blind-deal-1wxklib7.testnet", rpcUrl: "https://test.rpc.fastnear.com" };
 const ACCOUNT_ID = process.env.SELLER_ID ?? "rt-seller-3a6ojo95.testnet";
 const TEE_PUBKEY = process.env.TEE_PUBKEY ?? "028be3f388b0896de4519769438841d1d4eef8dc3095c06bcb3dece008de08d92e";
 const METHODS = ["create_deal", "submit_limit", "cancel", "confirm_received", "refund", "expire"]; // = connectWallet's list

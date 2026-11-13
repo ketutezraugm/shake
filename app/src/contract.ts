@@ -35,6 +35,8 @@ export interface Deal {
   /** u64 nanosecond timestamps; double precision is enough for display. */
   matched_at_ns: number | null;
   deadline_ns: number | null;
+  /** Rounds OutLayer failed to run and handed back unused (the sealed limits for the round are cleared; submit again). */
+  matcher_retries: number;
 }
 
 export interface ContractClient {

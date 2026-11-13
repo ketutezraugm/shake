@@ -3,7 +3,9 @@ use near_sdk::json_types::U128;
 use near_sdk::serde::Deserialize;
 use near_sdk::serde_json::{self, json};
 use near_sdk::store::LookupMap;
-use near_sdk::{env, near, require, AccountId, Gas, NearToken, PanicOnDefault, Promise};
+use near_sdk::{
+    env, near, require, AccountId, Gas, NearToken, PanicOnDefault, Promise, PromiseError,
+};
 
 const MAX_TITLE_BYTES: usize = 100;
 const MAX_DESCRIPTION_BYTES: usize = 1000;
@@ -21,6 +23,8 @@ const DAY_NS: u64 = 86_400_000_000_000;
 const DEFAULT_DELIVERY_WINDOW_NS: u64 = 7 * DAY_NS;
 /// A matched deal can be funded for this long; after it anyone can close it, and a late deposit is refused.
 const FUNDING_WINDOW_NS: u64 = DAY_NS;
+/// How many times OutLayer's own execution may fail on one deal before a failure counts as a no-deal again.
+const MAX_MATCHER_RETRIES: u8 = 3;
 
 /// Waiting = one side has submitted this round; Retry = no deal this round, more rounds left.
 #[near(serializers = [json, borsh])]
@@ -59,6 +63,8 @@ pub struct Deal {
     pub price: Option<U128>,
     pub matched_at_ns: Option<u64>,
     pub deadline_ns: Option<u64>,
+    /// Rounds the matcher could not run (OutLayer failed) and that were handed back unused.
+    pub matcher_retries: u8,
 }
 
 #[near(contract_state)]
@@ -138,6 +144,7 @@ impl Contract {
             price: None,
             matched_at_ns: None,
             deadline_ns: None,
+            matcher_retries: 0,
         };
         self.deals.insert(id, deal);
         id
@@ -216,8 +223,11 @@ impl Contract {
         drop(promise); // near-sdk schedules a promise when it is dropped; a failed call must not undo the submit
     }
 
-    /// Callback from OutLayer with the matcher's result. A failed execution and any malformed or
-    /// mismatching result count as a no-deal for the round. The caller check is explicit because
+    /// Callback from OutLayer with the matcher's result. If OutLayer's own execution failed (the promise
+    /// failed, or it answered with an unparseable or `success:false` envelope, so the matcher never answered)
+    /// the round is handed back unused: both sides' limits for it are cleared and they submit again, up to
+    /// `MAX_MATCHER_RETRIES` times per deal. A mismatching or invalid matcher answer, and a failure past that
+    /// cap, count as a no-deal for the round. The caller check is explicit because
     /// `#[private]` only guards the compiled entry point, not direct calls in tests.
     pub fn on_outlayer_result(&mut self, deal_id: u64) {
         require!(
@@ -226,6 +236,17 @@ impl Contract {
         );
         let mut deal = self.deal_or_panic(deal_id);
         require!(deal.state == State::Computing, "deal is not computing");
+        if deal.matcher_retries < MAX_MATCHER_RETRIES && Self::execution_failed() {
+            deal.matcher_retries += 1;
+            deal.seller_cts.pop();
+            deal.seller_commits.pop();
+            deal.buyer_cts.pop();
+            deal.buyer_commits.pop();
+            // Never Retry: that state means a real no-deal, and the apps tell the two apart by it.
+            deal.state = State::Waiting;
+            self.deals.insert(deal_id, deal);
+            return;
+        }
         match self.matched_price(deal_id) {
             Some(price) => {
                 deal.state = State::Matched;
@@ -373,6 +394,17 @@ impl Contract {
                 .unwrap_or_else(|| env::panic_str("deal without a price"))
                 .0,
         )
+    }
+
+    /// True when OutLayer's execution failed: the promise failed, or its answer is not a matcher envelope
+    /// or says `success:false`. A matcher answer, including `matched:false` and its own `error:"invalid"`
+    /// (both `success:true`), is a real no-deal.
+    fn execution_failed() -> bool {
+        match env::promise_result_checked(0, MAX_RESULT_BYTES) {
+            Err(PromiseError::Failed) => true,
+            Err(_) => false,
+            Ok(bytes) => serde_json::from_slice::<Envelope>(&bytes).map_or(true, |e| !e.success),
+        }
     }
 
     /// The matched price in yoctoNEAR, or None for a no-deal and for anything malformed.

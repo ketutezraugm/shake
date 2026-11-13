@@ -4,7 +4,7 @@ import { nearClient } from "./nearClient";
 import type { Signer } from "./signer";
 
 const FEE = 2_100_000_000_000_000_000_000n;
-const chain = { contractId: "blind-deal-59xtyh4b.testnet", rpcUrl: "https://rpc.example" };
+const chain = { contractId: "blind-deal-1wxklib7.testnet", rpcUrl: "https://rpc.example" };
 
 const base: Deal = {
   id: 7,
@@ -23,6 +23,7 @@ const base: Deal = {
   price: null,
   matched_at_ns: null,
   deadline_ns: null,
+  matcher_retries: 0,
 };
 
 /** Answers `get_deal` over a stubbed RPC like the real node does: result bytes are the JSON, as a number array. */
