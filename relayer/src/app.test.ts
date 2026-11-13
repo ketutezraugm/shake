@@ -156,6 +156,40 @@ describe("claim", () => {
     expect(carol.json.dealId).not.toBe(first.json.dealId);
   });
 
+  it("never hands out a slot whose deal the seller cancelled", async () => {
+    const { listing } = await listingWithSlots(3);
+    near.deals.set(1, chainDeal(1, "ann.test", "tok1", { state: "NoDeal" }));
+    const bob = await call(person("bob.test"), "POST", `/listings/${listing.id}/claim`);
+    const carol = await call(person("carol.test"), "POST", `/listings/${listing.id}/claim`);
+
+    expect([bob.json.dealId, carol.json.dealId]).toEqual([2, 3]);
+    expect((await call(null, "GET", `/listings/${listing.id}`)).json.freeSlots).toBe(0); // the dead slot is out of circulation too
+  });
+
+  it("moves a buyer off a slot that was cancelled after they claimed it, and says 409 when none is left", async () => {
+    const { listing } = await listingWithSlots(2);
+    const bob = person("bob.test");
+    expect((await call(bob, "POST", `/listings/${listing.id}/claim`)).json.dealId).toBe(1);
+    near.deals.set(1, chainDeal(1, "ann.test", "tok1", { state: "NoDeal" }));
+    expect((await call(bob, "POST", `/listings/${listing.id}/claim`)).json.dealId).toBe(2);
+
+    near.deals.set(2, chainDeal(2, "ann.test", "tok2", { state: "NoDeal" }));
+    expect((await call(bob, "POST", `/listings/${listing.id}/claim`)).status).toBe(409);
+  });
+
+  it("keeps a buyer's own slot after their final no deal, and still hands out slots when the chain cannot be read", async () => {
+    const { listing } = await listingWithSlots(2);
+    const bob = person("bob.test");
+    const first = await call(bob, "POST", `/listings/${listing.id}/claim`);
+    near.deals.set(1, chainDeal(1, "ann.test", "tok1", { state: "NoDeal", buyer: "bob.test" }));
+    expect((await call(bob, "POST", `/listings/${listing.id}/claim`)).json).toEqual(first.json);
+
+    near.getDeal = async () => {
+      throw new Error("rpc down");
+    };
+    expect((await call(person("carol.test"), "POST", `/listings/${listing.id}/claim`)).status).toBe(200);
+  });
+
   it("answers 409 when every slot is taken", async () => {
     const { listing } = await listingWithSlots(1);
     await call(person("bob.test"), "POST", `/listings/${listing.id}/claim`);
