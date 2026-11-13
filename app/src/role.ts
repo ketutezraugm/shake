@@ -15,10 +15,6 @@ export function setRole(role: Role, storage: Storage = localStorage): void {
   storage.setItem(ROLE_KEY, role);
 }
 
-export function clearRole(storage: Storage = localStorage): void {
-  storage.removeItem(ROLE_KEY);
-}
-
 /** The tabs in order. A buyer has no Sell or My shop; a seller's My shop needs a handle. */
 export function tabsFor(role: Role, hasShop: boolean): TabKey[] {
   if (role === "buyer") return ["browse", "saved", "offers", "inbox"];
