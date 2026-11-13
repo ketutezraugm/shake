@@ -23,19 +23,19 @@ Mirrors docs/plans/IMPLEMENTATION.md (marketplace plan, Revision B: slots and tw
 - [x] **MK-12** Relayer: profiles, questions, messages, inbox, reserved sync (BI)
 - [ ] **MK-20** Google/email sign-in, handle, keys (BI): screens, key backup and wallet button built by DP in PR; the live Google/email run waits on the Supabase Auth settings (#96)
 - [ ] **MK-06** NEAR wallet login (CT): code and live key checks pass (EZ); one real wallet session still open
-- [ ] **MK-21** Browse, search, seller profile (FE): logic and routes in PR, visuals wait on MK-30, live data on #47
-- [ ] **MK-22** Create listing (FE): flow and screen in PR, live run waits on MK-20 sign-in and a deployed relayer
-- [ ] **MK-23** Listing page: assistant and Q&A (FE): page, assistant and public Q&A in PR; assistant needs MK-05, offer button waits on MK-24, seller answering waits on MK-25 inbox
+- [x] **MK-21** Browse, search, seller profile (FE): #50, restyled to the frames in #84; checked in the browser on seed data; not yet run against the live relayer
+- [ ] **MK-22** Create listing (FE): #60, asking price #69; tested against a stubbed relayer; done-check (mock chain, 3 photos, 10 slots) not yet run with photos; live run needs sign-up (#107)
+- [ ] **MK-23** Listing page: assistant and Q&A (FE): #74, assistant fallback on 429/503; unit-tested, page checked on seed data; seller answering from the inbox and the answer shown signed-out not yet checked; live assistant call still open
 
 ## Asking price (decided 2026-11-13)
 - [ ] **MK-15** Asking price in the API (BI): code, tests and migration 0003 written by CT (PR); the migration is not yet applied to the hosted project
-- [ ] **MK-26** Asking price in the screens (FE): sell form, cards and shop done in PR; offer-field cap waits on MK-24; real `askingPrice` field waits on MK-15
+- [x] **MK-26** Asking price in the screens (FE): #69, offer cap in #80; the live `askingPrice` field depends on MK-15's migration being applied
 - [x] **MK-32** Asking price in the frames (DP)
 
 ## Block C: 2026-11-13 12:00-24:00 UTC
 - [x] **MK-05** AI product assistant (CT): `POST /assistant` live-model checks pass; the asking price joins the prompt once MK-15 lands
-- [ ] **MK-24** Offer flow (FE): flow and screens in PR, logic unit-tested; two-browser testnet run waits on MK-20 and a deployed relayer
-- [ ] **MK-25** Chat and inbox (FE): screens and logic in PR (stacked on MK-24); live run waits on MK-20 and a deployed relayer
+- [ ] **MK-24** Offer flow (FE): #80, restyled in #90; unit-tested and clicked through reveal and pay on the mock chain; the two-browser testnet run (gate G3) is still open
+- [x] **MK-25** Chat and inbox (FE): #81, restyled in #90; unit-tested; live run still open
 - [x] **MK-31** Seed photos (DP): `seed/` with 6 freely licensed photos, listings and sources
 - [ ] **MK-14** Seed: demo shop (BI)
 - [ ] **MK-40** End-to-end happy path (BI)
