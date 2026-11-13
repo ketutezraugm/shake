@@ -68,6 +68,7 @@ mod create_deal {
                 "id",
                 "link_hash",
                 "matched_at_ns",
+                "matcher_retries",
                 "max_rounds",
                 "price",
                 "round",
