@@ -9,6 +9,8 @@ export interface Signer {
   signRequest(method: string, path: string, body: string): Promise<Record<string, string>>;
   /** Calls a method on the deal contract and returns its parsed result; `depositYocto` is attached to the call. */
   call(method: string, args: object, depositYocto?: bigint): Promise<unknown>;
+  /** Like `call`, for the money steps: resolves with the transaction hash, the proof of what happened. */
+  send(method: string, args: object, depositYocto?: bigint): Promise<string>;
 }
 
 export const FULL_GAS = 300_000_000_000_000n; // 300 Tgas, enough for a round that calls OutLayer; unused gas is refunded
@@ -38,5 +40,9 @@ export function keySigner(accountId: string, secretKey: string, chain: ChainConf
     },
     call: (methodName, args, deposit = 0n) =>
       account.callFunction({ contractId: chain.contractId, methodName, args, deposit, gas }),
+    async send(methodName, args, deposit = 0n) {
+      const outcome = await account.callFunctionRaw({ contractId: chain.contractId, methodName, args, deposit, gas });
+      return outcome.transaction.hash;
+    },
   };
 }

@@ -151,7 +151,7 @@ Links between the stores: `slots.deal_id` equals the contract deal id; `messages
 
 ## Access (who reads and writes each table, through which endpoint)
 
-The anon Supabase key reads and writes no table: RLS is on with no policies and grants are revoked from `anon` and `authenticated` (migration 0001 for `listings` and `slots`, 0002 for the rest). The app uses that key for Auth only. Every row below is reached by the relayer with the service role. `claim_slot` is revoked from every role but the service role.
+The anon Supabase key reads and writes no table: RLS is on with no policies and grants are revoked from `anon` and `authenticated` (migration 0001 for `listings` and `slots`, 0002 and 0005 for the rest). The app uses that key for Auth only. Every row below is reached by the relayer with the service role. `claim_slot` is revoked from every role but the service role.
 
 | Table or bucket | Read | Write |
 |---|---|---|
@@ -160,6 +160,7 @@ The anon Supabase key reads and writes no table: RLS is on with no policies and 
 | `profiles` | Anyone: `GET /profiles/:handle` (public fields only; `supabase_user_id` never returned) | `PUT /me/profile` (signed, own row) creates and updates; wallet users only |
 | `questions` | Anyone: `GET /listings/:id/questions` (answered only). The seller and asker see unanswered ones through `GET /me/inbox` | `POST /listings/:id/questions` (signed); `POST /questions/:id/answer` (the listing's seller only) |
 | `messages` | `GET /deals/:dealId/messages` (the deal's seller or buyer, deal Matched or later) | `POST /deals/:dealId/messages` (same rule) |
+| `receipts` | The deal's seller and buyer: `GET /me/history` (one row per deal they bought or sold, with its receipts) | `POST /deals/:dealId/receipts` (the deal's seller or buyer; the relayer looks the transaction up on chain first). Migration 0005, `(deal_id, kind)` is unique |
 | Storage `listing-photos` | Public read | Upload through the signed URL from `POST /listings/:id/photos`; JPEG, PNG or WebP, 2 MB each |
 | Auth users | Supabase | Supabase Auth; the relayer reads the user from the JWT |
 

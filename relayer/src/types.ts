@@ -82,4 +82,26 @@ export type Inbox = {
   newMessages: Message[];
 };
 
+/** The two money steps a person can prove: the buyer paying into escrow, and escrow paying out on "Received". */
+export const RECEIPT_KINDS = ["deposit", "release"] as const;
+export type ReceiptKind = (typeof RECEIPT_KINDS)[number];
+
+/** A transaction the relayer checked on chain; `amountYocto` is the deal price that moved. */
+export type Receipt = { dealId: number; kind: ReceiptKind; txHash: string; signerAccount: string; amountYocto: string; recordedAt: string };
+export type PostReceiptReq = { kind: ReceiptKind; txHash: string };
+
+/** One deal the caller bought or sold, with the proof of each money step; `priceYocto` is null until it matches. */
+export type HistoryItem = {
+  listingId: string;
+  title: string;
+  /** The listing's first photo, or null when it has none. */
+  photoUrl: string | null;
+  role: "seller" | "buyer";
+  dealId: number;
+  counterparty: string;
+  state: string;
+  priceYocto: string | null;
+  receipts: Receipt[];
+};
+
 export type ErrorRes = { error: string };

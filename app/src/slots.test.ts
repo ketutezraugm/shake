@@ -13,6 +13,7 @@ const signer: Signer = {
   accountId: "seller.testnet",
   signRequest: async () => ({ "x-account-id": "seller.testnet" }),
   call: async () => 0,
+  send: async () => "",
 };
 
 function fakeClient() {

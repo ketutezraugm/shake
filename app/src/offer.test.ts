@@ -15,7 +15,7 @@ vi.stubGlobal("localStorage", {
   setItem: (k: string, v: string) => void store.set(k, v),
 });
 
-const signer: Signer = { accountId: ME, signRequest: async () => ({ "x-account-id": ME }), call: async () => 0 };
+const signer: Signer = { accountId: ME, signRequest: async () => ({ "x-account-id": ME }), call: async () => 0, send: async () => "" };
 
 function deal(overrides: Partial<Deal> = {}): Deal {
   return {

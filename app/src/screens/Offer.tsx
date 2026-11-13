@@ -2,6 +2,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import { currentAccount } from "../accounts";
 import { chainFor } from "../client";
 import { relayerUrl } from "../config";
+import type { Receipt, ReceiptKind } from "../../../relayer/src/types";
 import type { Deal } from "../contract";
 import chatIcon from "../design/assets/icons/chat.svg";
 import clippedTags from "../design/assets/stickers/clipped-tags.svg";
@@ -11,7 +12,9 @@ import sealedMachine from "../design/assets/stickers/sealed-machine.svg";
 import { digitsOnly, formatRp, groupThousands, rpFromYocto } from "../format";
 import { market } from "../marketSource";
 import { lastOffer, loadNegotiation, offerView, submitOffer, syncListing, type Negotiation, type OfferView } from "../offer";
+import { getHistory, postReceipt } from "../receipts";
 import { Link } from "../routes";
+import { ReceiptList } from "./ReceiptList";
 import { ProofPanel } from "./Proof";
 
 const POLL_MS = 3000;
@@ -44,6 +47,7 @@ function OfferDeal({ dealId, account, negotiation }: { dealId: number; account: 
   const [reservedDealId, setReservedDealId] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [receipts, setReceipts] = useState<Receipt[]>([]);
   const chain = chainFor(account);
 
   async function reload() {
@@ -58,6 +62,21 @@ function OfferDeal({ dealId, account, negotiation }: { dealId: number; account: 
     const timer = setInterval(() => void load(), POLL_MS);
     return () => clearInterval(timer);
   }, [dealId, account]);
+
+  // Receipts only exist once money has moved, so look for them when the deal reaches Funded, Released or Refunded.
+  useEffect(() => {
+    if (!relayerUrl || !deal || !["Funded", "Released", "Refunded"].includes(deal.state)) return;
+    getHistory(relayerUrl, chain.signer)
+      .then((history) => setReceipts(history.find((item) => item.dealId === dealId)?.receipts ?? []))
+      .catch((e: Error) => setError(e.message));
+  }, [deal?.state]);
+
+  // The money has moved by now, so a receipt that fails to save is reported without calling the payment failed.
+  async function withReceipt(kind: ReceiptKind, money: () => Promise<string | null>) {
+    const txHash = await money();
+    if (!txHash || !relayerUrl) return;
+    await postReceipt(relayerUrl, chain.signer, dealId, { kind, txHash }).catch((e: Error) => setError(`Done, but the receipt was not saved. ${e.message}`));
+  }
 
   async function act(action: () => Promise<void>, syncAfter = false) {
     setBusy(true);
@@ -97,10 +116,12 @@ function OfferDeal({ dealId, account, negotiation }: { dealId: number; account: 
         onOffer={(limit) =>
           act(() => submitOffer({ deal, limit, askingPrice: negotiation.askingPrice, linkToken: negotiation.linkToken, client: chain.client, teePubkey: chain.teePubkey }))
         }
-        onPay={() => act(() => chain.client.deposit(dealId), true)}
-        onReceived={() => act(() => chain.client.confirmReceived(dealId), true)}
+        onPay={() => act(() => withReceipt("deposit", () => chain.client.deposit(dealId)), true)}
+        onReceived={() => act(() => withReceipt("release", () => chain.client.confirmReceived(dealId)), true)}
         onRefund={() => act(() => chain.client.refund(dealId), true)}
       />
+
+      <ReceiptList receipts={receipts} />
 
       {error && <p className="error" role="alert">{error}</p>}
       {deal.buyer_commits.length > 0 && <ProofPanel deal={deal} />}

@@ -79,8 +79,8 @@ function BuyerDeal({ id, buyer, token }: { id: number; buyer: string; token: str
             await client.submitLimit(id, sealed.ct, sealed.commit, deal.buyer ? null : token);
           })
         }
-        onDeposit={() => act(() => client.deposit(id))}
-        onReceived={() => act(() => client.confirmReceived(id))}
+        onDeposit={() => act(async () => void (await client.deposit(id)))}
+        onReceived={() => act(async () => void (await client.confirmReceived(id)))}
       />
 
       {error && <p className="error">{error}</p>}

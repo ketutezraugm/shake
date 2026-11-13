@@ -51,6 +51,9 @@ export function AccountMenu() {
                 <Link to="/sell" className="account-item">
                   Sell something
                 </Link>
+                <Link to="/history" className="account-item">
+                  History
+                </Link>
               </>
             ) : (
               <Link to="/signin" className="account-item">

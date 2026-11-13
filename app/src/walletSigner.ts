@@ -68,18 +68,24 @@ export function walletSigner(
   chain: ChainConfig,
   withKey: Signer = keySigner(session.accountId, session.secretKey, chain, KEY_CALL_GAS),
 ): Signer {
+  const viaWallet = async (methodName: string, args: object, depositYocto: bigint) =>
+    (await getWallet()).signAndSendTransaction({
+      network: "testnet",
+      signerId: session.accountId,
+      receiverId: chain.contractId,
+      actions: [{ type: "FunctionCall", params: { methodName, args, gas: FULL_GAS.toString(), deposit: depositYocto.toString() } }],
+    });
+
   return {
     ...withKey,
     async call(methodName, args, depositYocto = 0n) {
       if (depositYocto === 0n) return withKey.call(methodName, args);
-      const wallet = await getWallet();
-      await wallet.signAndSendTransaction({
-        network: "testnet",
-        signerId: session.accountId,
-        receiverId: chain.contractId,
-        actions: [{ type: "FunctionCall", params: { methodName, args, gas: FULL_GAS.toString(), deposit: depositYocto.toString() } }],
-      });
+      await viaWallet(methodName, args, depositYocto);
       return null;
+    },
+    async send(methodName, args, depositYocto = 0n) {
+      if (depositYocto === 0n) return withKey.send(methodName, args);
+      return (await viaWallet(methodName, args, depositYocto)).transaction.hash;
     },
   };
 }

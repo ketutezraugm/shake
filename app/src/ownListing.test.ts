@@ -6,6 +6,7 @@ const signer: Signer = {
   accountId: "dita.testnet",
   signRequest: async (method, path) => ({ "x-test": `${method} ${path}` }),
   call: async () => null,
+  send: async () => "",
 };
 
 describe("ownListing", () => {

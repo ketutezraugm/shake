@@ -10,6 +10,7 @@ import type {
   PhotoType,
   Profile,
   Question,
+  Receipt,
   SlotInput,
   UpdateProfileReq,
 } from "./types.js";
@@ -56,4 +57,7 @@ export interface Store {
   /** `reservedDeal` is the deal holding a reservation, and null otherwise. */
   setStatus(id: string, status: ListingStatus, reservedDeal?: number | null): Promise<void>;
   reservedDealOf(id: string): Promise<number | null>;
+  /** Keeps the first receipt for a deal and kind, so a repeat returns the stored one. */
+  addReceipt(receipt: Receipt): Promise<Receipt>;
+  receiptsOf(dealIds: number[]): Promise<Receipt[]>;
 }
