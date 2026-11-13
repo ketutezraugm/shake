@@ -17,7 +17,7 @@ Mirrors docs/plans/IMPLEMENTATION.md (marketplace plan, Revision B: slots and tw
 - [x] **MK-30** Marketplace screens in Claude Design (DP): 32 frames, `docs/design/shake-marketplace-screens.html` (#77), linked in #70
 
 ## Block B: 2026-11-13 00:00-12:00 UTC
-- [x] **MK-07** Marketplace round trip on testnet (CT): `npx tsx scripts/marketplace-roundtrip.mts` on the real Supabase store passes (3 of 3 traced runs: Matched in the overlap, reserved by the matching deal, Received, sold, NoDeal case); 2 of 3 untraced runs earlier returned NoDeal for the overlapping case and were not explained, see DECISIONS
+- [x] **MK-07** Marketplace round trip on testnet (CT): `npx tsx scripts/marketplace-roundtrip.mts` on the real Supabase store passes (13 runs: 10 matched through reserved, Received and sold, 3 hit an OutLayer execution failure that #106 now hands back; see DECISIONS)
 - [ ] **G2** Gate 12:00 UTC: MK-07 green (lead)
 - [x] **MK-11** `POST /accounts` with Supabase JWT (BI)
 - [x] **MK-12** Relayer: profiles, questions, messages, inbox, reserved sync (BI)
