@@ -1,8 +1,8 @@
 import { PHOTO_TYPES, type Category, type Listing, type PhotoRes, type PhotoType } from "../../relayer/src/types";
 import type { ContractClient } from "./contract";
+import { isTeePublicKey } from "./crypto";
 import { isRupiah } from "./format";
-import { closeListing } from "./ownListing";
-import { signedPost } from "./relayer";
+import { signedDelete, signedPost } from "./relayer";
 import type { Signer } from "./signer";
 import { createSlots } from "./slots";
 
@@ -56,6 +56,7 @@ function validate(input: PublishInput): void {
   if (!Number.isInteger(input.slotCount) || input.slotCount < 1 || input.slotCount > MAX_SLOTS) {
     throw new Error(`Make between 1 and ${MAX_SLOTS} offer slots`);
   }
+  if (!isTeePublicKey(input.teePubkey)) throw new Error("The app has no valid TEE key (VITE_TEE_PUBKEY), so prices cannot be sealed");
 }
 
 async function uploadPhoto(relayerUrl: string, signer: Signer, listingId: string, photo: Blob): Promise<void> {
@@ -66,7 +67,7 @@ async function uploadPhoto(relayerUrl: string, signer: Signer, listingId: string
 
 /**
  * Sell flow: create the listing, upload photos, then make the on-chain offer slots. Returns the listing id.
- * A listing with no slots shows in browse but cannot take an offer, so if a later step fails the listing is closed again
+ * A listing with no slots would show in browse but take no offer, so if a later step fails the listing is deleted again
  * and the seller gets the error to retry from the form.
  */
 export async function publishListing(input: PublishInput): Promise<string> {
@@ -107,9 +108,9 @@ export async function publishListing(input: PublishInput): Promise<string> {
     });
   } catch (failure) {
     const reason = (failure as Error).message;
-    // Offer slots already made on the contract stay there, unused: harmless, and they hold no money.
-    const closed = await closeListing(relayerUrl, signer, listing.id).then(() => true, () => false);
-    throw new Error(closed ? `${reason}. Nothing was published; try again.` : `${reason}. The half-made listing could not be removed: close it from your shop.`);
+    // Deals already made on the contract stay there, unused: harmless, and they hold no money.
+    const removed = await signedDelete(relayerUrl, signer, `/listings/${listing.id}`, "Removing the unfinished listing").then(() => true, () => false);
+    throw new Error(removed ? `${reason}. Nothing was published; try again.` : `${reason}. The half-made listing could not be removed: close it from your shop.`);
   }
   return listing.id;
 }

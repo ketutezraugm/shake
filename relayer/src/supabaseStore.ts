@@ -11,6 +11,7 @@ const UNIQUE_VIOLATION = "23505";
 type CardRow = {
   id: string;
   seller_account: string;
+  seller_handle: string | null;
   title: string;
   description: string;
   category: Category;
@@ -76,6 +77,7 @@ export function supabaseStore(url: string, serviceKey: string): Store {
   const toListing = (row: CardRow): Listing => ({
     id: row.id,
     sellerAccount: row.seller_account,
+    sellerHandle: row.seller_handle,
     title: row.title,
     description: row.description,
     category: row.category,
@@ -159,6 +161,11 @@ export function supabaseStore(url: string, serviceKey: string): Store {
         .insert(slots.map((slot) => ({ listing_id: id, deal_id: slot.dealId, link_token: slot.linkToken })));
       if (error?.code === UNIQUE_VIOLATION) throw new HttpError(409, "a deal is already registered");
       if (error) throw new Error(error.message);
+    },
+
+    async remove(id) {
+      const { photo_paths } = check(await db.from("listings").delete().eq("id", id).select("photo_paths").single<{ photo_paths: string[] }>());
+      if (photo_paths.length > 0) check(await db.storage.from(BUCKET).remove(photo_paths));
     },
 
     async slotsOf(id) {

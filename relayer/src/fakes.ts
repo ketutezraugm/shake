@@ -35,7 +35,7 @@ export class FakeStore implements Store {
   }
 
   private view(listing: Listing): Listing {
-    return { ...listing, reservedDealId: listing.status === "reserved" ? (this.reservedDeals.get(listing.id) ?? null) : null, freeSlots: this.free(listing.id) };
+    return { ...listing, sellerHandle: this.profiles.find((p) => p.accountId === listing.sellerAccount)?.handle ?? null, reservedDealId: listing.status === "reserved" ? (this.reservedDeals.get(listing.id) ?? null) : null, freeSlots: this.free(listing.id) };
   }
 
   async list({ q, category, limit }: Parameters<Store["list"]>[0]) {
@@ -59,6 +59,7 @@ export class FakeStore implements Store {
     const listing: Listing = {
       id: randomUUID(),
       sellerAccount: seller,
+      sellerHandle: null,
       ...req,
       photoUrls: [],
       status: "open",
@@ -78,6 +79,11 @@ export class FakeStore implements Store {
 
   async addSlots(id: string, slots: { dealId: number; linkToken: string }[]) {
     this.slots.push(...slots.map((s) => ({ listingId: id, dealId: s.dealId, linkToken: s.linkToken, buyer: null })));
+  }
+
+  async remove(id: string) {
+    this.listings.splice(this.listings.findIndex((l) => l.id === id), 1);
+    this.slots.splice(0, this.slots.length, ...this.slots.filter((s) => s.listingId !== id));
   }
 
   async slotsOf(id: string): Promise<SlotRow[]> {

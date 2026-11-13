@@ -7,7 +7,7 @@ import fourFingers from "../design/assets/stickers/four-fingers.svg";
 import priceTag from "../design/assets/stickers/price-tag.svg";
 import scratchCard from "../design/assets/stickers/scratch-card.svg";
 import { Link, navigate } from "../routes";
-import { createWalletProfile } from "../wallet";
+import { createWalletProfile, fetchMyProfile } from "../wallet";
 import { loadWalletSession } from "../walletSigner";
 
 /** Frame "What brings you here": a new account says whether it will sell or only buy, then names itself. */
@@ -65,7 +65,9 @@ function HandleForm({ selling }: { selling: boolean }) {
       return handle;
     }
     if (!relayerUrl) throw new Error("Sign-up needs VITE_RELAYER_URL in the app's environment.");
-    return (await createWalletProfile(relayerUrl, walletSession, handle)).handle;
+    // The relayer would rewrite an existing shop's fields, so a returning account is sent to its shop instead.
+    const existing = await fetchMyProfile(relayerUrl, walletSession);
+    return (existing ?? (await createWalletProfile(relayerUrl, walletSession, handle))).handle;
   }
 
   async function submit(event: FormEvent) {

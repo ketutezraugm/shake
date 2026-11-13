@@ -28,6 +28,8 @@ export interface Store {
   /** Records a new photo path on the listing and returns where to upload it. */
   addPhoto(id: string, contentType: PhotoType): Promise<PhotoRes>;
   addSlots(id: string, slots: SlotInput[]): Promise<void>;
+  /** Deletes the listing with its slots, questions and photos. */
+  remove(id: string): Promise<void>;
   slotsOf(id: string): Promise<SlotRow[]>;
   /** The buyer's existing slot, a newly claimed one, or null when the listing is full. */
   claim(id: string, buyer: string): Promise<ClaimRes | null>;

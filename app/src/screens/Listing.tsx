@@ -105,7 +105,7 @@ export function Listing({ id }: { id: string }) {
   if (loaded === null) return <NotFound title="Listing not found">It may have been removed by the seller.</NotFound>;
 
   const { listing, questions } = loaded;
-  const handle = listing.sellerAccount.split(".")[0] ?? listing.sellerAccount;
+  const handle = listing.sellerHandle;
   const isOwn = currentAccount() === listing.sellerAccount;
   const note = statusNote(listing);
 
@@ -134,13 +134,17 @@ export function Listing({ id }: { id: string }) {
       </div>
       {listing.description && <p>{listing.description}</p>}
 
-      <Link to={`/@${handle}`} className="seller-card">
-        <span className="avatar" aria-hidden="true">{handle.charAt(0).toUpperCase()}</span>
-        <span>
-          <strong>@{handle}</strong>
-          <span className="muted"> · visit shop</span>
-        </span>
-      </Link>
+      {handle ? (
+        <Link to={`/@${handle}`} className="seller-card">
+          <span className="avatar" aria-hidden="true">{handle.charAt(0).toUpperCase()}</span>
+          <span>
+            <strong>@{handle}</strong>
+            <span className="muted"> · visit shop</span>
+          </span>
+        </Link>
+      ) : (
+        <p className="seller-card muted">{listing.sellerAccount}</p>
+      )}
 
       {isOwn ? (
         <OwnListing listing={listing} onChanged={() => setVersion((v) => v + 1)} />
