@@ -5,28 +5,25 @@
   /* Release: a calm return, longer than the press that started it. */
   transition:
     scale var(--dur-quick) var(--ease-out),
-    translate var(--dur-quick) var(--ease-out),
     opacity var(--dur-quick) var(--ease-out);
 
-  /* Hover: a 1 px lift, only where a real pointer exists (a touch screen would leave it stuck after a tap). */
+  /* Hover: a slight growth in place (nothing changes position), only where a real pointer exists (a touch screen
+     would leave it stuck after a tap). */
   @media (hover: hover) and (pointer: fine) {
     &:hover {
-      translate: 0 var(--lift, -1px);
-      scale: var(--grow, none);
+      scale: var(--grow, 1.04);
     }
   }
 
   /* Press: answers the finger or click within --dur-instant, so the interface feels like it heard it. */
   &:active {
     scale: var(--press, 0.97);
-    translate: 0 0;
     transition-duration: var(--dur-instant);
   }
 
   /* Reduced motion: nothing moves; a press dims instead, so the feedback is still there. */
   @media (prefers-reduced-motion: reduce) {
     &:hover {
-      translate: none;
       scale: none;
     }
 
@@ -37,69 +34,106 @@
   }
 }
 
-/* Big or small targets press by a different amount, and ones that sit in a list or a bar do not lift on hover. */
+/* Big or small targets grow and press by a different amount. A catalog card grows a little under the pointer and
+   shrinks past its resting size when pressed, so it feels picked up and pushed; `scale` changes no layout, so it
+   never moves its neighbours. */
 .tab {
   --press: 0.94;
-  --lift: 0px;
 }
 
 .thumb {
   --press: 0.95;
-  --lift: 0px;
 }
 
-/* A catalog card grows a little under the pointer and shrinks past its resting size when pressed, so it feels like
-   it is being picked up and pushed. Growing does not move its neighbours: `scale` changes no layout. */
 a.card {
   --grow: 1.03;
-  --press: 0.97;
-  --lift: 0px;
 }
 
 .seller-card {
+  --grow: 1.01;
   --press: 0.985;
-  --lift: 0px;
 }
 
 .desk-link {
-  --lift: 0px;
+  --grow: 1.06;
 }
 
-/* Hover colour. A coloured layer slides up inside the button, so the fill changes with `translate` only (no colour is
-   animated). The colours stay inside the identity: light tints under ink text on the light buttons, and ink-muted under
-   ground text on the dark one. The sticker colours themselves never colour a button. A selected chip keeps its ink. */
+/* Hover colour. A coloured layer sits inside the button and fades in, so the colour changes smoothly with `opacity`
+   only (no colour is animated). The colours stay inside the identity: light tints under ink text on the light buttons,
+   and ink-muted under ground text on the dark one. The sticker colours themselves never colour a button. A selected
+   chip keeps its ink. */
 :is(.primary, .outline-button, .more, .pill, .chip):not(:disabled):not([aria-pressed="true"]) {
   position: relative;
   isolation: isolate;
-  overflow: hidden;
 
   &::before {
     content: "";
     position: absolute;
     inset: 0;
     z-index: -1;
+    border-radius: inherit;
     background: var(--hover-fill, transparent);
-    translate: 0 101%;
-    transition: translate var(--dur-quick) var(--ease-out);
+    opacity: 0;
+    transition: opacity var(--dur-quick) var(--ease-out);
   }
 
   @media (hover: hover) and (pointer: fine) {
     &:hover::before {
-      translate: 0 0;
-    }
-  }
-
-  /* Reduced motion: the layer fades in place instead of sliding. */
-  @media (prefers-reduced-motion: reduce) {
-    &::before {
-      translate: none;
-      opacity: 0;
-      transition: opacity var(--dur-quick) var(--ease-out);
-    }
-
-    &:hover::before {
       opacity: 1;
     }
+  }
+}
+
+/* The header links: the darker ink fades in over the text (an overlay copy of the label), not a colour transition. */
+.desk-label {
+  position: relative;
+
+  /* An invisible bold copy sets the label's width, so a link is the same width whether or not it is the current one
+     (bold is wider). The line under the current link and the layout around it never change with the selection. */
+  &::before {
+    content: attr(data-label);
+    display: block;
+    height: 0;
+    overflow: hidden;
+    visibility: hidden;
+    font-weight: 800;
+  }
+
+  &::after {
+    content: attr(data-label);
+    position: absolute;
+    inset: 0;
+    color: var(--ink);
+    opacity: 0;
+    transition: opacity var(--dur-quick) var(--ease-out);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .desk-link:hover &::after {
+      opacity: 1;
+    }
+  }
+}
+
+/* The line under the current link. Every link holds a line exactly as wide as its text (the link's box minus its side
+   padding; the label always has its bold width), shown only on the current link. The glide between links is played by
+   Shell.tsx from the boxes' real sizes, using `translate` and `scale`. */
+.desk-link {
+  position: relative;
+}
+
+.desk-line {
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  bottom: 6px;
+  height: 2px;
+  background: var(--ink);
+  transform-origin: left center;
+  visibility: hidden;
+
+  .desk-link[aria-current="page"] & {
+    visibility: visible;
   }
 }
 
