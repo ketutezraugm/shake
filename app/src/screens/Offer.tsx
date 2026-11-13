@@ -118,6 +118,7 @@ function OfferDeal({ dealId, account, negotiation }: { dealId: number; account: 
         }
         onPay={() => act(() => withReceipt("deposit", () => chain.client.deposit(dealId)), true)}
         onReceived={() => act(() => withReceipt("release", () => chain.client.confirmReceived(dealId)), true)}
+        onRefund={() => act(() => chain.client.refund(dealId), true)}
       />
 
       <ReceiptList receipts={receipts} />
@@ -136,6 +137,7 @@ type StepProps = {
   onOffer: (limit: string) => void;
   onPay: () => void;
   onReceived: () => void;
+  onRefund: () => void;
 };
 
 const Amount = ({ rp }: { rp: string }) => (
@@ -144,7 +146,7 @@ const Amount = ({ rp }: { rp: string }) => (
   </>
 );
 
-function OfferStep({ view, deal, negotiation, busy, onOffer, onPay, onReceived }: StepProps) {
+function OfferStep({ view, deal, negotiation, busy, onOffer, onPay, onReceived, onRefund }: StepProps) {
   const more = (
     <p>
       <Link to="/">See similar items</Link> · <Link to={`/l/${negotiation.listingId}`}>Back to the listing</Link>
@@ -264,6 +266,29 @@ function OfferStep({ view, deal, negotiation, busy, onOffer, onPay, onReceived }
             {view.deadlineNs !== null && <p className="num">Deadline: {new Date(view.deadlineNs / 1e6).toLocaleDateString()}</p>}
           </div>
           <button className="primary big" disabled={busy} onClick={onReceived}>
+            Received
+          </button>
+          {message}
+        </>
+      );
+    case "refundable":
+      return (
+        <>
+          <section className="flow-card">
+            <span className="eyebrow">Held in escrow</span>
+            <p className="big-amount deal-price num">
+              <Amount rp={rpFromYocto(view.price)} />
+            </p>
+            <p>The delivery deadline has passed.</p>
+          </section>
+          <div className="info-card">
+            <b>Didn't get the item?</b>
+            <p>You can take your money back now. If the item did arrive, tap Received instead.</p>
+          </div>
+          <button className="primary big" disabled={busy} onClick={onRefund}>
+            Get my money back
+          </button>
+          <button className="outline-button" disabled={busy} onClick={onReceived}>
             Received
           </button>
           {message}
