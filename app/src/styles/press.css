@@ -1,0 +1,57 @@
+/* Hover and press feedback for everything tappable. Only `scale`, `translate` and `opacity` move (IDENTITY.md), with the
+   instant and quick tokens. A disabled control stays still. Footer links keep their own reveal and underline. */
+
+:is(button, .primary, .outline-button, .link-button, .chip, .pill, .more, .thumb, .tab, .desk-link, .seller-card, a.card):not(:disabled) {
+  /* Release: a calm return, longer than the press that started it. */
+  transition:
+    scale var(--dur-quick) var(--ease-out),
+    translate var(--dur-quick) var(--ease-out),
+    opacity var(--dur-quick) var(--ease-out);
+
+  /* Hover: a 1 px lift, only where a real pointer exists (a touch screen would leave it stuck after a tap). */
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      translate: 0 var(--lift, -1px);
+    }
+  }
+
+  /* Press: answers the finger or click within --dur-instant, so the interface feels like it heard it. */
+  &:active {
+    scale: var(--press, 0.97);
+    translate: 0 0;
+    transition-duration: var(--dur-instant);
+  }
+
+  /* Reduced motion: nothing moves; a press dims instead, so the feedback is still there. */
+  @media (prefers-reduced-motion: reduce) {
+    &:hover {
+      translate: none;
+    }
+
+    &:active {
+      scale: none;
+      opacity: 0.85;
+    }
+  }
+}
+
+/* Big or small targets press by a different amount, and ones that sit in a list or a bar do not lift on hover. */
+.tab {
+  --press: 0.94;
+  --lift: 0px;
+}
+
+.thumb {
+  --press: 0.95;
+  --lift: 0px;
+}
+
+a.card,
+.seller-card {
+  --press: 0.985;
+  --lift: 0px;
+}
+
+.desk-link {
+  --lift: 0px;
+}
