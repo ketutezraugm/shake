@@ -23,6 +23,7 @@ const base: Deal = {
   price: null,
   matched_at_ns: null,
   deadline_ns: null,
+  matcher_retries: 0,
 };
 
 /** Answers `get_deal` over a stubbed RPC like the real node does: result bytes are the JSON, as a number array. */

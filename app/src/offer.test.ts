@@ -35,6 +35,7 @@ function deal(overrides: Partial<Deal> = {}): Deal {
     price: null,
     matched_at_ns: null,
     deadline_ns: null,
+    matcher_retries: 0,
     ...overrides,
   };
 }

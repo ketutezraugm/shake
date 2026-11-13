@@ -43,13 +43,33 @@ const { SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY } = process.env;
 const live = Boolean(SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY);
 const store = live ? supabaseStore(SUPABASE_URL!, SUPABASE_SERVICE_ROLE_KEY!) : new FakeStore();
 const createdListings: string[] = [];
+let retries = 0;
 const relayer = createApp({ store, near: rpcNearReader(chain.rpcUrl, chain.contractId), allowedOrigin: "*" });
 const realFetch = globalThis.fetch;
 // Requests to the relayer's address go to the in-process app; everything else (the RPC node) is real.
-globalThis.fetch = (input, init) => {
+globalThis.fetch = async (input, init) => {
   const url = input instanceof Request ? input.url : String(input);
-  return url.startsWith(RELAYER) ? Promise.resolve(relayer.fetch(new Request(url, init))) : realFetch(input, init);
+  if (url.startsWith(RELAYER)) return relayer.fetch(new Request(url, init));
+  const response = await realFetch(input, init);
+  if (process.env.TRACE) await traceReceipts(response);
+  return response;
 };
+
+type Outcome = { executor_id: string; logs: string[]; status: { Failure?: unknown; SuccessValue?: string } };
+/** TRACE=1: prints every receipt of a contract call (who ran it, whether it failed, its logs), to see why a round ended in NoDeal. */
+async function traceReceipts(response: Response) {
+  const result = ((await response.clone().json().catch(() => null)) as { result?: Record<string, any> } | null)?.result; // eslint-disable-line @typescript-eslint/no-explicit-any
+  const method = result?.transaction?.actions?.[0]?.FunctionCall?.method_name;
+  if (!method) return;
+  console.log(`  [tx ${method}]`);
+  for (const { outcome } of (result?.receipts_outcome ?? []) as { outcome: Outcome }[]) {
+    const failure = outcome.status.Failure ? ` FAILED ${JSON.stringify(outcome.status.Failure).slice(0, 300)}` : "";
+    const logs = outcome.logs.length ? ` logs=${JSON.stringify(outcome.logs).slice(0, 400)}` : "";
+    // What a receipt returned is what the contract's callback receives as its promise result.
+    const value = outcome.status.SuccessValue ? ` returned=${Buffer.from(outcome.status.SuccessValue, "base64").toString().slice(0, 300)}` : "";
+    if (failure || logs || value || method === "submit_limit") console.log(`    ${outcome.executor_id}${failure}${value}${logs}`);
+  }
+}
 
 function signerFor(accountId: string): Signer {
   const { private_key } = JSON.parse(readFileSync(join(homedir(), ".near-credentials", "testnet", `${accountId}.json`), "utf8"));
@@ -115,6 +135,20 @@ async function play(title: string, slots: number, minimum: string, maximum: stri
     await new Promise((r) => setTimeout(r, 2000));
     deal = await buyerClient.getDeal(dealId);
   }
+  // OutLayer failed to run the matcher: the contract handed the round back, so both sides submit it again.
+  while (deal?.state === "Waiting" && deal.round === 1 && deal.buyer_cts.length === 0 && deal.seller_cts.length === 0) {
+    retries++;
+    console.log(`  matcher failed, round handed back (retry ${deal.matcher_retries} on deal ${dealId}); submitting again`);
+    const again = await sealLimit(dealId, "seller", 1, minimum, TEE_PUBKEY);
+    await sellerClient.submitLimit(dealId, again.ct, again.commit, null);
+    const rebuy = await sealLimit(dealId, "buyer", 1, maximum, TEE_PUBKEY);
+    await buyerClient.submitLimit(dealId, rebuy.ct, rebuy.commit, null);
+    deal = await buyerClient.getDeal(dealId);
+    while (deal?.state === "Computing" && Date.now() - started < WAIT_MS) {
+      await new Promise((r) => setTimeout(r, 2000));
+      deal = await buyerClient.getDeal(dealId);
+    }
+  }
   return { listingId, dealId, deal, waitedS: Math.round((Date.now() - started) / 1000) };
 }
 
@@ -163,5 +197,6 @@ if (live && createdListings.length > 0) {
   console.log(error ? `cleanup failed: ${error.message}` : `cleanup: removed ${createdListings.length} test listings`);
 }
 
+if (retries > 0) console.log(`matcher retries handled: ${retries}`);
 console.log(failed ? "RESULT: FAILED" : "RESULT: ok");
 process.exit(failed ? 1 : 0);
