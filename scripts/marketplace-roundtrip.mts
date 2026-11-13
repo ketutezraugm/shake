@@ -43,6 +43,7 @@ const { SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY } = process.env;
 const live = Boolean(SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY);
 const store = live ? supabaseStore(SUPABASE_URL!, SUPABASE_SERVICE_ROLE_KEY!) : new FakeStore();
 const createdListings: string[] = [];
+let retries = 0;
 const relayer = createApp({ store, near: rpcNearReader(chain.rpcUrl, chain.contractId), allowedOrigin: "*" });
 const realFetch = globalThis.fetch;
 // Requests to the relayer's address go to the in-process app; everything else (the RPC node) is real.
@@ -115,6 +116,20 @@ async function play(title: string, slots: number, minimum: string, maximum: stri
     await new Promise((r) => setTimeout(r, 2000));
     deal = await buyerClient.getDeal(dealId);
   }
+  // OutLayer failed to run the matcher: the contract handed the round back, so both sides submit it again.
+  while (deal?.state === "Waiting" && deal.round === 1 && deal.buyer_cts.length === 0 && deal.seller_cts.length === 0) {
+    retries++;
+    console.log(`  matcher failed, round handed back (retry ${deal.matcher_retries} on deal ${dealId}); submitting again`);
+    const again = await sealLimit(dealId, "seller", 1, minimum, TEE_PUBKEY);
+    await sellerClient.submitLimit(dealId, again.ct, again.commit, null);
+    const rebuy = await sealLimit(dealId, "buyer", 1, maximum, TEE_PUBKEY);
+    await buyerClient.submitLimit(dealId, rebuy.ct, rebuy.commit, null);
+    deal = await buyerClient.getDeal(dealId);
+    while (deal?.state === "Computing" && Date.now() - started < WAIT_MS) {
+      await new Promise((r) => setTimeout(r, 2000));
+      deal = await buyerClient.getDeal(dealId);
+    }
+  }
   return { listingId, dealId, deal, waitedS: Math.round((Date.now() - started) / 1000) };
 }
 
@@ -163,5 +178,6 @@ if (live && createdListings.length > 0) {
   console.log(error ? `cleanup failed: ${error.message}` : `cleanup: removed ${createdListings.length} test listings`);
 }
 
+if (retries > 0) console.log(`matcher retries handled: ${retries}`);
 console.log(failed ? "RESULT: FAILED" : "RESULT: ok");
 process.exit(failed ? 1 : 0);
