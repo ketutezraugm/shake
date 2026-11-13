@@ -50,7 +50,7 @@ Mirrors docs/plans/IMPLEMENTATION.md (marketplace plan, Revision B: slots and tw
 - [ ] **MK-53** Get my money back after the delivery deadline (CT)
 - [ ] **MK-54** Reopen a listing whose buyer never paid (CT)
 - [x] **MK-55** Saved items, this device only (DP, PR): heart on cards and the listing page, `/saved`, survives a reload; unit test on add and remove
-- [ ] **MK-56** Seller sales view (FE, Should)
+- [x] **MK-56** Seller sales view (DP, PR): a "Your sales" section on the seller's own shop, one row per listing with its state (open with free slots and offers in progress, reserved waiting for payment, paid and waiting for Received, sold and paid out, closed); live ones first, a link to History for receipts; unit tests on every state; clicked through on the mock chain
 
 ## Should (after G3)
 - [ ] **S-02** AI negotiator

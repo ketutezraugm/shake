@@ -507,3 +507,7 @@
   font-size: var(--text-14);
   font-weight: 700;
 }
+
+.sales .offer-row + .offer-row {
+  margin-top: 0;
+}
