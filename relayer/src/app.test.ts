@@ -581,6 +581,12 @@ describe("receipts and history", () => {
     expect((await call(buyer, "POST", "/deals/5/receipts", { kind: "refund", txHash: PAID })).status).toBe(400);
   });
 
+  it("refuses the other party posting a payment they did not sign", async () => {
+    // The seller finds the buyer's deposit hash on an explorer; the chain reader names the buyer as its signer.
+    expect((await call(seller, "POST", "/deals/5/receipts", { kind: "deposit", txHash: PAID })).status).toBe(422);
+    expect(store.receipts).toHaveLength(0);
+  });
+
   it("records the release once the deal is Released", async () => {
     near.deals.set(5, chainDeal(5, seller.account, "t", { buyer: buyer.account, state: "Released", price: PRICE }));
     near.txs.set(PAYOUT, { signer: buyer.account, methodName: "confirm_received", dealId: 5, depositYocto: "0", success: true });

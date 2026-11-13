@@ -15,6 +15,7 @@ import { lastOffer, loadNegotiation, offerView, submitOffer, syncListing, type N
 import { getHistory, postReceipt } from "../receipts";
 import { Link } from "../routes";
 import { ReceiptList } from "./ReceiptList";
+import { ProofPanel } from "./Proof";
 
 const POLL_MS = 3000;
 
@@ -122,6 +123,7 @@ function OfferDeal({ dealId, account, negotiation }: { dealId: number; account: 
       <ReceiptList receipts={receipts} />
 
       {error && <p className="error" role="alert">{error}</p>}
+      {deal.buyer_commits.length > 0 && <ProofPanel deal={deal} />}
     </main>
   );
 }

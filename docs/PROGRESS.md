@@ -43,9 +43,18 @@ Mirrors docs/plans/IMPLEMENTATION.md (marketplace plan, Revision B: slots and tw
 - [ ] **S-06** Hosted deploy (BI)
 - [ ] **G3** Gate 20:00 UTC: MK-24 green on testnet (lead)
 
+## Buyer and seller roles (decided 2026-11-13; spec `docs/superpowers/specs/2026-11-13-buyer-side-design.md`)
+- [ ] **MK-50** Frames: buyer screens, refund and reopen (DP); the role choice frames are done (#125)
+- [ ] **MK-51** Role-based tabs and switching (FE); the sign-up choice itself is built (#125)
+- [ ] **MK-52** My offers (FE)
+- [ ] **MK-53** Get my money back after the delivery deadline (CT)
+- [ ] **MK-54** Reopen a listing whose buyer never paid (CT)
+- [ ] **MK-55** Saved items, this device only (FE, Should)
+- [ ] **MK-56** Seller sales view (FE, Should)
+
 ## Should (after G3)
 - [ ] **S-02** AI negotiator
-- [ ] **S-01** Verified panel
+- [ ] **S-01** Verified panel: the buyer's proof panel is built (DP, PR): it recomputes each of the buyer's commitments in the browser and compares them with the chain, and shows the pinned WASM hash and the contract; the "fresh nonce per open" check against the sealed machine still needs CT
 - [ ] **S-12** Link a Google login to a wallet
 - [ ] **S-11** Ratings, saved items, email notifications
 - [ ] **S-13** Contract-level single sale

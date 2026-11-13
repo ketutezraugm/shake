@@ -76,8 +76,14 @@ export function rpcNearReader(rpcUrl: string, contractId: string): NearReader {
       if (error || !result) throw new Error("tx lookup failed");
       const { transaction, status } = result;
       const call = transaction.actions.length === 1 ? transaction.actions[0]?.FunctionCall : undefined;
-      if (transaction.receiver_id !== contractId || !call) return null;
-      const args = JSON.parse(Buffer.from(call.args, "base64").toString() || "{}") as { deal_id?: unknown };
+      // The node answers for any sender_account_id, so the signer is checked here, not trusted from the request.
+      if (transaction.signer_id !== signer || transaction.receiver_id !== contractId || !call) return null;
+      let args: { deal_id?: unknown };
+      try {
+        args = JSON.parse(Buffer.from(call.args, "base64").toString() || "{}") as { deal_id?: unknown };
+      } catch {
+        return null;
+      }
       return {
         signer: transaction.signer_id,
         methodName: call.method_name,

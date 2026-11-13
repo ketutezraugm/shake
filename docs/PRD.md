@@ -40,12 +40,14 @@ A buyer taps the bio link and lands in the seller's shop, where every item has a
 9. On a match the listing becomes reserved; buyer pays into escrow; "Received" releases to the seller and the listing becomes sold. When the reserving deal expires or is refunded, the listing is open again.
 10. Chat per deal, opened at Matched, between the two parties only, through relayer endpoints.
 11. Seeded demo shop with several listings (the team's own photos of real items) and slots: one Released deal with a short chat, one NoDeal, the rest open.
+12. Buyer or seller at sign-up (wallet accounts). The choice only sets the navigation (buyers: Browse · Saved · My offers · Inbox) and can be switched from the account menu; the account is the same either way. Buyers have **My offers**: every deal they made an offer on, with its state and next step.
+13. Escrow exits in the app. A paid buyer can take the money back after the delivery deadline ("Get my money back", contract `refund`). A seller can reopen a listing whose buyer matched but never paid within 24 h ("Reopen listing", contract `expire`).
 
 Seller notifications are in-app only in the Must build: an inbox and badge for new questions, rounds waiting for the seller, matches and unread messages, polled from `GET /me/inbox` every 10 s.
 
-**Should:** AI negotiator (natural-language limit), Verified attestation panel, seller ratings after Sold, saved items, seller lowers the minimum on a live listing, linking a Google login to a wallet, E2EE prompts to NEAR AI, email notifications, real listings by real students logged in `docs/real-deals.md`.
+**Should:** AI negotiator (natural-language limit), Verified attestation panel, seller ratings after Sold, saved items synced across devices (saved items on one device are MK-55), seller lowers the minimum on a live listing, linking a Google login to a wallet, E2EE prompts to NEAR AI, email notifications, real listings by real students logged in `docs/real-deals.md`.
 **Could:** pay from another chain via 1Click, dispute flow, Bahasa toggle.
-**Won't:** mainnet, shipping, payments outside escrow, account recovery beyond "export key".
+**Won't:** mainnet, shipping, payments outside escrow, account recovery beyond "export key", a shopping cart (every item is its own blind negotiation and escrow, with nothing to total or pay together).
 
 Non-goals: shipping integration, delivery tracking, seller-side per-buyer negotiation (the minimum is set once per listing, per round the seller can only resubmit the same or a lower one), moderation tooling.
 Anti-goals (a failure even if it works): any path where a buyer sees or infers the seller's minimum beyond 1 bit per round and the capped slots; free-form chat before a deal; visible chain for Google or email users (gas prompts, seed phrases, wallet pop-ups). Wallet users see their wallet's pop-ups; that is expected.
@@ -64,6 +66,8 @@ Anti-goals (a failure even if it works): any path where a buyer sees or infers t
 | 9 | A match sets the deal to Matched, and `POST /listings/:id/sync` sets the listing `reserved`; the seller's app then cancels unclaimed and still-Waiting slots. A second buyer whose deal also matched sees "Another buyer got there first" and no pay button. `deposit` of exactly `price` by the buyer within 24 h moves the deal to Funded; later it panics. `confirm_received` by the buyer pays the seller; sync sets the listing `sold`. When the reserving deal ends (`expire`, or `refund`), sync sets the listing back to `open`. Every wrong caller or state call panics; no owner-only method exists. |
 | 10 | `GET` and `POST /deals/:dealId/messages` refuse (403) an account that is neither seller nor buyer of the deal, and refuse (409) a deal that is not Matched, Funded, Released or Refunded. Between the two parties a message appears on the other side within 5 s (chat polls every 3 s). |
 | 11 | The anon Supabase key reads and writes no table (every select, insert, update and delete returns an error or nothing, and `claim_slot` is not callable). A fresh clone plus README steps ends at the hosted demo. `npm run demo:seed` creates the shop `@demo` with several listings and slots: one with a Released deal and a short chat, one with a NoDeal result, the rest open. |
+| 12 | A new wallet account that picks "buy" never sees "Name your shop", lands on `/`, and has the tabs Browse, Saved, My offers, Inbox. My offers lists every deal from `GET /me/negotiations`, each with the state `offerView` gives it. |
+| 13 | A Funded deal past its deadline shows "Get my money back" and ends Refunded, with the price returned to the buyer. A Matched deal left unfunded for 24 h shows "Reopen listing" to its seller, ends NoDeal, and the listing is `open` again after sync. |
 
 ## Success criteria (rubric, equal weights)
 - Gate, reproducible: README "do X, see Y" passes on a clean machine; hosted demo up until 11-25.
