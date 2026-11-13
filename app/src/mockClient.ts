@@ -186,6 +186,7 @@ export function mockClient(chain: MockChain, caller: string): ContractClient {
         price: null,
         matched_at_ns: null,
         deadline_ns: null,
+        matcher_retries: 0,
       });
     },
 
