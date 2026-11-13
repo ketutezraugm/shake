@@ -4,6 +4,8 @@ Draft 2026-11-12, updated 2026-11-13 for the name Shake (#42), the asking price 
 
 ## 1. Demo video script (target 2:10, captions on)
 
+**Out of date, rewritten in P-02 (target 90 s or less):** the 0:20 row ("signs in with Google", "No wallet. No seed phrase.") and the 1:00 row ("Verified panel with nonce", "Attested code hash") describe things the app no longer does or never built. Use section 2 to 4 for the current wording.
+
 | Time | Shot | On-screen | Voiceover |
 |---|---|---|---|
 | 0:00-0:08 | Instagram profile of a student seller, thumb taps the bio link `/@handle`. Shop opens with photos and asking prices | "Asking Rp 6M. She'd take 5M. He'd pay 5.5M. Neither says so." | "Whoever names a number first loses. So people walk away from deals both of them wanted. This seller put her shop in her bio. Every item shows a photo and an asking price. How low she'd really go stays sealed." |
@@ -18,57 +20,62 @@ Draft 2026-11-12, updated 2026-11-13 for the name Shake (#42), the asking price 
 
 ## 2. X demo post
 
-**Main (about 260 chars):**
-> Selling a laptop: you want 5M, they'd pay 5.5M, nobody finds out. On Shake, sellers seal a minimum and buyers make blind offers. You see only "Deal at Rp 5.2M" or "No deal". Matching runs in an OutLayer TEE; payment sits in NEAR escrow. @NEARProtocol #NEARHackathon
+Draft for team approval (P-03, 2026-11-13 20:30 UTC). Checked against the app as merged on `dev`: Google or email browses and asks; selling and offering need a NEAR wallet; the proof panel checks the buyer's own offer, not the enclave. Posting needs the whole team (CLAUDE.md).
 
-(Count before posting, trim "Rp" if over 280. Attach the video. Add @NearLegion @NearBuilders in the thread if room is short.)
+**Main (counted: see the note under it):**
+> Selling a used laptop: she'd take 5M, he'd pay 5.5M, neither says it. On Shake the seller seals a floor, buyers make blind offers, and both see only "Deal at Rp 5.2M" or "No deal". Matching runs in an OutLayer TEE; payment waits in NEAR escrow. @NEARProtocol #NEARHackathon
+
+(Count again after any edit; X's limit is 280. Attach the video. Built at NEAR HACKATHON goes in the video's end card.)
 
 **Thread:**
-1. "How it works: the seller puts a shop link in their bio. Listings show an asking price; the seller's real floor stays sealed. Offers are encrypted in the browser to a key held inside the TEE. The public, hash-pinned code returns only matched and price. NEAR holds ciphertext and a commitment hash."
-2. "Sign in with Google or email. A relayer makes the NEAR account behind it, so there is no wallet and no seed phrase. An AI assistant answers item questions and never sees the seller's floor. Escrow releases on 'Received', refunds after the deadline, no admin key. Repo: [TBD: URL]. Demo: [TBD: URL]."
-3. "We're testing with students who sell second-hand things: [TBD: N] real deals so far. Question for people who sell used items: would you put a shop link like this in your bio instead of haggling in DMs? @NearLegion @NearBuilders"
+1. "How it works: a seller puts one shop link in their bio. Every listing shows an asking price; the seller's real floor stays sealed. Offers are encrypted on the buyer's phone to a key that only exists inside the TEE. Public, hash-pinned code returns deal or no deal, and a price."
+2. "Browse and ask with Google or email. To sell or make an offer you connect a NEAR wallet, so every offer is signed by its owner and the app holds nobody's keys or money. Escrow releases on 'Received'; nothing arrives in 7 days, the buyer takes it back. No admin key."
+3. "Each buyer can check on their own phone that the sealed offer on the chain is exactly the one they sent. An AI assistant on NEAR AI Cloud answers questions about the item and never sees anyone's limit. Honest limit: OutLayer runs the enclave centrally today."
+4. "Repo: [TBD: URL] · Demo: [TBD: URL] · Testnet only. Question for anyone who sells used things: would you put a shop link like this in your bio instead of haggling in DMs? @NearLegion @NearBuilders"
+
+Cut from the old draft: "no wallet and no seed phrase" (wrong since 2026-11-13: a Google login no longer gets a NEAR account), and the real-deals count (no deals are logged yet; add "[N] real deals so far" to tweet 4 only if S-08 logs some).
 
 ## 3. Submission write-up
 
-**"What did you build?" (about 1200 chars):**
+**"What did you build?" (1,368 of the form's 2,000 characters):**
 
-Haggling punishes whoever names a number first. A student selling a used laptop would take Rp 5M, the buyer would have paid 5.5M, and neither ever finds out. People abandon deals both sides wanted because neither will show a limit.
+Haggling punishes whoever names a number first. A student selling a used laptop would take Rp 5M, the buyer would have paid 5.5M, and neither finds out. People walk away from deals both of them wanted because neither will show a limit.
 
-Shake is a second-hand marketplace where the seller's real floor stays blind. The seller puts a shop link (/@handle) in their Instagram or marketplace bio. Buyers browse listings with photos and asking prices. An AI assistant answers questions from the listing and public Q&A and never sees the seller's floor. Questions it can't answer go to the seller as public Q&A.
+Shake is a second-hand marketplace where both limits stay blind. A seller puts one shop link (/@handle) in their Instagram or marketplace bio. Buyers browse listings with photos and an asking price, ask an AI assistant about the item, or post a public question the seller answers.
 
-The seller seals a minimum once per listing. A buyer makes a blind offer of at most the asking price, up to 10 offers per listing; offering the full ask always closes. Both numbers are encrypted in the browser to a key that exists only inside a TEE. Public, hash-pinned WASM on OutLayer checks the overlap and, if there is one, draws a random price inside it. Both sides see only "Deal at Rp X" or "No deal". The seller picks 1 to 3 rounds. Buyers can only raise.
+The seller seals a lowest price once per listing. A buyer makes a blind offer of at most the asking price; offering the full ask always matches. Both numbers are encrypted in the browser to a key that exists only inside a TEE. Public, hash-pinned WASM on OutLayer checks the overlap and, if there is one, draws a random price inside it. Each side sees only "Deal at Rp X" or "No deal". The seller picks 1 to 3 rounds, and a buyer can only raise.
 
-A match reserves the item. The buyer pays into a NEAR escrow contract and chat opens. "Received" releases the funds and marks the item Sold. Sign-in is Google or email, with a NEAR account made behind it, or an existing NEAR wallet. Testnet only. Stated limits: OutLayer is centralised today, and the match bit leaks a little information.
+A match reserves the item. The buyer pays into a NEAR escrow contract and chat opens. "Received" pays the seller and marks the item Sold; if nothing arrives in 7 days the buyer takes the money back. Google or email lets you browse and ask; selling and offering use your own NEAR wallet. Testnet only. Stated limits: OutLayer is operated centrally today, and each round reveals one bit: deal or no deal.
 
 **README-ready version**
 
-*Overview.* Same text as above, followed by "do X, see Y" steps: `npm run demo:seed`, open the hosted demo, [TBD: exact steps and URLs].
+*Overview.* The text above, then the README's "Try it" steps (local, no keys) and the hosted demo: [TBD: URL once S-06 is up].
 
-*Track: Privacy.* Limits are encrypted in the browser to a key derived inside the TEE from a `PROTECTED_` secret. The WASM runs in Intel TDX on `outlayer.testnet`, is public and hash-pinned, and returns only `{matched, price}`. The relayer and the AI assistant never see a minimum or an offer. Contract state shows ciphertext and `sha256` commitments, so a result can be audited when an owner chooses to reveal. [TBD: "Verified" panel with fresh nonce, only if it ships.] Stated limits: OutLayer governance is centralised; the match bit and price leak some information; users trust the served frontend.
+*Track: Privacy.* Limits are encrypted in the browser to a key derived inside the TEE from a `PROTECTED_` secret. The WASM runs in Intel TDX on `outlayer.testnet`, is public and hash-pinned (`789705434c9498d88c739cd5e28b5331cf6ff44c2a1dad5f2a9e435d3479b904`), and returns only `{deal_id, matched, price}`; the key opens only for that build. The relayer and the AI assistant never see a lowest price or an offer. The chain holds ciphertexts and `sha256` commitments, and the buyer's proof panel recomputes each of their own commitments to show the sealed offer is the one they sent. Stated limits: OutLayer is operated centrally; nothing yet proves a result came from the pinned WASM (enclave-signed results are S-07, not built); each round leaks one bit; users trust the served frontend.
 
-*Track: Agents.* The product assistant runs on NEAR AI Cloud through the relayer. It runs DeepSeek V4.1 Flash on NEAR AI Cloud and answers from the listing text and public Q&A. It may repeat the public asking price, never discusses offers, discounts or the lowest price, and says so when it does not know. It is never given the sealed minimum, because nothing on the server holds it. Unanswered questions become public Q&A for the seller. If the AI negotiator ships, NEAR AI Cloud also turns "not below 4M, charger included" into numbers, and a deterministic rule in the WASM, never the model, decides money. [TBD: tag agents only if the team confirms at submission.]
+*Track: Agents.* The product assistant runs DeepSeek V4.1 Flash on NEAR AI Cloud through the relayer and answers from the listing text and public Q&A. It may repeat the public asking price, never discusses offers, discounts or the lowest price, and says when it does not know; unanswered questions go to the seller as public Q&A. It is never given a limit, because nothing on the server holds one. "Say it in words" (a buyer types "paling mahal 4,3 juta") is read on the phone by a fixed rule, not by the model, so it adds nothing to this track. [Team call at submission: tag agents on the assistant alone, or not.]
 
-*Track: Real-world.* Escrowed payments between real sellers and buyers: [TBD: N] real student deals, reserved, paid, sold and refunded states, transaction links, README readable without crypto knowledge. [TBD: final track list is the team's call at submission.]
+*Track: Real-world.* Escrowed payments between real sellers and buyers: reserved, paid, sold, refunded and reopened states, receipts with transaction links, a bio-link shop, and a README a non-crypto person can follow. [TBD: "[N] real student deals" only if S-08 logs any; otherwise leave the count out.]
 
-*Disclosure.* Libraries and AI-written code: [TBD: list]. Baseline code before 2026-10-19: [TBD: none or list].
+*Disclosure.* Libraries: see `package.json` and `Cargo.toml`; the sealed-key approach follows OutLayer's `private-dao-example`. AI-written code: [TBD: the team's wording]. Baseline code before 2026-10-19: [TBD: none or list].
 
 ## 4. Two-minute pitch (about 270 words)
 
 "Picture a student selling a used laptop. She would take 5 million rupiah. The buyer would have paid 5.5. Neither says it, the buyer offers 4, she says no, and both go home without a deal they wanted.
 
-Shake removes the haggle. She puts her shop link in her Instagram bio. Buyers find her items with photos and asking prices. An AI assistant answers their questions about the item. It never sees her floor. If it doesn't know, the question goes to her and the answer becomes public.
+Shake removes the haggle. She puts her shop link in her Instagram bio. Buyers find her items with photos and asking prices. An AI assistant answers their questions about the item; it never sees her floor. If it doesn't know, the question goes to her and the answer becomes public.
 
-She sealed her minimum once. He signs in with Google and types the most he would pay. Both phones show one answer: 'Deal at Rp 5.2 million' or 'No deal'. Nothing else.
+She sealed her lowest price once, when she listed. He connects his NEAR wallet and types the most he would pay. Both phones show one answer: 'Deal at Rp 5.2 million', or 'No deal'. Nothing else.
 
-How can that be private? Each number is encrypted on the phone to a key inside a TEE on NEAR's OutLayer. The matching code is public and hash-pinned, and it returns only match and price. On-chain you see ciphertext and a hash. The price is random inside the overlap, so it can't back out the other limit.
+How is that private? Each number is encrypted on the phone to a key inside a TEE on NEAR's OutLayer. The matching code is public and hash-pinned, and it returns only match and price. On the chain you see ciphertext and a hash, and his phone can check that the sealed offer is exactly the one he sent. The price is random inside the overlap, so nobody can back out the other limit.
 
-If it fails, he can raise, up to three rounds. Each round reveals one bit. A match is binding and reserves the item, so probing costs you.
+No deal? He can raise, up to three rounds. Each round reveals one bit, and a match is binding and reserves the item, so probing costs you.
 
-He pays into an escrow contract. Chat opens only after the deal. 'Received' pays her and marks the item Sold. No delivery means a refund. No admin key exists.
+He pays into escrow and chat opens. 'Received' pays her and marks it Sold. Nothing arrives in seven days, he takes his money back. There is no admin key.
 
-Honest limits: OutLayer is still centralised, and no negotiation method is fully fair, truthful and always finds a deal. We trade some deals for privacy.
+Honest limits: OutLayer is still run centrally, and no negotiation method is fair, truthful and always finds a deal. We trade some deals for privacy.
 
-We're running it with students: [TBD: N deals, N that would not have started]. Try it: [TBD: URL]."
+Try it: [TBD: URL]."
 
 ## 5. Judge Q&A
 
@@ -80,7 +87,7 @@ We're running it with students: [TBD: N deals, N that would not have started]. T
 6. **How is this different from Warrant?** Warrant is DeFi options with collateral in intents.near. We hold no market and no derivative; escrow is a side feature to a private match.
 7. **Who pays when a buyer never pays?** No one, and we do not hide it. A matched buyer cannot be forced to pay; `expire` frees the deal and reopens the listing. A bond sized to the limit would leak it, so none is used. A fixed bond is a possible later addition.
 8. **What about Myerson-Satterthwaite?** It says no mechanism is efficient, truthful and budget-balanced at once. We give up some efficiency (some deals are missed) and rely on binding deals to discourage lying. Stated in the README.
-9. **Why NEAR?** Accounts made behind a Google or email sign-in keep the chain invisible. Contract-to-TEE calls through OutLayer are native. Escrow needs no custom chain. Testnet is free for 10-20 real deals.
+9. **Why NEAR?** Wallet sign-in through NEAR Connect means people bring their own account and pay their own fees; the app holds no keys or money. Contract-to-TEE calls through OutLayer are native. Escrow needs no custom chain. Testnet is free for 10-20 real deals.
 10. **What leaks?** The match bit, and the price: you learn the other limit lies beyond the price. Not the number.
 11. **Money is testnet. Does this matter?** Escrow logic and flows are real; funds are not. Fixed demo rate, `rp_per_near` set at init. Mainnet and oracle: out of scope.
 12. **What if the page you serve is malicious?** Users trust the frontend; it is open source and self-hostable. This is a stated limit.
@@ -91,12 +98,12 @@ We're running it with students: [TBD: N deals, N that would not have started]. T
 
 ## 6. Live demo plan
 
-- **Seeded shop:** `npm run demo:seed` creates a demo shop `/@handle` with several listings (the team's own photos), one matched deal (seller minimum 5.0M, buyer 5.5M) and one unmatched offer. Judges need no second device. [TBD: handle and listing count.]
+- **Seeded shop:** [TBD: `npm run demo:seed` does not exist yet (MK-14); until it does, list the seed items from `seed/` by hand.] A demo shop `/@handle` with several listings (the team's own photos), one matched deal (seller minimum 5.0M, buyer 5.5M) and one unmatched offer. Judges need no second device. [TBD: handle and listing count.]
 - **Happy path:** open the shop from the bio link, open a listing, ask the assistant a question, make the blind offer, reveal, Reserved, Pay, chat, Received, Sold. [TBD: rehearsed run time, aim under 90 s.]
 - **No-deal path:** open the unmatched listing, show "No deal", then round 2.
 - **Fallback:** a recorded run of the same path (the demo video). If testnet, OutLayer or the assistant is down, play it and say so.
 - **One-click reset:** a "Reset demo" button re-runs the seed. [TBD: confirm it exists in the build.]
-- **Before going live:** fund the relayer, check the seed listings' state, keep the hosted demo up to 11-18, ideally 11-25.
+- **Before going live:** check the hosted relayer's env (contract id, NEAR AI key), check the seed listings' state, keep the hosted demo up to 11-18, ideally 11-25.
 
 ## 7. Real-user plan (10-20 deals by 2026-11-13)
 
@@ -106,5 +113,5 @@ We're running it with students: [TBD: N deals, N that would not have started]. T
 - **Present:** headline "[TBD: N] deals, [TBD: N] that would have failed to start" (the PRD metric), median time to deal, rounds used. Say it is a small sample with testnet money. Use only quotes with permission.
 
 ## TODO
-- Tracks proposed: privacy, agents (product assistant first, negotiator only if it ships) and realworld. Final list is the team's call at submission.
+- Tracks proposed: privacy and realworld; agents on the AI assistant alone ("Say it in words" is not an AI). Final list is the team's call at submission.
 - Sustainability: 0.5% fee on settled sales is a hypothesis. Confirm the number before the pitch.
