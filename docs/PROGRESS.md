@@ -18,7 +18,7 @@ Mirrors docs/plans/IMPLEMENTATION.md (marketplace plan, Revision B: slots and tw
 
 ## Block B: 2026-11-13 00:00-12:00 UTC
 - [x] **MK-07** Marketplace round trip on testnet (CT): `npx tsx scripts/marketplace-roundtrip.mts` on the real Supabase store passes (13 runs: 10 matched through reserved, Received and sold, 3 hit an OutLayer execution failure that #106 now hands back; see DECISIONS)
-- [ ] **G2** Gate 12:00 UTC: MK-07 green (lead)
+- [x] **G2** Gate 12:00 UTC: MK-07 green (lead): the marketplace round trip passes live on Supabase, including a second round and a second buyer on a reserved listing (2026-11-13)
 - [x] **MK-11** `POST /accounts` with Supabase JWT (BI)
 - [x] **MK-12** Relayer: profiles, questions, messages, inbox, reserved sync (BI)
 - [ ] **MK-20** Google/email sign-in, handle, keys (BI): screens, key backup and wallet button built by DP in PR; the live Google/email run waits on the Supabase Auth settings (#96)
