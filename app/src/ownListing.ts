@@ -1,4 +1,6 @@
 import type { SellerListing } from "../../relayer/src/types";
+import type { ContractClient, Deal } from "./contract";
+import { syncListing } from "./offer";
 import { signedGet, signedPost } from "./relayer";
 import type { Signer } from "./signer";
 
@@ -16,6 +18,20 @@ export function slotsToAdd(total: number): number {
 export async function myListing(relayerUrl: string, signer: Signer, listingId: string): Promise<SellerListing | undefined> {
   const listings = await signedGet<SellerListing[]>(relayerUrl, signer, "/me/listings", "loading your listing");
   return listings.find((listing) => listing.id === listingId);
+}
+
+// How long a matched buyer has to pay before anyone may expire the deal (FUNDING_WINDOW_NS in contract/src/lib.rs).
+export const FUNDING_WINDOW_NS = 24 * 60 * 60 * 1e9;
+
+/** True for a matched deal whose buyer never paid in time. `nowNs` is the wall clock in nanoseconds; a test passes its own. */
+export function canReopen(deal: Deal | null, nowNs = Date.now() * 1e6): boolean {
+  return deal?.state === "Matched" && deal.matched_at_ns !== null && nowNs > deal.matched_at_ns + FUNDING_WINDOW_NS;
+}
+
+/** Ends the unpaid deal on chain, then asks the relayer to re-read it, which reopens the listing. */
+export async function reopenListing(client: Pick<ContractClient, "expire">, relayerUrl: string, listingId: string, dealId: number): Promise<void> {
+  await client.expire(dealId);
+  await syncListing(relayerUrl, listingId);
 }
 
 export function closeListing(relayerUrl: string, signer: Signer, listingId: string): Promise<unknown> {

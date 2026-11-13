@@ -6,7 +6,8 @@ import { relayerUrl } from "../config";
 import lockIcon from "../design/assets/icons/lock.svg";
 import { answerQuestion, getInbox } from "../inbox";
 import type { ShopListing } from "../market";
-import { closeListing, myListing, slotsToAdd } from "../ownListing";
+import type { Deal } from "../contract";
+import { canReopen, closeListing, myListing, reopenListing, slotsToAdd } from "../ownListing";
 import { addSlots, storedMinimum } from "../slots";
 import { AnswerQuestion } from "./Inbox";
 
@@ -40,6 +41,7 @@ function Manage({ listing, onChanged, account, relayerUrl }: Props & { account: 
   const [questions, setQuestions] = useState<Inbox["questions"]>([]);
   const [adding, setAdding] = useState<{ done: number; total: number } | null>(null);
   const [confirmClose, setConfirmClose] = useState(false);
+  const [holder, setHolder] = useState<Deal | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
@@ -51,6 +53,12 @@ function Manage({ listing, onChanged, account, relayerUrl }: Props & { account: 
   useEffect(() => {
     load().catch((e: Error) => setError(e.message));
   }, [load]);
+
+  // A reserved listing can be stuck on a buyer who matched and never paid; only the deal's state on chain tells.
+  useEffect(() => {
+    if (listing.status !== "reserved" || listing.reservedDealId === null) return setHolder(null);
+    chain.client.getDeal(listing.reservedDealId).then(setHolder, () => setHolder(null));
+  }, [chain, listing.status, listing.reservedDealId]);
 
   const open = listing.status === "open";
   const note = ownNote(listing);
@@ -77,6 +85,16 @@ function Manage({ listing, onChanged, account, relayerUrl }: Props & { account: 
     onChanged();
   }
 
+  async function reopen() {
+    setError(null);
+    try {
+      await reopenListing(chain.client, relayerUrl, listing.id, listing.reservedDealId!);
+      onChanged();
+    } catch (e) {
+      setError((e as Error).message);
+    }
+  }
+
   async function close() {
     setError(null);
     try {
@@ -96,6 +114,14 @@ function Manage({ listing, onChanged, account, relayerUrl }: Props & { account: 
         Your lowest price is sealed. Nobody sees it, not even us.
       </p>
       {note && <p role="status">{note}</p>}
+      {canReopen(holder) && (
+        <>
+          <p className="hint">The buyer had 24 hours to pay and did not. Reopen the listing so others can make offers.</p>
+          <button className="primary" onClick={() => void reopen()}>
+            Reopen listing
+          </button>
+        </>
+      )}
 
       {mine && open ? (
         <p className="num">

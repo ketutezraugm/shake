@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { closeListing, myListing, slotsToAdd } from "./ownListing";
+import type { Deal } from "./contract";
+import { canReopen, closeListing, FUNDING_WINDOW_NS, myListing, reopenListing, slotsToAdd } from "./ownListing";
 import type { Signer } from "./signer";
 
 const signer: Signer = {
@@ -16,6 +17,28 @@ describe("ownListing", () => {
     expect(slotsToAdd(8)).toBe(2);
     expect(slotsToAdd(10)).toBe(0);
     expect(slotsToAdd(12)).toBe(0);
+  });
+
+  it("lets the seller reopen only after the buyer's 24 h to pay have passed", () => {
+    const matched = { state: "Matched", matched_at_ns: 100 } as Deal;
+
+    expect(canReopen(matched, 100 + FUNDING_WINDOW_NS)).toBe(false); // the contract expires strictly after the window
+    expect(canReopen(matched, 100 + FUNDING_WINDOW_NS + 1)).toBe(true);
+    expect(canReopen({ ...matched, state: "Funded" } as Deal, 1e30)).toBe(false); // paid: nothing to expire
+    expect(canReopen({ ...matched, matched_at_ns: null } as Deal, 1e30)).toBe(false);
+    expect(canReopen(null, 1e30)).toBe(false);
+  });
+
+  it("reopens by expiring the deal on chain first, then syncing the listing", async () => {
+    const order: string[] = [];
+    vi.stubGlobal("fetch", async (url: string) => {
+      order.push(`sync ${url}`);
+      return new Response("{}");
+    });
+
+    await reopenListing({ expire: async (id: number) => void order.push(`expire ${id}`) }, "http://relayer", "abc", 7);
+
+    expect(order).toEqual(["expire 7", "sync http://relayer/listings/abc/sync"]);
   });
 
   it("finds one listing among the seller's own", async () => {
