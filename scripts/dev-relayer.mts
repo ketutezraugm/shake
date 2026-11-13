@@ -2,6 +2,7 @@
 // the real relayer app on in-memory fakes, deals read from the app dev server's mock chain, every key accepted.
 // DEV ONLY: it trusts the x-account-id header and forgets everything on restart.
 // Run: VITE_RELAYER_URL=http://localhost:8787 npm run dev -w app, then in another terminal: npm run dev:relayer
+// With the app on the real testnet contract (VITE_CONTRACT_ID set), start this with the same CONTRACT_ID so deals are read from testnet.
 // Uses NEAR_AI_API_KEY from relayer/.env when present, so the assistant answers; without it /assistant is a 503.
 import { randomUUID } from "node:crypto";
 import { serve } from "@hono/node-server";
@@ -10,7 +11,7 @@ import { cors } from "hono/cors";
 import { createApp } from "../relayer/src/app";
 import { nearAiChat } from "../relayer/src/assistant";
 import { FakeStore } from "../relayer/src/fakes";
-import type { ChainDeal, NearReader } from "../relayer/src/near";
+import { rpcNearReader, type ChainDeal, type NearReader } from "../relayer/src/near";
 
 try {
   process.loadEnvFile("relayer/.env");
@@ -20,13 +21,17 @@ const PORT = 8787;
 const APP_ORIGIN = process.env.APP_ORIGIN ?? "http://localhost:5173";
 const SELF = `http://localhost:${PORT}`;
 
-const near: NearReader = {
+const mockChain: NearReader = {
   async getDeal(dealId) {
     const deals = (await (await fetch(`${APP_ORIGIN}/__mock-chain`)).json()) as ChainDeal[];
     return deals.find((deal) => deal.id === dealId) ?? null;
   },
   hasAccessKey: async () => true,
 };
+const { CONTRACT_ID } = process.env;
+const near: NearReader = CONTRACT_ID
+  ? { ...rpcNearReader("https://test.rpc.fastnear.com", CONTRACT_ID), hasAccessKey: async () => true }
+  : mockChain;
 
 const photos = new Map<string, { type: string; bytes: ArrayBuffer }>();
 
