@@ -471,4 +471,39 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-12);
+
+/* My offers: one tappable card per deal in progress. A deal waiting on the buyer carries the sun tint's accent edge. */
+.offer-row {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-panel);
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.offer-row + .offer-row {
+  margin-top: var(--space-12);
+}
+
+.offer-row.attention {
+  border-color: var(--ink);
+}
+
+.offer-row-title {
+  font-weight: 700;
+}
+
+.offer-row-state {
+  font-size: var(--text-14);
+  color: var(--ink-muted);
+}
+
+.offer-row-action {
+  margin-top: var(--space-4);
+  font-size: var(--text-14);
+  font-weight: 700;
 }

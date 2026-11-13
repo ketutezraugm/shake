@@ -6,6 +6,7 @@ import backIcon from "../design/assets/icons/back.svg";
 import fourFingers from "../design/assets/stickers/four-fingers.svg";
 import priceTag from "../design/assets/stickers/price-tag.svg";
 import scratchCard from "../design/assets/stickers/scratch-card.svg";
+import { setRole } from "../role";
 import { Link, navigate } from "../routes";
 import { createWalletProfile, fetchMyProfile } from "../wallet";
 import { loadWalletSession } from "../walletSigner";
@@ -78,6 +79,7 @@ function HandleForm({ selling }: { selling: boolean }) {
     try {
       const saved = await create();
       saveHandle(saved);
+      setRole(selling ? "seller" : "buyer");
       navigate(selling ? `/@${saved}` : "/");
     } catch (e) {
       if (isHandleTaken(e)) setTaken(handle);

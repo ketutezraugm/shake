@@ -1,4 +1,5 @@
 import { loadIdentity } from "./keys";
+import { clearRole } from "./role";
 import { clearWalletSession } from "./walletSigner";
 import { RelayerError } from "./relayer";
 
@@ -58,5 +59,6 @@ export function currentHandle(storage: Storage = localStorage): string | null {
 export function signOut(storage: Storage = localStorage): void {
   storage.removeItem(STORAGE_KEY);
   storage.removeItem(HANDLE_KEY);
+  clearRole(storage);
   clearWalletSession(storage);
 }

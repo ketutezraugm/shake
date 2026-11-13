@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { currentHandle } from "../accounts";
+import { currentRole, setRole } from "../role";
 import { Link, navigate } from "../routes";
 import { leave, viewer } from "../session";
 
@@ -34,6 +35,13 @@ export function AccountMenu() {
     navigate("/signin");
   }
 
+  // The role only picks the tabs; send the person to where that role starts.
+  function switchTo(role: "buyer" | "seller") {
+    setRole(role);
+    setOpen(false);
+    navigate(role === "seller" ? "/sell" : "/");
+  }
+
   return (
     <div className="account" ref={root}>
       <button className="pill" aria-haspopup="menu" aria-expanded={open} onClick={() => setOpen(!open)}>
@@ -45,12 +53,20 @@ export function AccountMenu() {
           <span onClick={() => setOpen(false)}>
             {who.kind === "wallet" ? (
               <>
-                <Link to={`/@${handle}`} className="account-item">
-                  My shop
-                </Link>
-                <Link to="/sell" className="account-item">
-                  Sell something
-                </Link>
+                {currentRole() === "seller" && (
+                  <Link to={`/@${handle}`} className="account-item">
+                    My shop
+                  </Link>
+                )}
+                {currentRole() === "buyer" ? (
+                  <button className="account-item" role="menuitem" onClick={() => switchTo("seller")}>
+                    Switch to selling
+                  </button>
+                ) : (
+                  <button className="account-item" role="menuitem" onClick={() => switchTo("buyer")}>
+                    Switch to buying
+                  </button>
+                )}
                 <Link to="/history" className="account-item">
                   History
                 </Link>
