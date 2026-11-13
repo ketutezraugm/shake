@@ -1,6 +1,7 @@
 import { PHOTO_TYPES, type Category, type Listing, type PhotoRes, type PhotoType } from "../../relayer/src/types";
 import type { ContractClient } from "./contract";
 import { isRupiah } from "./format";
+import { closeListing } from "./ownListing";
 import { signedPost } from "./relayer";
 import type { Signer } from "./signer";
 import { createSlots } from "./slots";
@@ -64,8 +65,9 @@ async function uploadPhoto(relayerUrl: string, signer: Signer, listingId: string
 }
 
 /**
- * Sell flow: create the listing, upload photos, then make the on-chain offer slots.
- * Returns the listing id. If a later step fails the listing stays, with what was finished so far.
+ * Sell flow: create the listing, upload photos, then make the on-chain offer slots. Returns the listing id.
+ * A listing with no slots shows in browse but cannot take an offer, so if a later step fails the listing is closed again
+ * and the seller gets the error to retry from the form.
  */
 export async function publishListing(input: PublishInput): Promise<string> {
   validate(input);
@@ -86,21 +88,28 @@ export async function publishListing(input: PublishInput): Promise<string> {
     "Creating the listing",
   );
 
-  for (const [i, photo] of input.photos.entries()) {
-    onProgress?.({ stage: "photos", done: i, total: input.photos.length });
-    await uploadPhoto(relayerUrl, signer, listing.id, photo);
-  }
+  try {
+    for (const [i, photo] of input.photos.entries()) {
+      onProgress?.({ stage: "photos", done: i, total: input.photos.length });
+      await uploadPhoto(relayerUrl, signer, listing.id, photo);
+    }
 
-  await createSlots({
-    listingId: listing.id,
-    count: input.slotCount,
-    minimum: input.minimum,
-    maxRounds: input.maxRounds,
-    signer,
-    client: input.client,
-    teePubkey: input.teePubkey,
-    relayerUrl,
-    onProgress: (done, total) => onProgress?.({ stage: "slots", done, total }),
-  });
+    await createSlots({
+      listingId: listing.id,
+      count: input.slotCount,
+      minimum: input.minimum,
+      maxRounds: input.maxRounds,
+      signer,
+      client: input.client,
+      teePubkey: input.teePubkey,
+      relayerUrl,
+      onProgress: (done, total) => onProgress?.({ stage: "slots", done, total }),
+    });
+  } catch (failure) {
+    const reason = (failure as Error).message;
+    // Offer slots already made on the contract stay there, unused: harmless, and they hold no money.
+    const closed = await closeListing(relayerUrl, signer, listing.id).then(() => true, () => false);
+    throw new Error(closed ? `${reason}. Nothing was published; try again.` : `${reason}. The half-made listing could not be removed: close it from your shop.`);
+  }
   return listing.id;
 }

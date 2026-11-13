@@ -44,9 +44,14 @@ export function AccountMenu() {
           <p className="muted">{who.kind === "wallet" ? who.account : "Browsing only"}</p>
           <span onClick={() => setOpen(false)}>
             {who.kind === "wallet" ? (
-              <Link to={`/@${handle}`} className="account-item">
-                My shop
-              </Link>
+              <>
+                <Link to={`/@${handle}`} className="account-item">
+                  My shop
+                </Link>
+                <Link to="/sell" className="account-item">
+                  Sell something
+                </Link>
+              </>
             ) : (
               <Link to="/signin" className="account-item">
                 Connect a NEAR wallet
