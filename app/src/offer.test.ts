@@ -71,9 +71,18 @@ describe("offerView", () => {
     const matched = deal({ state: "Matched", price: "42000000000000000000000", matched_at_ns: 1, buyer_cts: [[2]] });
 
     expect(offerView(matched, ME, null)).toEqual({ kind: "matched", price: "42000000000000000000000" });
-    expect(offerView({ ...matched, state: "Funded", deadline_ns: 9 }, ME, null).kind).toBe("funded");
+    expect(offerView({ ...matched, state: "Funded", deadline_ns: 9 }, ME, null, 1).kind).toBe("funded");
     expect(offerView({ ...matched, state: "Released" }, ME, null).kind).toBe("released");
     expect(offerView({ ...matched, state: "Refunded" }, ME, null).kind).toBe("refunded");
+  });
+
+  it("offers the money back once the delivery deadline has passed on a paid deal", () => {
+    const paid = deal({ state: "Funded", price: "42", matched_at_ns: 1, buyer_cts: [[2]], deadline_ns: 1_000 });
+
+    expect(offerView(paid, ME, null, 999)).toEqual({ kind: "funded", price: "42", deadlineNs: 1_000 });
+    expect(offerView(paid, ME, null, 1_000).kind).toBe("funded"); // the contract refunds only strictly after the deadline
+    expect(offerView(paid, ME, null, 1_001)).toEqual({ kind: "refundable", price: "42" });
+    expect(offerView({ ...paid, deadline_ns: null }, ME, null, 1_001).kind).toBe("funded");
   });
 
   it("shows 'another buyer got there first' when a different deal holds the reservation", () => {

@@ -17,6 +17,7 @@ export type OfferView =
   | { kind: "matched"; price: string }
   | { kind: "beaten" }
   | { kind: "funded"; price: string; deadlineNs: number | null }
+  | { kind: "refundable"; price: string }
   | { kind: "released"; price: string }
   | { kind: "refunded" }
   | { kind: "notYours" };
@@ -24,7 +25,8 @@ export type OfferView =
 /** `reservedDealId` is the deal holding the listing's reservation, as the relayer returns it on the listing. */
 export type Reservation = { reservedDealId: number | null };
 
-export function offerView(deal: Deal, account: string, reservation: Reservation | null): OfferView {
+/** `nowNs` is the wall clock in nanoseconds, like the contract's `deadline_ns`; a test passes its own. */
+export function offerView(deal: Deal, account: string, reservation: Reservation | null, nowNs = Date.now() * 1e6): OfferView {
   if (deal.buyer !== null && deal.buyer !== account) return { kind: "notYours" };
   const price = deal.price ?? "0";
   const round = { round: deal.round, rounds: deal.max_rounds };
@@ -42,6 +44,8 @@ export function offerView(deal: Deal, account: string, reservation: Reservation 
       return holder !== null && holder !== deal.id ? { kind: "beaten" } : { kind: "matched", price };
     }
     case "Funded":
+      // The contract refunds only strictly after the deadline, so the button appears at the same moment.
+      if (deal.deadline_ns !== null && nowNs > deal.deadline_ns) return { kind: "refundable", price };
       return { kind: "funded", price, deadlineNs: deal.deadline_ns };
     case "Released":
       return { kind: "released", price };
