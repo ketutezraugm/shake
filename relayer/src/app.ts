@@ -55,7 +55,7 @@ export function createApp({ store, near, allowedOrigin, verifyJwt, chat, now = D
     cors({
       origin: allowedOrigin,
       allowHeaders: ["content-type", "x-account-id", "x-public-key", "x-timestamp", "x-signature", "authorization"],
-      allowMethods: ["GET", "POST", "PUT", "OPTIONS"],
+      allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     }),
   );
   app.use(rateLimit(REQUESTS_PER_MINUTE, now));
@@ -198,6 +198,17 @@ export function createApp({ store, near, allowedOrigin, verifyJwt, chat, now = D
     if (listing.status !== "open") throw new HttpError(409, "listing is not open");
     await store.setStatus(listing.id, "closed");
     return c.json({ ...listing, status: "closed" });
+  });
+
+  // Undoes a publish that failed part way; once a buyer holds a slot the listing can only be closed.
+  app.delete("/listings/:id", async (c) => {
+    const { account } = await signed(c);
+    const listing = await ownListing(c.req.param("id"), account);
+    if ((await store.slotsOf(listing.id)).some((slot) => slot.buyerAccount !== null)) {
+      throw new HttpError(409, "a buyer holds a slot: close the listing instead");
+    }
+    await store.remove(listing.id);
+    return c.json({ deleted: listing.id });
   });
 
   // One item, one sale: the first matched deal reserves the listing, a release sells it, and an expired or refunded reservation reopens it.

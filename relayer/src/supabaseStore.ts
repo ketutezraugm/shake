@@ -163,6 +163,11 @@ export function supabaseStore(url: string, serviceKey: string): Store {
       if (error) throw new Error(error.message);
     },
 
+    async remove(id) {
+      const { photo_paths } = check(await db.from("listings").delete().eq("id", id).select("photo_paths").single<{ photo_paths: string[] }>());
+      if (photo_paths.length > 0) check(await db.storage.from(BUCKET).remove(photo_paths));
+    },
+
     async slotsOf(id) {
       const rows = check(
         await db.from("slots").select("deal_id, buyer_account").eq("listing_id", id).order("id").returns<{ deal_id: number; buyer_account: string | null }[]>(),

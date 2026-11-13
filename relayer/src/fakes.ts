@@ -81,6 +81,11 @@ export class FakeStore implements Store {
     this.slots.push(...slots.map((s) => ({ listingId: id, dealId: s.dealId, linkToken: s.linkToken, buyer: null })));
   }
 
+  async remove(id: string) {
+    this.listings.splice(this.listings.findIndex((l) => l.id === id), 1);
+    this.slots.splice(0, this.slots.length, ...this.slots.filter((s) => s.listingId !== id));
+  }
+
   async slotsOf(id: string): Promise<SlotRow[]> {
     return this.slots.filter((s) => s.listingId === id).map((s) => ({ dealId: s.dealId, buyerAccount: s.buyer }));
   }

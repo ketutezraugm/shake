@@ -19,7 +19,7 @@ function person(account: string): Person {
   return { account, key };
 }
 
-async function call(who: Person | null, method: "GET" | "POST" | "PUT", path: string, body?: unknown) {
+async function call(who: Person | null, method: "GET" | "POST" | "PUT" | "DELETE", path: string, body?: unknown) {
   const raw = body === undefined ? "" : JSON.stringify(body);
   const headers: Record<string, string> = { "content-type": "application/json" };
   if (who) {
@@ -167,6 +167,20 @@ describe("claim", () => {
     expect((await call(seller, "POST", `/listings/${listing.id}/claim`)).status).toBe(403);
     await call(seller, "POST", `/listings/${listing.id}/close`);
     expect((await call(person("bob.test"), "POST", `/listings/${listing.id}/claim`)).status).toBe(409);
+  });
+
+  it("lets the seller delete a listing no buyer holds, and nobody else", async () => {
+    const { seller, listing } = await listingWithSlots(2);
+    expect((await call(person("bob.test"), "DELETE", `/listings/${listing.id}`)).status).toBe(403);
+    expect((await call(seller, "DELETE", `/listings/${listing.id}`)).status).toBe(200);
+    expect((await call(null, "GET", `/listings/${listing.id}`)).status).toBe(404);
+    expect((await call(seller, "GET", "/me/listings")).json).toEqual([]);
+  });
+
+  it("refuses to delete a listing once a buyer holds a slot", async () => {
+    const { seller, listing } = await listingWithSlots(1);
+    await call(person("bob.test"), "POST", `/listings/${listing.id}/claim`);
+    expect((await call(seller, "DELETE", `/listings/${listing.id}`)).status).toBe(409);
   });
 
   it("lists the buyer's negotiations with the link token, and the seller's slots without it", async () => {
