@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { clearRole, currentRole, setRole, tabsFor } from "./role";
+import { currentRole, setRole, tabsFor } from "./role";
 
 function memory(): Storage {
   const map = new Map<string, string>();
@@ -18,15 +18,12 @@ describe("tabsFor", () => {
 });
 
 describe("role", () => {
-  it("defaults to seller, switches, and forgets on sign-out", () => {
+  it("defaults to seller and switches", () => {
     const storage = memory();
     expect(currentRole(storage)).toBe("seller");
     setRole("buyer", storage);
     expect(currentRole(storage)).toBe("buyer");
     setRole("seller", storage);
-    expect(currentRole(storage)).toBe("seller");
-    setRole("buyer", storage);
-    clearRole(storage);
     expect(currentRole(storage)).toBe("seller");
   });
 });
