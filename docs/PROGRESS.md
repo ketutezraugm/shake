@@ -22,7 +22,7 @@ Mirrors docs/plans/IMPLEMENTATION.md (marketplace plan, Revision B: slots and tw
 - [x] **MK-11** `POST /accounts` with Supabase JWT (BI)
 - [x] **MK-12** Relayer: profiles, questions, messages, inbox, reserved sync (BI)
 - [ ] **MK-20** Google/email sign-in, handle, keys (BI): screens, key backup and wallet button built by DP in PR; the live Google/email run waits on the Supabase Auth settings (#96)
-- [ ] **MK-06** NEAR wallet login (CT): code and live key checks pass (EZ); one real wallet session still open
+- [x] **MK-06** NEAR wallet login (CT): code and live key checks pass (EZ); real Meteor session on 2026-11-13: a wallet seller published a listing and a second wallet bought it, paid through the Meteor popup and pressed Received (deal 59 Released on chain)
 - [x] **MK-21** Browse, search, seller profile (FE): #50, restyled to the frames in #84; checked in the browser on seed data; not yet run against the live relayer
 - [ ] **MK-22** Create listing (FE): #60, asking price #69; tested against a stubbed relayer; done-check (mock chain, 3 photos, 10 slots) not yet run with photos; live run needs sign-up (#107)
 - [ ] **MK-23** Listing page: assistant and Q&A (FE): #74, assistant fallback on 429/503; unit-tested, page checked on seed data; seller answering from the inbox and the answer shown signed-out not yet checked; live assistant call still open
