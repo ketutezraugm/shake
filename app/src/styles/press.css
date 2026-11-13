@@ -12,6 +12,7 @@
   @media (hover: hover) and (pointer: fine) {
     &:hover {
       translate: 0 var(--lift, -1px);
+      scale: var(--grow, none);
     }
   }
 
@@ -26,6 +27,7 @@
   @media (prefers-reduced-motion: reduce) {
     &:hover {
       translate: none;
+      scale: none;
     }
 
     &:active {
@@ -46,7 +48,14 @@
   --lift: 0px;
 }
 
-a.card,
+/* A catalog card grows a little under the pointer and shrinks past its resting size when pressed, so it feels like
+   it is being picked up and pushed. Growing does not move its neighbours: `scale` changes no layout. */
+a.card {
+  --grow: 1.03;
+  --press: 0.97;
+  --lift: 0px;
+}
+
 .seller-card {
   --press: 0.985;
   --lift: 0px;
@@ -54,4 +63,72 @@ a.card,
 
 .desk-link {
   --lift: 0px;
+}
+
+/* Hover colour. A coloured layer slides up inside the button, so the fill changes with `translate` only (no colour is
+   animated). The colours stay inside the identity: light tints under ink text on the light buttons, and ink-muted under
+   ground text on the dark one. The sticker colours themselves never colour a button. A selected chip keeps its ink. */
+:is(.primary, .outline-button, .more, .pill, .chip):not(:disabled):not([aria-pressed="true"]) {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: var(--hover-fill, transparent);
+    translate: 0 101%;
+    transition: translate var(--dur-quick) var(--ease-out);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    &:hover::before {
+      translate: 0 0;
+    }
+  }
+
+  /* Reduced motion: the layer fades in place instead of sliding. */
+  @media (prefers-reduced-motion: reduce) {
+    &::before {
+      translate: none;
+      opacity: 0;
+      transition: opacity var(--dur-quick) var(--ease-out);
+    }
+
+    &:hover::before {
+      opacity: 1;
+    }
+  }
+}
+
+.primary {
+  --hover-fill: var(--ink-muted);
+}
+
+.outline-button,
+.more {
+  --hover-fill: var(--sun-tint);
+}
+
+.pill {
+  --hover-fill: var(--sky-tint);
+}
+
+/* The category chips cycle through the tints, so a row of them is a small palette of its own. */
+.chip:nth-child(4n + 1) {
+  --hover-fill: var(--pink-tint);
+}
+
+.chip:nth-child(4n + 2) {
+  --hover-fill: var(--sun-tint);
+}
+
+.chip:nth-child(4n + 3) {
+  --hover-fill: var(--sky-tint);
+}
+
+.chip:nth-child(4n) {
+  --hover-fill: var(--mint);
 }
