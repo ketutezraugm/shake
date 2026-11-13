@@ -2,6 +2,8 @@
 
 Date: 2026-11-12. Owner: Ezra (lead). Status: approved in conversation; this doc feeds the rewrite of PRD, ARCHITECTURE, DATA-MODEL, IMPLEMENTATION and TEAM.
 
+> **Superseded 2026-11-13:** `POST /accounts`, the parent account, the relayer key and funding were removed; Google/email logins browse and ask only, wallet users sign up with `PUT /me/profile` (DECISIONS 2026-11-13). Read the `POST /accounts` passages below as history.
+
 ## Revision C (2026-11-13): asking price
 Every listing shows a required asking price; the seller's floor (sealed minimum) is at or below it and stays sealed; the app caps offers at the ask, so offering the ask always matches at a price between floor and ask. Wins over "no price" anywhere below. Details: DECISIONS.md 2026-11-13.
 

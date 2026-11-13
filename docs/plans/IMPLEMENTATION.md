@@ -106,7 +106,7 @@ D1-01 scaffold, D1-04/05 contract stub and TS types, D1-07 tokens and identity d
 - **Pass:** MK-07 chain half green (it is) and the Supabase half green after MK-10 and MK-12. Proceed.
 - **Fail:** Ezra and Harfi pair on it; all Should items are cut now; FE keeps building on the mock client.
 
-### MK-11 `POST /accounts` with Supabase JWT
+### MK-11 `POST /accounts` with Supabase JWT (removed 2026-11-13: no relayer key, parent account or funding; wallet users sign up with `PUT /me/profile`, see DECISIONS)
 - **Owner:** BI. **Deps:** MK-10.
 - **Files:** `relayer/src/accounts.ts`, `relayer/src/supabaseAuth.ts`, `relayer/src/accounts.test.ts`.
 - **Done:** `npm test -w relayer -- accounts` passes: no JWT -> 401; first call creates `handle.<parent>.testnet` with the given public key, funds `FUND_AMOUNT` and inserts `profiles` with `auth='email'`; second call for the same user -> 409; taken handle -> 409; 4th call from one IP in an hour -> 429; low relayer balance -> 503. One live run creates a real account.

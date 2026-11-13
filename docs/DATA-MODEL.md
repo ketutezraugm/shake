@@ -27,7 +27,6 @@ erDiagram
     DEAL ||--|{ ROUND : "1 to max_rounds"
     ROUND ||--o{ LIMIT_PLAINTEXT : "decrypts to, TEE only"
     ROUND ||--o| OUTLAYER_RESPONSE : "result of"
-    RELAYER ||--o{ ACCOUNT : "creates and funds, Google or email only"
 
     profiles ||--o{ listings : "seller_account"
     profiles ||--o| ACCOUNT : "account_id = NEAR account"
@@ -86,9 +85,6 @@ erDiagram
         bool matched "in result, absent when invalid"
         string price "in result, decimal Rupiah, only if matched"
         string error "result error invalid, or envelope error when success is false"
-    }
-    RELAYER {
-        string account_id "RELAYER_ACCOUNT_ID"
     }
     profiles {
         string account_id PK "NEAR account id"
@@ -214,7 +210,7 @@ Example at the rate of 100,000,000: Rp 4,200,000 becomes 0.042 testnet NEAR, so 
 | MK-05 assistant (`POST /assistant`, prompt) | Ezra | `listings`, answered `questions`, the "unknown" marker |
 | MK-07 marketplace round trip (`scripts/roundtrip.mjs`, seed) | Ezra | `listings`, `slots`, both state tables |
 | MK-10 migrations 0001 + 0002 (`supabase/migrations/`) | Harfi | `listings` (with `reserved`), `slots`, `profiles`, `questions`, `messages`, access table, anon grants revoked |
-| MK-11 `POST /accounts` with Supabase JWT | Harfi | `ACCOUNT`, `profiles`, error codes 401, 409, 429, 503 |
+| MK-11 `POST /accounts` with Supabase JWT (removed 2026-11-13) | Harfi | superseded by `PUT /me/profile` |
 | MK-12 profiles, questions, messages, inbox endpoints and the `reserved` sync | Harfi | `profiles`, `questions`, `messages`, listing status table, `relayer/src/types.ts` |
-| MK-20 Google or email sign-in | Harfi | Supabase Auth, `POST /accounts`, `profiles.supabase_user_id` |
+| MK-20 Google or email sign-in | Harfi | Supabase Auth (browse, assistant, public questions); wallet users sign up through `PUT /me/profile` |
 | MK-21..MK-25 screens and offer flow | Jose | Both state tables, listing status, `Listing`, `SellerListing`, `Negotiation`, in-memory mocks keyed by `listing_id` and `deal_id` with the same state machine |
