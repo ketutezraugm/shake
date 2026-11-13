@@ -1,6 +1,7 @@
 import { useLayoutEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { currentHandle } from "../accounts";
 import lockup from "../design/assets/logo/shake-lockup.svg";
+import { currentRole, tabsFor, type TabKey } from "../role";
 import { Link, navigate } from "../routes";
 import { AccountMenu } from "./AccountMenu";
 import { Footer } from "./Footer";
@@ -38,6 +39,25 @@ const INBOX: Tab = {
   icon: (
     <svg viewBox="0 0 24 24" {...stroke}>
       <path d="M4 6.5A2.5 2.5 0 0 1 6.5 4h11A2.5 2.5 0 0 1 20 6.5v8a2.5 2.5 0 0 1-2.5 2.5H10l-4.5 3.5V17H6.5A2.5 2.5 0 0 1 4 14.5z" />
+    </svg>
+  ),
+};
+const SAVED: Tab = {
+  to: "/saved",
+  label: "Saved",
+  icon: (
+    <svg viewBox="0 0 24 24" {...stroke}>
+      <path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.5A4 4 0 0 1 19 10c0 5.6-7 10-7 10z" />
+    </svg>
+  ),
+};
+const OFFERS: Tab = {
+  to: "/offers",
+  label: "My offers",
+  icon: (
+    <svg viewBox="0 0 24 24" {...stroke}>
+      <path d="M4 12.5V5a1 1 0 0 1 1-1h7.5L20 11.5 12.5 19z" />
+      <circle cx="8.5" cy="8.5" r="1.2" />
     </svg>
   ),
 };
@@ -112,7 +132,8 @@ export function Shell({ path, children }: { path: string; children: ReactNode })
   const handle = currentHandle();
   // The footer closes the pages people browse; the offer, chat and sign-in flows stay free of it.
   const showFooter = path === "/" || path.startsWith("/@") || path.startsWith("/l/");
-  const tabs = [BROWSE, SELL, INBOX, ...(handle ? [SHOP(handle)] : [])];
+  const byKey: Record<TabKey, Tab | null> = { browse: BROWSE, saved: SAVED, offers: OFFERS, inbox: INBOX, sell: SELL, shop: handle ? SHOP(handle) : null };
+  const tabs = tabsFor(currentRole(), handle !== null).flatMap((key) => byKey[key] ?? []);
   const [draft, setDraft] = useState(() => new URLSearchParams(location.search).get("q") ?? "");
 
   function search(event: FormEvent) {

@@ -11,6 +11,7 @@ import type { ShopListing } from "../market";
 import { market } from "../marketSource";
 import { claimSlot } from "../offer";
 import { Link, navigate } from "../routes";
+import { SaveButton } from "./SaveButton";
 import { Assistant } from "./Assistant";
 import { OwnListing } from "./OwnListing";
 import { Questions } from "./Questions";
@@ -120,7 +121,10 @@ export function Listing({ id }: { id: string }) {
           <Gallery photos={listing.photoUrls} title={listing.title} />
         </div>
         <div className="listing-info">
-      <h1 className="title">{listing.title}</h1>
+      <div className="title-row">
+        <h1 className="title">{listing.title}</h1>
+        {!isOwn && <SaveButton id={listing.id} title={listing.title} />}
+      </div>
       <p className="price-block">
         <span className="label">Asking price</span>
         <span className="value">{formatRp(listing.askingPrice)}</span>
