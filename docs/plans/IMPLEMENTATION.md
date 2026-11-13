@@ -212,11 +212,10 @@ D1-01 scaffold, D1-04/05 contract stub and TS types, D1-07 tokens and identity d
 
 Spec and reasons: `docs/superpowers/specs/2026-11-13-buyer-side-design.md`. No relayer, contract or schema change. Order: MK-53 and MK-54 can start now; the screens wait on MK-50.
 
-### MK-50 Frames: role choice, buyer screens, refund and reopen
+### MK-50 Frames: buyer screens, refund and reopen
 - **Owner:** DP. **Deps:** none.
-- **Frames (direction G, phone and desktop):**
-  - the role choice after the wallet sign-in
-  - the buyer's username step: "Pick a username", no shop link card
+- **Already done (#125):** the role choice and the buyer's username step.
+- **Frames still needed (direction G, phone and desktop):**
   - the buyer tabs: Browse · Saved · My offers · Inbox
   - My offers: one row per deal, with title, state and next action
   - Saved: the list, and the heart on cards and the listing page
@@ -225,15 +224,14 @@ Spec and reasons: `docs/superpowers/specs/2026-11-13-buyer-side-design.md`. No r
   - the seller's Sales list
 - **Done:** frames linked in #118, so MK-51 to MK-56 can be built without inventing visuals.
 
-### MK-51 Role choice at sign-up and role-based tabs
-- **Owner:** FE. **Deps:** MK-50.
+### MK-51 Role-based tabs and switching
+- **Owner:** FE. **Deps:** MK-50. **Already built in #125:** the choice at sign-up, the buyer's username step landing on Browse, and "Sell something" in the account menu.
 - **Files:** `app/src/screens/Handle.tsx`, `app/src/screens/Shell.tsx`, `app/src/screens/AccountMenu.tsx`, `app/src/accounts.ts`.
-- **Behaviour:** after the wallet sign-in and before the handle step, the account picks "I want to sell" or "I just want to buy".
-  - The choice is kept in this browser (`blind-deal:role`); the profile and relayer do not change.
+- **Behaviour:** the role chosen at sign-up (kept in this browser; the profile and relayer do not change) decides the tabs.
   - Seller: as today.
-  - Buyer: "Pick a username" (same handle rules), lands on `/`, tabs Browse · Saved · My offers · Inbox.
-  - The account menu switches role at any time.
-- **Done:** a new wallet account that picks "buy" never sees "Name your shop" and lands on `/` with the buyer tabs, and switching in the menu brings back Sell and My shop. Unit test on the tab list per role.
+  - Buyer: Browse · Saved · My offers · Inbox, with no Sell or My shop tab.
+  - The account menu switches role at any time (it has "Sell something" today).
+- **Done:** a new wallet account that picked "buy" sees the buyer tabs, and switching in the menu brings back Sell and My shop. Unit test on the tab list per role.
 
 ### MK-52 My offers
 - **Owner:** FE. **Deps:** MK-50, MK-51.

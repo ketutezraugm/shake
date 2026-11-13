@@ -1,7 +1,7 @@
 import type { NearConnector } from "@hot-labs/near-connect";
 import { setCurrentAccount } from "./accounts";
 import { chain } from "./config";
-import { signedPut } from "./relayer";
+import { RelayerError, signedGet, signedPut } from "./relayer";
 import type { Profile } from "../../relayer/src/types";
 import { keySigner } from "./signer";
 import { connectWallet, type WalletSession } from "./walletSigner";
@@ -26,6 +26,17 @@ export async function signInWithWallet(): Promise<WalletSession> {
   const session = await connectWallet(await walletConnector(), chain);
   setCurrentAccount(session.accountId);
   return session;
+}
+
+/** The shop this wallet account already opened, or null for a first sign-in. */
+export async function fetchMyProfile(relayerUrl: string, session: WalletSession): Promise<Profile | null> {
+  const signer = keySigner(session.accountId, session.secretKey, chain);
+  try {
+    return await signedGet<Profile>(relayerUrl, signer, "/me/profile", "loading your shop");
+  } catch (e) {
+    if (e instanceof RelayerError && e.status === 404) return null;
+    throw e;
+  }
 }
 
 /**

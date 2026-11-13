@@ -11,10 +11,7 @@ Testing also found two promises the app makes but cannot keep:
 
 ## What changes
 **Must, before the freeze:**
-1. **Role choice at sign-up (MK-51).** After the wallet sign-in a new account picks "I want to sell" or "I just want to buy".
-   - Sellers keep today's flow.
-   - Buyers pick a username (same handle rules), land on `/`, and get the tabs Browse · Saved · My offers · Inbox.
-   - The account menu switches between the two at any time.
+1. **Role choice at sign-up and role-based tabs (MK-51).** The choice itself ("I want to sell" or "I just want to buy") and the buyer's username step were built in #125 while this spec was being written. What is left is the tabs: buyers get Browse · Saved · My offers · Inbox, sellers keep Sell and My shop, and the account menu switches between the two.
 2. **My offers (MK-52).** Every deal the buyer made an offer on that is still in progress, with its state and next step: raise in round 2, pay, mark received, get my money back, or no deal. Finished purchases link to `/history` (MK-41, #131) for their receipts.
 3. **Get my money back (MK-53).** A paid deal past its delivery deadline shows a button that calls `refund`.
 4. **Reopen listing (MK-54).** A seller whose buyer matched but never paid within 24 h gets a button that calls `expire`, then syncs the listing.

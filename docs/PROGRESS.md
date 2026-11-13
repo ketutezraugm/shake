@@ -18,14 +18,14 @@ Mirrors docs/plans/IMPLEMENTATION.md (marketplace plan, Revision B: slots and tw
 
 ## Block B: 2026-11-13 00:00-12:00 UTC
 - [x] **MK-07** Marketplace round trip on testnet (CT): `npx tsx scripts/marketplace-roundtrip.mts` on the real Supabase store passes (13 runs: 10 matched through reserved, Received and sold, 3 hit an OutLayer execution failure that #106 now hands back; see DECISIONS)
-- [ ] **G2** Gate 12:00 UTC: MK-07 green (lead)
+- [x] **G2** Gate 12:00 UTC: MK-07 green (lead): the marketplace round trip passes live on Supabase, including a second round and a second buyer on a reserved listing (2026-11-13)
 - [x] **MK-11** `POST /accounts` with Supabase JWT (BI)
 - [x] **MK-12** Relayer: profiles, questions, messages, inbox, reserved sync (BI)
 - [ ] **MK-20** Google/email sign-in, handle, keys (BI): screens, key backup and wallet button built by DP in PR; the live Google/email run waits on the Supabase Auth settings (#96)
 - [x] **MK-06** NEAR wallet login (CT): code and live key checks pass (EZ); real Meteor session on 2026-11-13: a wallet seller published a listing and a second wallet bought it, paid through the Meteor popup and pressed Received (deal 59 Released on chain)
 - [x] **MK-21** Browse, search, seller profile (FE): #50, restyled to the frames in #84; checked in the browser on seed data; not yet run against the live relayer
-- [ ] **MK-22** Create listing (FE): #60, asking price #69; tested against a stubbed relayer; done-check (mock chain, 3 photos, 10 slots) not yet run with photos; live run needs sign-up (#107)
-- [ ] **MK-23** Listing page: assistant and Q&A (FE): #74, assistant fallback on 429/503; unit-tested, page checked on seed data; seller answering from the inbox and the answer shown signed-out not yet checked; live assistant call still open
+- [x] **MK-22** Create listing (FE): #60, asking price #69; done-check run on the mock chain with the dev relayer (DP, 2026-11-13): 3 photos uploaded, the listing shows on `/` and on the shop, the minimum (4137000) is in no request body; 3 slots are made at publish (`SLOTS_AT_PUBLISH`), the seller adds up to 10 from the own-listing panel; the live run needs sign-up (#107)
+- [ ] **MK-23** Listing page: assistant and Q&A (FE): #74, assistant fallback on 429/503; unit-tested; on the mock chain (DP, 2026-11-13) an unknown question shows "Ask the seller", the question lands in the seller's inbox, the answer shows to a signed-out visitor; the assistant answering itself is still unchecked (the dev relayer returns 503 without a NEAR AI key, so the page falls back to "Ask the seller")
 
 ## Asking price (decided 2026-11-13)
 - [ ] **MK-15** Asking price in the API (BI): code, tests and migration 0003 written by CT (PR); the migration is not yet applied to the hosted project
@@ -34,7 +34,7 @@ Mirrors docs/plans/IMPLEMENTATION.md (marketplace plan, Revision B: slots and tw
 
 ## Block C: 2026-11-13 12:00-24:00 UTC
 - [x] **MK-05** AI product assistant (CT): `POST /assistant` live-model checks pass; the asking price joins the prompt once MK-15 lands
-- [ ] **MK-24** Offer flow (FE): #80, restyled in #90; unit-tested and clicked through reveal and pay on the mock chain; the two-browser testnet run (gate G3) is still open
+- [ ] **MK-24** Offer flow (FE): #80, restyled in #90; unit-tested; two browser profiles on the mock chain (DP, 2026-11-13): offer below the minimum gives no deal, the buyer raises, the seller opens round 2 from the inbox, "It's a deal" at Rp 1.503.190 inside the overlap, pay, Received, "Paid out", the listing is sold (leaves browse, the shop shows 1 sold); the two-browser testnet run (gate G3) is still open
 - [x] **MK-25** Chat and inbox (FE): #81, restyled in #90; unit-tested; live run still open
 - [x] **MK-31** Seed photos (DP): `seed/` with 6 freely licensed photos, listings and sources
 - [ ] **MK-14** Seed: demo shop (BI)
@@ -43,8 +43,8 @@ Mirrors docs/plans/IMPLEMENTATION.md (marketplace plan, Revision B: slots and tw
 - [ ] **G3** Gate 20:00 UTC: MK-24 green on testnet (lead)
 
 ## Buyer and seller roles (decided 2026-11-13; spec `docs/superpowers/specs/2026-11-13-buyer-side-design.md`)
-- [ ] **MK-50** Frames: role choice, buyer screens, refund and reopen (DP)
-- [ ] **MK-51** Role choice at sign-up, role-based tabs (FE)
+- [ ] **MK-50** Frames: buyer screens, refund and reopen (DP); the role choice frames are done (#125)
+- [ ] **MK-51** Role-based tabs and switching (FE); the sign-up choice itself is built (#125)
 - [ ] **MK-52** My offers (FE)
 - [ ] **MK-53** Get my money back after the delivery deadline (CT)
 - [ ] **MK-54** Reopen a listing whose buyer never paid (CT)
@@ -53,7 +53,7 @@ Mirrors docs/plans/IMPLEMENTATION.md (marketplace plan, Revision B: slots and tw
 
 ## Should (after G3)
 - [ ] **S-02** AI negotiator
-- [ ] **S-01** Verified panel
+- [ ] **S-01** Verified panel: the buyer's proof panel is built (DP, PR): it recomputes each of the buyer's commitments in the browser and compares them with the chain, and shows the pinned WASM hash and the contract; the "fresh nonce per open" check against the sealed machine still needs CT
 - [ ] **S-12** Link a Google login to a wallet
 - [ ] **S-11** Ratings, saved items, email notifications
 - [ ] **S-13** Contract-level single sale

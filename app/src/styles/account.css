@@ -117,3 +117,37 @@
   text-decoration: underline;
   text-underline-offset: 3px;
 }
+
+/* The sell-or-buy choice: two large cards, each with a sticker, that are plain links. */
+.choices {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+}
+
+.choice {
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: var(--space-16);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-panel);
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.choice img {
+  flex: none;
+}
+
+.choice b,
+.choice small {
+  display: block;
+}
+
+.choice small {
+  margin-top: var(--space-4);
+  font-size: var(--text-14);
+  color: var(--ink-muted);
+}

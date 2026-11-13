@@ -135,6 +135,8 @@ describe("publishListing", () => {
     ["an empty title", { title: "  " }, "title"],
     ["4 rounds", { maxRounds: 4 }, "1 to 3 rounds"],
     ["no slots", { slotCount: 0 }, "slot"],
+    ["a missing TEE key", { teePubkey: "" }, "TEE key"],
+    ["a malformed TEE key", { teePubkey: "02abcd" }, "TEE key"],
   ])("refuses %s before any request or fee", async (_name, overrides, message) => {
     const calls = fakeRelayer();
     const chain = fakeClient();
@@ -153,9 +155,43 @@ describe("publishListing", () => {
     await expect(publishListing(input())).rejects.toThrow("Creating the listing failed: could not reach the relayer");
   });
 
+  it("deletes the listing again when a later step fails, and reports that step", async () => {
+    const calls = fakeRelayer();
+    const client = { createDeal: async () => Promise.reject(new Error("RPC timed out")), submitLimit: async () => {} } as unknown as ContractClient;
+
+    await expect(publishListing(input({ client }))).rejects.toThrow("RPC timed out");
+
+    expect(calls.at(-1)).toMatchObject({ method: "DELETE", url: `${RELAYER}/listings/listing-1`, body: undefined });
+  });
+
   it("says which step failed when the relayer refuses", async () => {
     vi.stubGlobal("fetch", async () => Response.json({ error: "slow down" }, { status: 429 }));
 
     await expect(publishListing(input())).rejects.toThrow("slow down");
+  });
+
+  it("deletes the listing again when a photo upload fails, so no dead listing stays public", async () => {
+    const calls: { method: string; path: string }[] = [];
+    vi.stubGlobal("fetch", async (url: string, init: RequestInit = {}) => {
+      const path = url.replace(RELAYER, "");
+      calls.push({ method: init.method ?? "GET", path });
+      if (path === "/listings") return Response.json({ id: "listing-1" }, { status: 201 });
+      if (path.endsWith("/photos")) return Response.json({ error: "storage is down" }, { status: 503 });
+      return Response.json({}, { status: 200 });
+    });
+
+    await expect(publishListing(input())).rejects.toThrow("storage is down. Nothing was published; try again.");
+
+    expect(calls.at(-1)).toEqual({ method: "DELETE", path: "/listings/listing-1" });
+  });
+
+  it("says so when the listing could not be deleted either", async () => {
+    vi.stubGlobal("fetch", async (url: string) => {
+      const path = url.replace(RELAYER, "");
+      if (path === "/listings") return Response.json({ id: "listing-1" }, { status: 201 });
+      return Response.json({ error: "down" }, { status: 503 });
+    });
+
+    await expect(publishListing(input())).rejects.toThrow("could not be removed");
   });
 });

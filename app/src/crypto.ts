@@ -1,4 +1,4 @@
-import { encrypt } from "eciesjs";
+import { encrypt, PublicKey } from "eciesjs";
 import type { Bytes32 } from "./contract";
 
 export type Side = "seller" | "buyer";
@@ -28,6 +28,16 @@ export async function commitmentFor(
   const canonical = `blind-deal:v1|${dealId}|${side}|${round}|${limit}|${salt}`;
   const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(canonical));
   return [...new Uint8Array(digest)];
+}
+
+/** Whether `hex` is a secp256k1 public key that `sealLimit` can encrypt to. */
+export function isTeePublicKey(hex: string): boolean {
+  try {
+    PublicKey.fromHex(hex);
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 /** Encrypts one limit to the TEE's public key (hex) with a fresh salt. */

@@ -11,6 +11,8 @@ export type PhotoType = (typeof PHOTO_TYPES)[number];
 export type Listing = {
   id: string;
   sellerAccount: string;
+  /** The seller's shop handle; null when the seller has no profile yet. */
+  sellerHandle: string | null;
   title: string;
   description: string;
   category: Category;

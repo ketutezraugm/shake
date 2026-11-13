@@ -123,7 +123,7 @@ function Page({ route, query }: { route: Route; query: string }) {
     case "signin":
       return <SignIn />;
     case "signup":
-      return <Handle />;
+      return <Handle intent={new URLSearchParams(query).get("as")} />;
     case "create":
       return <Create />;
     case "deal":
