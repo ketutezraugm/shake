@@ -4,7 +4,12 @@ import { FULL_GAS, keySigner, type ChainConfig, type Signer } from "./signer";
 
 /** The two wallet methods we use; a fake in tests, a real wallet (Meteor, Intear, Nightly...) in the browser. */
 export type WalletLike = Pick<NearWalletBase, "getAccounts" | "signAndSendTransaction">;
-type Connector = { connect: (input: Parameters<NearConnector["connect"]>[0]) => Promise<WalletLike> };
+type SignedIn = { accounts: { accountId: string }[] };
+type Connector = {
+  connect: (input: Parameters<NearConnector["connect"]>[0]) => Promise<WalletLike>;
+  once: (event: "wallet:signIn", handler: (signedIn: SignedIn) => void) => void;
+  off: (event: "wallet:signIn", handler: (signedIn: SignedIn) => void) => void;
+};
 
 export type WalletSession = { accountId: string; secretKey: string };
 
@@ -28,6 +33,10 @@ export async function connectWallet(
   storage: Storage = localStorage,
 ): Promise<WalletSession> {
   const key = KeyPair.fromRandom("ed25519");
+  // The wallet may hold several accounts; the sign-in event names the one picked in this popup, getAccounts lists them all.
+  let pickedId: string | undefined;
+  const onSignIn = ({ accounts }: SignedIn) => void (pickedId = accounts[0]?.accountId);
+  connector.once("wallet:signIn", onSignIn);
   const wallet = await connector.connect({
     addFunctionCallKey: {
       contractId: chain.contractId,
@@ -35,10 +44,10 @@ export async function connectWallet(
       allowMethods: { anyMethod: false, methodNames: KEY_METHODS },
       gasAllowance: { kind: "limited", amount: KEY_GAS_ALLOWANCE },
     },
-  });
-  const [account] = await wallet.getAccounts({ network: "testnet" });
-  if (!account) throw new Error("the wallet returned no account");
-  const session = { accountId: account.accountId, secretKey: key.toString() };
+  }).finally(() => connector.off("wallet:signIn", onSignIn));
+  const accountId = pickedId ?? (await wallet.getAccounts({ network: "testnet" }))[0]?.accountId;
+  if (!accountId) throw new Error("the wallet returned no account");
+  const session = { accountId, secretKey: key.toString() };
   storage.setItem(SESSION_KEY, JSON.stringify(session));
   return session;
 }

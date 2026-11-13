@@ -26,13 +26,28 @@ function fakeWallet(accountId = "alice.testnet") {
   return { wallet, sent };
 }
 
+/** A connector whose sign-in reports `signedIn`, like the real one does after the user picks an account. */
+function fakeConnector(wallet: WalletLike, signedIn?: string) {
+  let handler: ((event: { accounts: { accountId: string }[] }) => void) | undefined;
+  const connect = vi.fn<(input: unknown) => Promise<WalletLike>>(async () => {
+    if (signedIn) handler?.({ accounts: [{ accountId: signedIn }] });
+    return wallet;
+  });
+  return {
+    connect,
+    once: (_event: "wallet:signIn", h: typeof handler) => void (handler = h),
+    off: () => void (handler = undefined),
+  };
+}
+
 describe("connectWallet", () => {
   it("asks the wallet for a function-call key on the deal contract that cannot take money", async () => {
     const { wallet } = fakeWallet();
-    const connect = vi.fn(async () => wallet);
+    const connector = fakeConnector(wallet);
+    const connect = connector.connect;
     const storage = memoryStorage();
 
-    const session = await connectWallet({ connect }, chain, storage);
+    const session = await connectWallet(connector, chain, storage);
 
     const params = (connect.mock.calls[0] as unknown as [{ addFunctionCallKey: Record<string, unknown> }])[0];
     expect(params.addFunctionCallKey).toMatchObject({
@@ -50,9 +65,19 @@ describe("connectWallet", () => {
 
   it("keeps the session in the browser so a reload does not ask the wallet again", async () => {
     const storage = memoryStorage();
-    const session = await connectWallet({ connect: async () => fakeWallet().wallet }, chain, storage);
+    const session = await connectWallet(fakeConnector(fakeWallet().wallet), chain, storage);
 
     expect(loadWalletSession(storage)).toEqual(session);
+  });
+
+  it("signs in as the account picked in the popup, not the first one the wallet holds", async () => {
+    // The wallet lists shake first, but this sign-in was approved for shakebuyer.
+    const { wallet } = fakeWallet("shake.testnet");
+    const connector = fakeConnector(wallet, "shakebuyer.testnet");
+
+    const session = await connectWallet(connector, chain, memoryStorage());
+
+    expect(session.accountId).toBe("shakebuyer.testnet");
   });
 });
 
