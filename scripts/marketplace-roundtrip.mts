@@ -55,7 +55,7 @@ globalThis.fetch = async (input, init) => {
   return response;
 };
 
-type Outcome = { executor_id: string; logs: string[]; status: { Failure?: unknown } };
+type Outcome = { executor_id: string; logs: string[]; status: { Failure?: unknown; SuccessValue?: string } };
 /** TRACE=1: prints every receipt of a contract call (who ran it, whether it failed, its logs), to see why a round ended in NoDeal. */
 async function traceReceipts(response: Response) {
   const result = ((await response.clone().json().catch(() => null)) as { result?: Record<string, any> } | null)?.result; // eslint-disable-line @typescript-eslint/no-explicit-any
@@ -65,7 +65,9 @@ async function traceReceipts(response: Response) {
   for (const { outcome } of (result?.receipts_outcome ?? []) as { outcome: Outcome }[]) {
     const failure = outcome.status.Failure ? ` FAILED ${JSON.stringify(outcome.status.Failure).slice(0, 300)}` : "";
     const logs = outcome.logs.length ? ` logs=${JSON.stringify(outcome.logs).slice(0, 400)}` : "";
-    if (failure || logs || method === "submit_limit") console.log(`    ${outcome.executor_id}${failure}${logs}`);
+    // What a receipt returned is what the contract's callback receives as its promise result.
+    const value = outcome.status.SuccessValue ? ` returned=${Buffer.from(outcome.status.SuccessValue, "base64").toString().slice(0, 300)}` : "";
+    if (failure || logs || value || method === "submit_limit") console.log(`    ${outcome.executor_id}${failure}${value}${logs}`);
   }
 }
 
