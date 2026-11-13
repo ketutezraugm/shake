@@ -5,6 +5,7 @@ function listing(overrides: Partial<ShopListing>): ShopListing {
   return {
     id: "l0",
     sellerAccount: "demo.blind-deal.testnet",
+    sellerHandle: "demo",
     title: "Item",
     description: "",
     category: "other",
@@ -28,7 +29,7 @@ describe("mockMarket", () => {
     listing({ id: "jacket", title: "Denim jacket", category: "fashion", createdAt: "2026-11-13T01:00:00.000Z" }),
     listing({ id: "bike", title: "Sepeda lipat", category: "vehicles", status: "reserved" }),
     listing({ id: "lamp", title: "Lampu meja", category: "home", status: "sold" }),
-    listing({ id: "other", title: "Kamera lama", sellerAccount: "someone.blind-deal.testnet", status: "closed" }),
+    listing({ id: "other", title: "Kamera lama", sellerAccount: "someone.blind-deal.testnet", sellerHandle: "someone", status: "closed" }),
   ];
   const market = mockMarket(listings, [profile]);
 

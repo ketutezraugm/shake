@@ -75,7 +75,7 @@ export function mockMarket(listings: ShopListing[], profiles: Profile[], questio
     async profile(handle) {
       const profile = profiles.find((p) => p.handle === handle);
       if (!profile) return null;
-      const own = listings.filter((l) => l.sellerAccount.split(".")[0] === handle);
+      const own = listings.filter((l) => l.sellerHandle === handle);
       return {
         profile,
         listings: own.filter((l) => l.status === "open" || l.status === "reserved").sort(newestFirst),

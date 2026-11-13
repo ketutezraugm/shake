@@ -5,7 +5,7 @@ import { authConfig, relayerUrl } from "../config";
 import backIcon from "../design/assets/icons/back.svg";
 import fourFingers from "../design/assets/stickers/four-fingers.svg";
 import { Link, navigate } from "../routes";
-import { createWalletProfile } from "../wallet";
+import { createWalletProfile, fetchMyProfile } from "../wallet";
 import { loadWalletSession } from "../walletSigner";
 
 /** Frame "Pick a handle": the shop name that becomes the link in a bio; the account is made behind it. */
@@ -30,7 +30,9 @@ export function Handle() {
       return handle;
     }
     if (!relayerUrl) throw new Error("Sign-up needs VITE_RELAYER_URL in the app's environment.");
-    return (await createWalletProfile(relayerUrl, walletSession, handle)).handle;
+    // The relayer would rewrite an existing shop's fields, so a returning account is sent to its shop instead.
+    const existing = await fetchMyProfile(relayerUrl, walletSession);
+    return (existing ?? (await createWalletProfile(relayerUrl, walletSession, handle))).handle;
   }
 
   async function submit(event: FormEvent) {
