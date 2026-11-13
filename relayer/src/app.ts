@@ -8,7 +8,7 @@ import type { ChainDeal, NearReader } from "./near.js";
 import { rateLimit } from "./rateLimit.js";
 import type { Store } from "./store.js";
 import type { JwtVerifier } from "./supabaseAuth.js";
-import type { ClaimRes, Inbox, Listing, ListingPage, SellerListing, Shop } from "./types.js";
+import type { ClaimRes, HistoryItem, Inbox, Listing, ListingPage, ReceiptKind, SellerListing, Shop } from "./types.js";
 import {
   MAX_PHOTOS,
   MAX_SLOTS,
@@ -18,6 +18,7 @@ import {
   parseCategory,
   parseCreateListing,
   parseMessage,
+  parseReceipt,
   parsePhotoReq,
   parseSlots,
   parseUpdateProfile,
@@ -44,6 +45,11 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 const HOLDING_STATES = new Set(["Matched", "Funded"]);
 // Chat and the inbox's matches open once a deal has matched; a NoDeal that kept `matched_at_ns` is an expired match.
 const MATCHED_STATES = new Set(["Matched", "Funded", "Released", "Refunded"]);
+// What each receipt proves: the contract method that moved the money, and the deal states that can only follow it.
+const RECEIPT_PROOF: Record<ReceiptKind, { method: string; states: string[] }> = {
+  deposit: { method: "deposit", states: ["Funded", "Released", "Refunded"] },
+  release: { method: "confirm_received", states: ["Released"] },
+};
 
 export function createApp({ store, near, allowedOrigin, verifyJwt, chat, now = Date.now }: Deps) {
   const app = new Hono();
@@ -109,14 +115,19 @@ export function createApp({ store, near, allowedOrigin, verifyJwt, chat, now = D
 
   const isMatched = (deal: ChainDeal) => MATCHED_STATES.has(deal.state) || (deal.state === "NoDeal" && deal.matched_at_ns != null);
 
-  /** The deal's seller or buyer, and only once it has matched: chat is for people who struck a deal. */
-  async function chatParty(dealId: string, account: string): Promise<number> {
+  async function dealParty(dealId: string, account: string): Promise<ChainDeal> {
     const id = Number(dealId);
     const deal = Number.isSafeInteger(id) && id >= 0 ? await near.getDeal(id) : null;
     if (!deal) throw new HttpError(404, "deal not found");
-    if (deal.seller !== account && deal.buyer !== account) throw new HttpError(403, "only the deal's seller or buyer can chat");
+    if (deal.seller !== account && deal.buyer !== account) throw new HttpError(403, "only the deal's seller or buyer can do this");
+    return deal;
+  }
+
+  /** The deal's seller or buyer, and only once it has matched: chat is for people who struck a deal. */
+  async function chatParty(dealId: string, account: string): Promise<number> {
+    const deal = await dealParty(dealId, account);
     if (!isMatched(deal)) throw new HttpError(409, "chat opens after a deal");
-    return id;
+    return deal.id;
   }
 
   const afterId = (value: string | undefined) => {
@@ -303,6 +314,46 @@ export function createApp({ store, near, allowedOrigin, verifyJwt, chat, now = D
     const { account, body } = await signed(c);
     const dealId = await chatParty(c.req.param("dealId"), account);
     return c.json(await store.addMessage(dealId, account, parseMessage(body).body), 201);
+  });
+
+  // The caller names the transaction; the relayer believes only what the chain says about it.
+  app.post("/deals/:dealId/receipts", async (c) => {
+    const { account, body } = await signed(c);
+    const deal = await dealParty(c.req.param("dealId"), account);
+    const { kind, txHash } = parseReceipt(body);
+    const proof = RECEIPT_PROOF[kind];
+    if (!proof.states.includes(deal.state) || !deal.price) throw new HttpError(409, `the deal has no ${kind} yet`);
+
+    const tx = await near.getTx(txHash, account);
+    const matches = tx?.success && tx.methodName === proof.method && tx.dealId === deal.id && (kind !== "deposit" || tx.depositYocto === deal.price);
+    if (!matches) throw new HttpError(422, `that transaction is not this deal's ${kind}`);
+
+    const receipt = await store.addReceipt({ dealId: deal.id, kind, txHash, signerAccount: account, amountYocto: deal.price, recordedAt: new Date(now()).toISOString() });
+    return c.json(receipt, 201);
+  });
+
+  app.get("/me/history", async (c) => {
+    const { account } = await signed(c);
+    const items: Omit<HistoryItem, "receipts">[] = [];
+    const note = async (deal: ChainDeal, listingId: string, title: string, role: "seller" | "buyer") => {
+      if (!isMatched(deal)) return;
+      const photoUrl = (await store.get(listingId))?.photoUrls[0] ?? null;
+      items.push({ listingId, title, photoUrl, role, dealId: deal.id, counterparty: (role === "seller" ? deal.buyer : deal.seller) ?? "", state: deal.state, priceYocto: deal.price ?? null });
+    };
+
+    for (const listing of await store.listBySeller(account)) {
+      for (const slot of (await store.slotsOf(listing.id)).filter((s) => s.buyerAccount !== null)) {
+        const deal = await near.getDeal(slot.dealId);
+        if (deal) await note(deal, listing.id, listing.title, "seller");
+      }
+    }
+    for (const negotiation of await store.negotiationsOf(account)) {
+      const deal = await near.getDeal(negotiation.dealId);
+      if (deal) await note(deal, negotiation.listingId, negotiation.title, "buyer");
+    }
+    const receipts = await store.receiptsOf(items.map((item) => item.dealId));
+    const history: HistoryItem[] = items.map((item) => ({ ...item, receipts: receipts.filter((r) => r.dealId === item.dealId) }));
+    return c.json(history);
   });
 
   app.get("/me/inbox", async (c) => {

@@ -228,6 +228,7 @@ export function mockClient(chain: MockChain, caller: string): ContractClient {
       require(chain.now() * 1e6 <= deal.matched_at_ns! + DAY_MS * 1e6, "the funding window has passed");
       deal.state = "Funded"; // the client attaches exactly the price, as nearClient does
       deal.deadline_ns = chain.now() * 1e6 + chain.deliveryWindowMs * 1e6;
+      return null;
     },
 
     async confirmReceived(dealId) {
@@ -235,6 +236,7 @@ export function mockClient(chain: MockChain, caller: string): ContractClient {
       require(deal.state === "Funded", "deal is not funded");
       require(deal.buyer === caller, "only the buyer can confirm");
       deal.state = "Released";
+      return null;
     },
 
     async refund(dealId) {
@@ -277,6 +279,9 @@ export function mockSigner(accountId: string): Signer {
     signRequest: async () => ({ "x-account-id": accountId }),
     call: async () => {
       throw new Error("the mock chain is used through its ContractClient, not call()");
+    },
+    send: async () => {
+      throw new Error("the mock chain is used through its ContractClient, not send()");
     },
   };
 }

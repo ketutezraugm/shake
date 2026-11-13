@@ -12,6 +12,7 @@ const signer: Signer = {
   accountId: "seller.testnet",
   signRequest: async (method, path) => ({ "x-account-id": "seller.testnet", "x-signed": `${method} ${path}` }),
   call: async () => 0,
+  send: async () => "",
 };
 
 const store = new Map<string, string>();

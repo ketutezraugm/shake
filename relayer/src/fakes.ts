@@ -1,8 +1,8 @@
 import { randomUUID } from "node:crypto";
-import type { ChainDeal, NearReader } from "./near.js";
+import type { ChainDeal, ChainTx, NearReader } from "./near.js";
 import { HttpError } from "./errors.js";
 import type { NewProfile, ProfileFields, SlotRow, Store } from "./store.js";
-import type { Message, Profile, Question } from "./types.js";
+import type { Message, Profile, Question, Receipt } from "./types.js";
 import type { Listing, Negotiation } from "./types.js";
 
 // In-memory stand-ins for the tests; claim() mirrors the claim_slot SQL function.
@@ -11,6 +11,7 @@ type Slot = { listingId: string; dealId: number; linkToken: string; buyer: strin
 export class FakeNear implements NearReader {
   readonly deals = new Map<number, ChainDeal>();
   readonly keys = new Set<string>();
+  readonly txs = new Map<string, ChainTx>();
 
   async getDeal(dealId: number) {
     return this.deals.get(dealId) ?? null;
@@ -18,6 +19,11 @@ export class FakeNear implements NearReader {
 
   async hasAccessKey(accountId: string, publicKey: string) {
     return this.keys.has(`${accountId}|${publicKey}`);
+  }
+
+  async getTx(hash: string, signer: string) {
+    const tx = this.txs.get(hash);
+    return tx?.signer === signer ? tx : null;
   }
 }
 
@@ -29,6 +35,7 @@ export class FakeStore implements Store {
   readonly details = new Map<string, ProfileFields>();
   readonly questions: Question[] = [];
   readonly messages: Message[] = [];
+  readonly receipts: Receipt[] = [];
 
   private free(id: string) {
     return this.slots.filter((slot) => slot.listingId === id && slot.buyer === null).length;
@@ -201,5 +208,16 @@ export class FakeStore implements Store {
 
   async reservedDealOf(id: string) {
     return this.reservedDeals.get(id) ?? null;
+  }
+
+  async addReceipt(receipt: Receipt) {
+    const existing = this.receipts.find((r) => r.dealId === receipt.dealId && r.kind === receipt.kind);
+    if (existing) return existing;
+    this.receipts.push(receipt);
+    return receipt;
+  }
+
+  async receiptsOf(dealIds: number[]) {
+    return this.receipts.filter((r) => dealIds.includes(r.dealId));
   }
 }

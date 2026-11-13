@@ -81,13 +81,29 @@ describe("connectWallet", () => {
   });
 });
 
+describe("walletSigner.send", () => {
+  const key = KeyPair.fromRandom("ed25519").toString();
+
+  it("returns the hash the wallet reports for a payment, and the key's hash when no money moves", async () => {
+    const wallet: WalletLike = {
+      getAccounts: async () => [{ accountId: "alice.testnet" }],
+      signAndSendTransaction: async () => ({ transaction: { hash: "WALLET_HASH" } }) as never,
+    };
+    const base = { accountId: "alice.testnet", signRequest: async () => ({}), call: async () => 0, send: async () => "KEY_HASH" };
+    const signer = walletSigner({ accountId: "alice.testnet", secretKey: key }, async () => wallet, chain, base);
+
+    expect(await signer.send("deposit", { deal_id: 7 }, FEE)).toBe("WALLET_HASH");
+    expect(await signer.send("confirm_received", { deal_id: 7 })).toBe("KEY_HASH");
+  });
+});
+
 describe("walletSigner.call", () => {
   const key = KeyPair.fromRandom("ed25519").toString();
 
   it("signs calls without a deposit with the function-call key, so no popup", async () => {
     const { wallet, sent } = fakeWallet();
     const viaKey = vi.fn(async () => 42);
-    const base = { accountId: "alice.testnet", signRequest: async () => ({}), call: viaKey };
+    const base = { accountId: "alice.testnet", signRequest: async () => ({}), call: viaKey, send: async () => "" };
     const signer = walletSigner({ accountId: "alice.testnet", secretKey: key }, async () => wallet, chain, base);
 
     const result = await signer.call("create_deal", { title: "t" });

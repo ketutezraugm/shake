@@ -8,6 +8,7 @@ const signer: Signer = {
   accountId: "buyer.testnet",
   signRequest: async (method, path) => ({ "x-account-id": "buyer.testnet", "x-signed": `${method} ${path}` }),
   call: async () => 0,
+  send: async () => "",
 };
 
 type Seen = { url: string; headers: Headers; body: unknown };
