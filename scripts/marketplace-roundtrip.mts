@@ -47,10 +47,27 @@ let retries = 0;
 const relayer = createApp({ store, near: rpcNearReader(chain.rpcUrl, chain.contractId), allowedOrigin: "*" });
 const realFetch = globalThis.fetch;
 // Requests to the relayer's address go to the in-process app; everything else (the RPC node) is real.
-globalThis.fetch = (input, init) => {
+globalThis.fetch = async (input, init) => {
   const url = input instanceof Request ? input.url : String(input);
-  return url.startsWith(RELAYER) ? Promise.resolve(relayer.fetch(new Request(url, init))) : realFetch(input, init);
+  if (url.startsWith(RELAYER)) return relayer.fetch(new Request(url, init));
+  const response = await realFetch(input, init);
+  if (process.env.TRACE) await traceReceipts(response);
+  return response;
 };
+
+type Outcome = { executor_id: string; logs: string[]; status: { Failure?: unknown } };
+/** TRACE=1: prints every receipt of a contract call (who ran it, whether it failed, its logs), to see why a round ended in NoDeal. */
+async function traceReceipts(response: Response) {
+  const result = ((await response.clone().json().catch(() => null)) as { result?: Record<string, any> } | null)?.result; // eslint-disable-line @typescript-eslint/no-explicit-any
+  const method = result?.transaction?.actions?.[0]?.FunctionCall?.method_name;
+  if (!method) return;
+  console.log(`  [tx ${method}]`);
+  for (const { outcome } of (result?.receipts_outcome ?? []) as { outcome: Outcome }[]) {
+    const failure = outcome.status.Failure ? ` FAILED ${JSON.stringify(outcome.status.Failure).slice(0, 300)}` : "";
+    const logs = outcome.logs.length ? ` logs=${JSON.stringify(outcome.logs).slice(0, 400)}` : "";
+    if (failure || logs || method === "submit_limit") console.log(`    ${outcome.executor_id}${failure}${logs}`);
+  }
+}
 
 function signerFor(accountId: string): Signer {
   const { private_key } = JSON.parse(readFileSync(join(homedir(), ".near-credentials", "testnet", `${accountId}.json`), "utf8"));
