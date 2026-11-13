@@ -1,6 +1,6 @@
 # Data model
 
-Two stores hold data (marketplace pivot, Revision B, 2026-11-12; supersedes "no database" of 2026-11-10, to be recorded in DECISIONS.md). The contract is the source of truth for money, sealed limits and deals, and it is the v1 contract as deployed (`contract/src/lib.rs`, demo `blind-deal-59xtyh4b.testnet`). Supabase holds descriptive data and is reachable only through the relayer. This page maps every piece of data to the one place it lives, so the contract, the TEE, the relayer, Supabase and the app encode the same shapes. Source: docs/superpowers/specs/2026-11-12-marketplace-pivot-design.md.
+Two stores hold data (marketplace pivot, Revision B, 2026-11-12; supersedes "no database" of 2026-11-10, to be recorded in DECISIONS.md). The contract is the source of truth for money, sealed limits and deals, and it is the v1 contract as deployed (`contract/src/lib.rs`, demo `blind-deal-1wxklib7.testnet`). Supabase holds descriptive data and is reachable only through the relayer. This page maps every piece of data to the one place it lives, so the contract, the TEE, the relayer, Supabase and the app encode the same shapes. Source: docs/superpowers/specs/2026-11-12-marketplace-pivot-design.md.
 
 ## Where each piece of data lives
 
