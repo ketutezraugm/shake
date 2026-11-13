@@ -87,7 +87,7 @@ The local mode above is the easy path. The real one needs a Supabase project, a 
 - Folders: `app/` (the website), `relayer/` (the server), `contract/` (NEAR contract, Rust), `tee/` (the sealed-machine program, Rust), `supabase/` (database migrations), `seed/` (demo listings and photos), `scripts/`, `docs/`.
 - Deeper reading: `docs/ARCHITECTURE.md`, `docs/DATA-MODEL.md`, `docs/DECISIONS.md`.
 
-The sealed-machine program is public. Its compiled WASM has the SHA-256 `789705434c9498d88c739cd5e28b5331cf6ff44c2a1dad5f2a9e435d3479b904`, and the key it uses is locked to that hash, so a different build cannot read the offers.
+The sealed-machine program is public. Its compiled WASM has the SHA-256 `789705434c9498d88c739cd5e28b5331cf6ff44c2a1dad5f2a9e435d3479b904`, and the key it uses is locked to that hash, so a different build cannot read the offers. The deployed contract's code hash on testnet is `a62f3e91d2c75c79fb8ef628f6b894a08da66a1b95cb163a6a2190620e9dc7c2`; anyone can compare it with a build of `contract/` (`npx tsx scripts/freeze-check.mts` does).
 
 ## Honest limits
 
