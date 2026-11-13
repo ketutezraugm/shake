@@ -193,6 +193,10 @@ export function supabaseStore(url: string, serviceKey: string): Store {
       return slot ? { dealId: slot.deal_id, linkToken: slot.link_token } : null;
     },
 
+    async retireSlot(dealId) {
+      check(await db.from("slots").update({ buyer_account: `retired:${dealId}` }).eq("deal_id", dealId).select("id").single());
+    },
+
     async hasProfileForUser(supabaseUserId) {
       const row = optional(await db.from("profiles").select("account_id").eq("supabase_user_id", supabaseUserId).maybeSingle());
       return row !== null;

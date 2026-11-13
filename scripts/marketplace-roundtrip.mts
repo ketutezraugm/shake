@@ -4,8 +4,7 @@
 // Supabase store and deletes the listings it created when it finishes (MK-07's Supabase half, needs migrations 0001-0003).
 // Run: npx tsx scripts/marketplace-roundtrip.mts
 // Env (optional): CONTRACT_ID, TEE_PUBKEY, SELLER_ID, BUYER_ID (accounts whose keys are in ~/.near-credentials/testnet,
-// since the faucet rate-limits new ones), SELLER_LIMIT and BUYER_LIMIT (Rupiah, default 4000000 and 4600000), CANCEL=1 to
-// also run the seller-cancel check.
+// since the faucet rate-limits new ones), SELLER_LIMIT and BUYER_LIMIT (Rupiah, default 4000000 and 4600000).
 import { readFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
@@ -222,19 +221,16 @@ if (check(c.deal?.state === "Retry" && c.deal.round === 2, `round 1 expected Ret
   }
 }
 
-// Opt-in (CANCEL=1) until the relayer stops handing out a cancelled slot; it fails today, so the default run stays green.
-if (process.env.CANCEL) {
-  console.log("D: the seller cancels a deal that no buyer has offered on");
-  const cancelled = await api(seller, "POST", "/listings", { title: "Roundtrip cancel", description: "", category: "electronics", maxRounds: 1, askingPrice: "4600000" });
-  const cancelListing = cancelled.json.id as string;
-  createdListings.push(cancelListing);
-  const [slot] = await createSlots({ listingId: cancelListing, count: 1, minimum: "4000000", maxRounds: 1, signer: seller, client: sellerClient, teePubkey: TEE_PUBKEY, relayerUrl: RELAYER });
-  await sellerClient.cancel(slot!.dealId);
-  check((await sellerClient.getDeal(slot!.dealId))?.state === "NoDeal", "a cancelled deal should be NoDeal");
-  const claimDead = await api(buyer, "POST", `/listings/${cancelListing}/claim`);
-  check(claimDead.status === 409, `claiming a cancelled slot expected 409, got ${claimDead.status}`);
-  console.log(`claim on a cancelled slot answered ${claimDead.status}`);
-}
+console.log("D: the seller cancels a deal that no buyer has offered on");
+const cancelled = await api(seller, "POST", "/listings", { title: "Roundtrip cancel", description: "", category: "electronics", maxRounds: 1, askingPrice: "4600000" });
+const cancelListing = cancelled.json.id as string;
+createdListings.push(cancelListing);
+const [slot] = await createSlots({ listingId: cancelListing, count: 1, minimum: "4000000", maxRounds: 1, signer: seller, client: sellerClient, teePubkey: TEE_PUBKEY, relayerUrl: RELAYER });
+await sellerClient.cancel(slot!.dealId);
+check((await sellerClient.getDeal(slot!.dealId))?.state === "NoDeal", "a cancelled deal should be NoDeal");
+const claimDead = await api(buyer, "POST", `/listings/${cancelListing}/claim`);
+check(claimDead.status === 409, `claiming a cancelled slot expected 409, got ${claimDead.status}`);
+console.log(`claim on a cancelled slot answered ${claimDead.status}`);
 
 if (live && createdListings.length > 0) {
   // Slots cascade with their listing; only the rows this run created are removed.

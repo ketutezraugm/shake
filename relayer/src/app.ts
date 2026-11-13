@@ -198,9 +198,15 @@ export function createApp({ store, near, allowedOrigin, verifyJwt, chat, now = D
     const listing = await findListing(c.req.param("id"));
     if (listing.status !== "open") throw new HttpError(409, "listing is not open");
     if (listing.sellerAccount === account) throw new HttpError(403, "sellers cannot buy their own listing");
-    const slot: ClaimRes | null = await store.claim(listing.id, account);
-    if (!slot) throw new HttpError(409, "no free slot: the seller is negotiating with other buyers");
-    return c.json(slot);
+    // A deal the seller cancelled before any buyer offered is NoDeal with no buyer: it cannot take an offer, so retire it and try the next.
+    for (let tries = 0; tries < MAX_SLOTS; tries++) {
+      const slot: ClaimRes | null = await store.claim(listing.id, account);
+      if (!slot) break;
+      const deal = await near.getDeal(slot.dealId).catch(() => null); // an unreadable chain must not stop a claim; the contract still checks the offer
+      if (!(deal?.state === "NoDeal" && deal.buyer === null)) return c.json(slot);
+      await store.retireSlot(slot.dealId);
+    }
+    throw new HttpError(409, "no free slot: the seller is negotiating with other buyers");
   });
 
   app.post("/listings/:id/close", async (c) => {

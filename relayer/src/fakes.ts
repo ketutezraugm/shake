@@ -104,6 +104,11 @@ export class FakeStore implements Store {
     return { dealId: slot.dealId, linkToken: slot.linkToken };
   }
 
+  async retireSlot(dealId: number) {
+    const slot = this.slots.find((s) => s.dealId === dealId);
+    if (slot) slot.buyer = `retired:${dealId}`;
+  }
+
   async hasProfileForUser(supabaseUserId: string) {
     return this.profiles.some((p) => p.supabaseUserId === supabaseUserId);
   }

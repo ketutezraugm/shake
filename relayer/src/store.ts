@@ -34,6 +34,8 @@ export interface Store {
   slotsOf(id: string): Promise<SlotRow[]>;
   /** The buyer's existing slot, a newly claimed one, or null when the listing is full. */
   claim(id: string, buyer: string): Promise<ClaimRes | null>;
+  /** Takes a slot out of circulation because its deal was cancelled; a marker unique per slot keeps (listing, buyer) unique. */
+  retireSlot(dealId: number): Promise<void>;
   hasProfileForUser(supabaseUserId: string): Promise<boolean>;
   handleTaken(handle: string): Promise<boolean>;
   /** Throws a 409 HttpError when the handle or the user already has a profile. */
