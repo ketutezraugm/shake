@@ -2,6 +2,7 @@ import type { ClaimRes } from "../../relayer/src/types";
 import type { ContractClient, Deal } from "./contract";
 import { sealLimit } from "./crypto";
 import { formatRp, isRupiah } from "./format";
+import { rememberSealed } from "./proof";
 import { signedPost } from "./relayer";
 import type { Signer } from "./signer";
 
@@ -106,6 +107,7 @@ export async function submitOffer({ deal, limit, askingPrice, linkToken, client,
   // The contract wants the raw link token on the buyer's first submit and nothing after it.
   await client.submitLimit(deal.id, sealed.ct, sealed.commit, deal.buyer === null ? linkToken : null);
   localStorage.setItem(offerKey(deal.id), limit);
+  rememberSealed(deal.id, deal.round, limit, sealed.salt);
 }
 
 /** Asks the relayer to re-read the listing's deals so browse shows it reserved, sold or open again. */

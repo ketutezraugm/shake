@@ -408,3 +408,54 @@
     grid-column: 2;
   }
 }
+
+/* Proof panel: a closed card under the offer steps; its text is plain, the verdict on the buyer's own rounds is tinted. */
+.proof {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-panel);
+  font-size: var(--text-14);
+}
+
+.proof summary {
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  font-weight: 700;
+  cursor: pointer;
+  list-style: none;
+}
+
+.proof summary::-webkit-details-marker {
+  display: none;
+}
+
+.proof-body {
+  padding: 0 16px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+}
+
+.proof h3 {
+  font-size: var(--text-13);
+  font-weight: 700;
+  color: var(--ink-muted);
+}
+
+.proof p {
+  margin-top: var(--space-4);
+}
+
+.proof code {
+  overflow-wrap: anywhere;
+}
+
+.proof-row.matches b {
+  color: var(--mint-ink);
+}
+
+.proof-row.differs {
+  color: var(--danger);
+}
