@@ -84,7 +84,7 @@ export function Home({ initialQuery = "" }: { initialQuery?: string }) {
 
       <div className="section-head">
         <h2>Fresh listings</h2>
-        {listings && <span className="num muted">{listings.length} items</span>}
+        {listings && <span className="num muted">{listings.length} {listings.length === 1 ? "item" : "items"}</span>}
       </div>
 
       {error && <ErrorState message={error} onRetry={() => setAttempt((a) => a + 1)} />}
