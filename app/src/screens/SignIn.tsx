@@ -1,12 +1,12 @@
 import { useEffect, useState, type FormEvent } from "react";
-import { currentAccount } from "../accounts";
+import { currentAccount, saveHandle } from "../accounts";
 import { errorFromHash, googleSignInUrl, saveSession, sendEmailLink } from "../auth";
-import { authConfig, chain } from "../config";
+import { authConfig, chain, relayerUrl } from "../config";
 import backIcon from "../design/assets/icons/back.svg";
 import checkIcon from "../design/assets/icons/check.svg";
 import shakeMark from "../design/assets/logo/shake-mark.svg";
 import { Link, navigate } from "../routes";
-import { signInWithWallet } from "../wallet";
+import { fetchMyProfile, signInWithWallet } from "../wallet";
 
 type WalletState = "idle" | "connecting" | "rejected";
 
@@ -58,8 +58,11 @@ export function SignIn() {
   async function connectWallet() {
     setWallet("connecting");
     try {
-      await signInWithWallet();
-      navigate("/signup");
+      const session = await signInWithWallet();
+      // A returning account keeps its shop; only a first sign-in names one.
+      const shop = relayerUrl ? await fetchMyProfile(relayerUrl, session) : null;
+      if (shop) saveHandle(shop.handle);
+      navigate(shop ? `/@${shop.handle}` : "/signup");
     } catch {
       setWallet("rejected");
     }
