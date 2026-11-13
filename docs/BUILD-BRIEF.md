@@ -9,7 +9,7 @@ Shake (formerly Blind deal; name approved in #42): a second-hand marketplace whe
 Tag every track the project honestly fits (no cap, verified 2026-11-12). Proposal: `privacy`, `agents` (AI product assistant; negotiator if it ships), `realworld`. Final list at submission, by the team.
 
 ## Scope
-Full list with acceptance criteria: docs/PRD.md. **Must by the freeze (2026-11-14 00:00 UTC):** sign-in with Google or email (walletless NEAR account behind it) or a NEAR wallet; seller profile `/@handle`; create listing with photos and a sealed minimum; public browse and search; listing page with AI assistant and public Q&A; blind offer through up to 10 slots per listing, seller-chosen rounds (1-3), buyer only raises; match reserves the listing, escrow, "Received" marks it Sold; chat after a match; in-app inbox; seeded demo shop; hosted demo + README.
+Full list with acceptance criteria: docs/PRD.md. **Must by the freeze (2026-11-14 00:00 UTC):** sign-in with Google or email (browse, ask the assistant, public questions) or a NEAR wallet (sell, offer, pay); seller profile `/@handle`; create listing with photos and a sealed minimum; public browse and search; listing page with AI assistant and public Q&A; blind offer through up to 10 slots per listing, seller-chosen rounds (1-3), buyer only raises; match reserves the listing, escrow, "Received" marks it Sold; chat after a match; in-app inbox; seeded demo shop; hosted demo + README.
 **Should:** AI negotiator, Verified panel, seller lowers the minimum, ratings, saved items, email notifications, E2EE prompts, real listings by real students.
 **Could:** pay from another chain via 1Click; dispute flow; connect an existing wallet; Bahasa toggle.
 **Won't:** mainnet, real money, native app, shipping, payments outside escrow, account recovery beyond "export key".
@@ -20,7 +20,7 @@ Full list with acceptance criteria: docs/PRD.md. **Must by the freeze (2026-11-1
 - Frontend: Vite + React + TypeScript SPA, near-api-js 7.4.0 (or near-kit 0.20.2: pick one in architecture). Mobile-first.
 - Relayer: small Node/TypeScript HTTP service: account creation behind a Supabase JWT, AI assistant proxy to NEAR AI Cloud, listing-state sync, chat opening. Rate limits per IP and per user.
 - Supabase (Auth, Postgres, Storage) for descriptive marketplace data, reached only through the relayer; the app uses it for Auth only. The deployed contract stays the source of truth for money, sealed limits and deals, unchanged: listings use pre-created deals ("slots", PR #35). (The need appeared with the pivot.)
-- Sign-in: Google/email (Supabase Auth, walletless NEAR account made by the relayer) or a NEAR wallet via NEAR Connect.
+- Sign-in: Google/email (Supabase Auth, no NEAR account; browse and ask only) or a NEAR wallet via NEAR Connect (sell, offer, pay; the user pays their own fees). The relayer holds no key and funds nothing.
 - Deploy: Render (static site for the SPA, web service for the relayer). Keep up until 2026-11-25.
 - No icon/illustration/animation libraries; motion with CSS using IDENTITY.md tokens.
 
