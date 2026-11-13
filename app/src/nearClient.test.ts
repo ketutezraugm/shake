@@ -43,6 +43,10 @@ function recordingSigner(accountId: string) {
       calls.push({ method, args, deposit });
       return 0;
     },
+    send: async (method, args, deposit) => {
+      calls.push({ method, args, deposit });
+      return "TXHASH";
+    },
   };
   return { signer, calls };
 }
@@ -95,6 +99,15 @@ describe("nearClient.deposit", () => {
     await nearClient(signer, chain).deposit(7);
 
     expect(calls).toEqual([{ method: "deposit", args: { deal_id: 7 }, deposit: 42_000_000_000_000_000_000_000n }]);
+  });
+
+  it("resolves with the transaction hash, and so does confirmReceived", async () => {
+    stubChain({ ...base, state: "Matched", price: "42000000000000000000000" });
+    const { signer } = recordingSigner("buyer.testnet");
+    const client = nearClient(signer, chain);
+
+    expect(await client.deposit(7)).toBe("TXHASH");
+    expect(await client.confirmReceived(7)).toBe("TXHASH");
   });
 
   it("refuses when the deal has no price yet", async () => {

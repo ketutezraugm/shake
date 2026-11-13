@@ -58,12 +58,10 @@ export function nearClient(signer: Signer, chain: ChainConfig): ContractClient {
     async deposit(dealId) {
       const deal = await getDeal(dealId);
       if (!deal?.price) throw new Error(`deal ${dealId} is not matched`);
-      await call("deposit", { deal_id: dealId }, BigInt(deal.price));
+      return signer.send("deposit", { deal_id: dealId }, BigInt(deal.price));
     },
 
-    async confirmReceived(dealId) {
-      await call("confirm_received", { deal_id: dealId });
-    },
+    confirmReceived: (dealId) => signer.send("confirm_received", { deal_id: dealId }),
     async refund(dealId) {
       await call("refund", { deal_id: dealId });
     },

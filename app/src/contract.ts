@@ -43,9 +43,9 @@ export interface ContractClient {
   createDeal(title: string, description: string, linkHash: Bytes32, maxRounds: number): Promise<number>;
   /** The call that completes a round attaches the OutLayer fee; the client decides how much. */
   submitLimit(dealId: number, ct: number[], commit: Bytes32, linkToken: string | null): Promise<void>;
-  /** Attaches exactly the deal's matched price. */
-  deposit(dealId: number): Promise<void>;
-  confirmReceived(dealId: number): Promise<void>;
+  /** Attaches exactly the deal's matched price. Resolves with the transaction hash (null on the mock chain). */
+  deposit(dealId: number): Promise<string | null>;
+  confirmReceived(dealId: number): Promise<string | null>;
   refund(dealId: number): Promise<void>;
   cancel(dealId: number): Promise<void>;
   expire(dealId: number): Promise<void>;

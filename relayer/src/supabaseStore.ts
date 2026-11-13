@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import { createClient } from "@supabase/supabase-js";
 import { HttpError } from "./errors.js";
 import type { SlotRow, Store } from "./store.js";
-import type { Category, Listing, ListingStatus, Message, Negotiation, Profile, Question } from "./types.js";
+import type { Category, Listing, ListingStatus, Message, Negotiation, Profile, Question, Receipt } from "./types.js";
 
 const BUCKET = "listing-photos";
 const EXTENSIONS = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp" } as const;
@@ -39,10 +39,22 @@ type QuestionRow = {
   answered_at: string | null;
   created_at: string;
 };
+type ReceiptRow = { deal_id: number; kind: Receipt["kind"]; tx_hash: string; signer_account: string; amount_yocto: string; recorded_at: string };
+
+const toReceipt = (row: ReceiptRow): Receipt => ({
+  dealId: row.deal_id,
+  kind: row.kind,
+  txHash: row.tx_hash,
+  signerAccount: row.signer_account,
+  amountYocto: String(row.amount_yocto),
+  recordedAt: row.recorded_at,
+});
+
 type MessageRow = { id: number; deal_id: number; sender_account: string; body: string; created_at: string };
 
 const PROFILE_COLUMNS = "account_id, handle, display_name, avatar_url, bio, city";
 const QUESTION_COLUMNS = "id, listing_id, question, answer, answered_at, created_at";
+const RECEIPT_COLUMNS = "deal_id, kind, tx_hash, signer_account, amount_yocto, recorded_at";
 const MESSAGE_COLUMNS = "id, deal_id, sender_account, body, created_at";
 
 const toProfile = (row: ProfileRow): Profile => ({
@@ -329,6 +341,26 @@ export function supabaseStore(url: string, serviceKey: string): Store {
     async reservedDealOf(id) {
       const row = check(await db.from("listings").select("reserved_deal_id").eq("id", id).single<{ reserved_deal_id: number | null }>());
       return row.reserved_deal_id;
+    },
+
+    async addReceipt(receipt) {
+      const row = {
+        deal_id: receipt.dealId,
+        kind: receipt.kind,
+        tx_hash: receipt.txHash,
+        signer_account: receipt.signerAccount,
+        amount_yocto: receipt.amountYocto,
+        recorded_at: receipt.recordedAt,
+      };
+      check(await db.from("receipts").upsert(row, { onConflict: "deal_id,kind", ignoreDuplicates: true }));
+      const stored = check(await db.from("receipts").select(RECEIPT_COLUMNS).eq("deal_id", receipt.dealId).eq("kind", receipt.kind).single<ReceiptRow>());
+      return toReceipt(stored);
+    },
+
+    async receiptsOf(dealIds) {
+      if (dealIds.length === 0) return [];
+      const rows = check(await db.from("receipts").select(RECEIPT_COLUMNS).in("deal_id", dealIds).order("recorded_at").returns<ReceiptRow[]>());
+      return rows.map(toReceipt);
     },
   };
 }

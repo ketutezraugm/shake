@@ -13,6 +13,7 @@ const signer: Signer = {
   accountId: "seller.testnet",
   signRequest: async () => ({ "x-account-id": "seller.testnet" }),
   call: async () => 0,
+  send: async () => "",
 };
 
 // jsdom's Uint8Array is a different realm from Node's, which the crypto library rejects; a Map stands in for storage.

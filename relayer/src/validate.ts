@@ -2,12 +2,15 @@ import { HttpError } from "./errors.js";
 import {
   CATEGORIES,
   PHOTO_TYPES,
+  RECEIPT_KINDS,
   type AnswerReq,
   type AskReq,
   type AssistantReq,
   type Category,
   type CreateListingReq,
   type PhotoReq,
+  type PostReceiptReq,
+  type ReceiptKind,
   type RegisterSlotsReq,
   type SendMessageReq,
   type UpdateProfileReq,
@@ -100,3 +103,12 @@ export function parseAssistantAsk(body: unknown): AssistantReq {
 }
 export const parseAnswer = (body: unknown): AnswerReq => ({ answer: text(record(body).answer, "answer", 1, 1000) });
 export const parseMessage = (body: unknown): SendMessageReq => ({ body: text(record(body).body, "body", 1, 1000) });
+
+// A NEAR transaction hash is 32 bytes in base58.
+const TX_HASH = /^[1-9A-HJ-NP-Za-km-z]{43,44}$/;
+export function parseReceipt(body: unknown): PostReceiptReq {
+  const { kind, txHash } = record(body);
+  if (!RECEIPT_KINDS.includes(kind as ReceiptKind)) throw bad(`kind must be one of ${RECEIPT_KINDS.join(", ")}`);
+  if (typeof txHash !== "string" || !TX_HASH.test(txHash)) throw bad("txHash must be a NEAR transaction hash");
+  return { kind: kind as ReceiptKind, txHash };
+}

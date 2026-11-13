@@ -523,3 +523,74 @@ describe("login without a NEAR account", () => {
     expect((await post("/accounts", { handle: "dita" }, "token-ann")).status).toBe(404);
   });
 });
+
+describe("receipts and history", () => {
+  const PAID = "A".repeat(44);
+  const PAYOUT = "B".repeat(44);
+  const PRICE = "30000000000000000000000";
+  let seller: Person;
+  let buyer: Person;
+  let listing: Listing;
+
+  beforeEach(async () => {
+    seller = person("seller.testnet");
+    buyer = person("buyer.testnet");
+    listing = await newListing(seller);
+    await store.addSlots(listing.id, [{ dealId: 5, linkToken: "t" }]);
+    await store.claim(listing.id, buyer.account);
+    near.deals.set(5, chainDeal(5, seller.account, "t", { buyer: buyer.account, state: "Funded", price: PRICE }));
+    near.txs.set(PAID, { signer: buyer.account, methodName: "deposit", dealId: 5, depositYocto: PRICE, success: true });
+  });
+
+  it("records a deposit the chain confirms, once, and shows it to both sides", async () => {
+    const first = await call(buyer, "POST", "/deals/5/receipts", { kind: "deposit", txHash: PAID });
+    expect(first.status).toBe(201);
+    expect(first.json).toMatchObject({ dealId: 5, kind: "deposit", txHash: PAID, amountYocto: PRICE, signerAccount: buyer.account });
+    expect((await call(buyer, "POST", "/deals/5/receipts", { kind: "deposit", txHash: PAID })).json.txHash).toBe(PAID);
+    expect(store.receipts).toHaveLength(1);
+
+    await store.addPhoto(listing.id, "image/jpeg");
+    for (const [who, role, counterparty] of [[buyer, "buyer", seller.account], [seller, "seller", buyer.account]] as const) {
+      const { json } = await call(who, "GET", "/me/history");
+      expect(json).toMatchObject([{ listingId: listing.id, title: "Used bike", photoUrl: expect.stringContaining(listing.id), role, dealId: 5, counterparty, state: "Funded", priceYocto: PRICE }]);
+      expect(json[0].receipts.map((r: { txHash: string }) => r.txHash)).toEqual([PAID]);
+    }
+  });
+
+  it("refuses a receipt the chain does not back", async () => {
+    const forgeries = [
+      { tx: { signer: buyer.account, methodName: "deposit", dealId: 5, depositYocto: PRICE, success: false }, why: "failed tx" },
+      { tx: { signer: buyer.account, methodName: "refund", dealId: 5, depositYocto: "0", success: true }, why: "wrong method" },
+      { tx: { signer: buyer.account, methodName: "deposit", dealId: 6, depositYocto: PRICE, success: true }, why: "another deal" },
+      { tx: { signer: buyer.account, methodName: "deposit", dealId: 5, depositYocto: "1", success: true }, why: "wrong amount" },
+    ];
+    for (const { tx, why } of forgeries) {
+      near.txs.set(PAID, tx);
+      expect((await call(buyer, "POST", "/deals/5/receipts", { kind: "deposit", txHash: PAID })).status, why).toBe(422);
+    }
+    near.txs.delete(PAID);
+    expect((await call(buyer, "POST", "/deals/5/receipts", { kind: "deposit", txHash: PAID })).status).toBe(422);
+    expect(store.receipts).toHaveLength(0);
+  });
+
+  it("refuses strangers, a step the deal has not reached, and malformed input", async () => {
+    expect((await call(person("eve.testnet"), "POST", "/deals/5/receipts", { kind: "deposit", txHash: PAID })).status).toBe(403);
+    expect((await call(null, "POST", "/deals/5/receipts", { kind: "deposit", txHash: PAID })).status).toBe(401);
+    expect((await call(buyer, "POST", "/deals/5/receipts", { kind: "release", txHash: PAYOUT })).status).toBe(409);
+    expect((await call(buyer, "POST", "/deals/5/receipts", { kind: "deposit", txHash: "nope" })).status).toBe(400);
+    expect((await call(buyer, "POST", "/deals/5/receipts", { kind: "refund", txHash: PAID })).status).toBe(400);
+  });
+
+  it("refuses the other party posting a payment they did not sign", async () => {
+    // The seller finds the buyer's deposit hash on an explorer; the chain reader names the buyer as its signer.
+    expect((await call(seller, "POST", "/deals/5/receipts", { kind: "deposit", txHash: PAID })).status).toBe(422);
+    expect(store.receipts).toHaveLength(0);
+  });
+
+  it("records the release once the deal is Released", async () => {
+    near.deals.set(5, chainDeal(5, seller.account, "t", { buyer: buyer.account, state: "Released", price: PRICE }));
+    near.txs.set(PAYOUT, { signer: buyer.account, methodName: "confirm_received", dealId: 5, depositYocto: "0", success: true });
+    expect((await call(buyer, "POST", "/deals/5/receipts", { kind: "release", txHash: PAYOUT })).status).toBe(201);
+    expect((await call(seller, "GET", "/me/history")).json[0].receipts).toMatchObject([{ kind: "release", txHash: PAYOUT }]);
+  });
+});

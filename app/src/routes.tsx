@@ -4,6 +4,7 @@ import { Create } from "./screens/Create";
 import { DealPage } from "./screens/DealPage";
 import { Demo } from "./screens/Demo";
 import { Handle } from "./screens/Handle";
+import { History } from "./screens/History";
 import { Home } from "./screens/Home";
 import { Inbox } from "./screens/Inbox";
 import { Join } from "./screens/Join";
@@ -22,6 +23,7 @@ export type Route =
   | { name: "sell" }
   | { name: "offer"; dealId: number }
   | { name: "inbox" }
+  | { name: "history" }
   | { name: "chat"; dealId: number }
   | { name: "signin" }
   | { name: "signup" }
@@ -36,6 +38,7 @@ const FIXED: Record<string, Route> = {
   "/": { name: "home" },
   "/sell": { name: "sell" },
   "/inbox": { name: "inbox" },
+  "/history": { name: "history" },
   "/signin": { name: "signin" },
   "/signup": { name: "signup" },
   "/new": { name: "create" },
@@ -118,6 +121,8 @@ function Page({ route, query }: { route: Route; query: string }) {
       return <Offer dealId={route.dealId} />;
     case "inbox":
       return <Inbox />;
+    case "history":
+      return <History />;
     case "chat":
       return <Chat dealId={route.dealId} />;
     case "signin":
