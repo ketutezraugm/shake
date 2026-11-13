@@ -136,3 +136,33 @@ a.card {
     visibility: visible;
   }
 }
+
+.primary {
+  --hover-fill: var(--ink-muted);
+}
+
+.outline-button,
+.more {
+  --hover-fill: var(--sun-tint);
+}
+
+.pill {
+  --hover-fill: var(--sky-tint);
+}
+
+/* The category chips cycle through the tints, so a row of them is a small palette of its own. */
+.chip:nth-child(4n + 1) {
+  --hover-fill: var(--pink-tint);
+}
+
+.chip:nth-child(4n + 2) {
+  --hover-fill: var(--sun-tint);
+}
+
+.chip:nth-child(4n + 3) {
+  --hover-fill: var(--sky-tint);
+}
+
+.chip:nth-child(4n) {
+  --hover-fill: var(--mint);
+}
