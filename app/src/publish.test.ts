@@ -158,4 +158,29 @@ describe("publishListing", () => {
 
     await expect(publishListing(input())).rejects.toThrow("slow down");
   });
+
+  it("closes the listing again when a photo upload fails, so no dead listing stays public", async () => {
+    const calls: { method: string; path: string }[] = [];
+    vi.stubGlobal("fetch", async (url: string, init: RequestInit = {}) => {
+      const path = url.replace(RELAYER, "");
+      calls.push({ method: init.method ?? "GET", path });
+      if (path === "/listings") return Response.json({ id: "listing-1" }, { status: 201 });
+      if (path.endsWith("/photos")) return Response.json({ error: "storage is down" }, { status: 503 });
+      return Response.json({}, { status: 200 });
+    });
+
+    await expect(publishListing(input())).rejects.toThrow("storage is down. Nothing was published; try again.");
+
+    expect(calls.at(-1)).toEqual({ method: "POST", path: "/listings/listing-1/close" });
+  });
+
+  it("says so when the listing could not be closed either", async () => {
+    vi.stubGlobal("fetch", async (url: string) => {
+      const path = url.replace(RELAYER, "");
+      if (path === "/listings") return Response.json({ id: "listing-1" }, { status: 201 });
+      return Response.json({ error: "down" }, { status: 503 });
+    });
+
+    await expect(publishListing(input())).rejects.toThrow("could not be removed");
+  });
 });

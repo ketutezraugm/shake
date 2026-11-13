@@ -4,12 +4,47 @@ import { loadSession } from "../auth";
 import { authConfig, relayerUrl } from "../config";
 import backIcon from "../design/assets/icons/back.svg";
 import fourFingers from "../design/assets/stickers/four-fingers.svg";
+import priceTag from "../design/assets/stickers/price-tag.svg";
+import scratchCard from "../design/assets/stickers/scratch-card.svg";
 import { Link, navigate } from "../routes";
 import { createWalletProfile, fetchMyProfile } from "../wallet";
 import { loadWalletSession } from "../walletSigner";
 
-/** Frame "Pick a handle": the shop name that becomes the link in a bio; the account is made behind it. */
-export function Handle() {
+/** Frame "What brings you here": a new account says whether it will sell or only buy, then names itself. */
+function Intent() {
+  return (
+    <main className="page auth-page">
+      <Link to="/signin" className="pill">
+        <img src={backIcon} alt="" width={16} height={16} /> Back
+      </Link>
+      <h1 className="headline">What brings you here?</h1>
+      <p className="muted">You can always do the other later. No new sign-up.</p>
+      <div className="choices">
+        <Link to="/signup?as=sell" className="choice">
+          <img className="sticker" src={priceTag} alt="" width={56} height={56} />
+          <span>
+            <b>I want to sell</b>
+            <small>Open a shop and put one link in your bio.</small>
+          </span>
+        </Link>
+        <Link to="/signup?as=buy" className="choice">
+          <img className="sticker" src={scratchCard} alt="" width={56} height={56} />
+          <span>
+            <b>I just want to buy</b>
+            <small>Make private offers. Open a shop whenever you like.</small>
+          </span>
+        </Link>
+      </div>
+    </main>
+  );
+}
+
+/** Frame "Pick a handle": the name that becomes a shop link in a bio (sellers) or shows in chat (buyers); the account is made behind it. */
+export function Handle({ intent }: { intent: string | null }) {
+  return intent === "sell" || intent === "buy" ? <HandleForm selling={intent === "sell"} /> : <Intent />;
+}
+
+function HandleForm({ selling }: { selling: boolean }) {
   const walletSession = loadWalletSession();
   const login = loadSession();
   const signedUp = !walletSession && currentAccount();
@@ -43,7 +78,7 @@ export function Handle() {
     try {
       const saved = await create();
       saveHandle(saved);
-      navigate(`/@${saved}`);
+      navigate(selling ? `/@${saved}` : "/");
     } catch (e) {
       if (isHandleTaken(e)) setTaken(handle);
       else setError((e as Error).message);
@@ -57,9 +92,10 @@ export function Handle() {
         <Link to="/signin" className="pill">
           <img src={backIcon} alt="" width={16} height={16} /> Back
         </Link>
-        <h1 className="headline">Open a shop</h1>
+        <h1 className="headline">{selling ? "Open a shop" : "Make an offer"}</h1>
         <p className="muted">
-          A shop needs a NEAR wallet: it is the account that gets paid. <Link to="/signin">Connect a NEAR wallet</Link> to name your shop.
+          {selling ? "A shop needs a NEAR wallet: it is the account that gets paid." : "An offer is signed and paid from a NEAR wallet."}{" "}
+          <Link to="/signin">Connect a NEAR wallet</Link> to continue.
         </p>
       </main>
     );
@@ -70,17 +106,17 @@ export function Handle() {
 
   return (
     <main className="page auth-page">
-      <Link to="/signin" className="pill">
+      <Link to="/signup" className="pill">
         <img src={backIcon} alt="" width={16} height={16} /> Back
       </Link>
 
       <img className="sticker" src={fourFingers} alt="" width={80} height={80} style={{ transform: "rotate(-6deg)", alignSelf: "flex-start" }} />
-      <h1 className="headline">Name your shop</h1>
-      <p className="muted">This is the link you put in your Instagram or marketplace bio.</p>
+      <h1 className="headline">{selling ? "Name your shop" : "Pick a username"}</h1>
+      <p className="muted">{selling ? "This is the link you put in your Instagram or marketplace bio." : "Sellers see this name when you make an offer and when you chat."}</p>
 
       <form className="auth-email" onSubmit={submit}>
         <label>
-          Shop handle
+          {selling ? "Shop handle" : "Username"}
           <span className={`handle-field${refused ? " bad" : ""}`}>
             <span aria-hidden="true">@</span>
             <input
@@ -114,10 +150,12 @@ export function Handle() {
           </div>
         )}
 
-        <div className="info-card">
-          <p>Your shop link</p>
-          <b>/@{valid ? handle : "…"}</b>
-        </div>
+        {selling && (
+          <div className="info-card">
+            <p>Your shop link</p>
+            <b>/@{valid ? handle : "…"}</b>
+          </div>
+        )}
 
         {error && (
           <p className="error" role="alert">
@@ -130,7 +168,7 @@ export function Handle() {
           </p>
         )}
         <button className="primary big" disabled={busy || !valid || refused}>
-          Open my shop
+          {selling ? "Open my shop" : "Continue"}
         </button>
       </form>
     </main>
