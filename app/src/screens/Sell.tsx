@@ -23,7 +23,7 @@ export function Sell() {
       <main className="page">
         <h1 className="headline">Sell something</h1>
         <p className="muted">
-          <Link to="/signin">Sign in</Link> first so your listing has a seller account.
+          <Link to="/signin">Connect a NEAR wallet</Link> first: your listing is sold from your wallet account.
         </p>
       </main>
     );

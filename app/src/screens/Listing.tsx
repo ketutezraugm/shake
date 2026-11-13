@@ -33,7 +33,7 @@ function OfferButton({ listing }: { listing: ShopListing }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  if (!account) return <p className="muted"><Link to="/signin">Sign in</Link> to make an offer.</p>;
+  if (!account) return <p className="muted"><Link to="/signin">Connect a NEAR wallet</Link> to make an offer.</p>;
   if (!relayerUrl) return <p className="muted">Offers need VITE_RELAYER_URL in the app's environment.</p>;
   const url = relayerUrl;
 

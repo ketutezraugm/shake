@@ -1,15 +1,15 @@
 import { useState, type FormEvent } from "react";
-import { currentAccount } from "../accounts";
 import { chainFor } from "../client";
 import { relayerUrl } from "../config";
-import { askAssistant, askSeller, type AssistantReply } from "../qa";
+import { askAssistant, askSeller, type Auth, type AssistantReply } from "../qa";
 import { Link } from "../routes";
+import { viewer } from "../session";
 
 type Turn = { question: string; reply: AssistantReply };
 
 /** Asks the assistant about the item; when it doesn't know, the buyer can put the question to the seller. */
 export function Assistant({ listingId }: { listingId: string }) {
-  const account = currentAccount();
+  const who = viewer();
   const [draft, setDraft] = useState("");
   const [turn, setTurn] = useState<Turn | null>(null);
   const [sent, setSent] = useState(false);
@@ -17,7 +17,7 @@ export function Assistant({ listingId }: { listingId: string }) {
   const [error, setError] = useState<string | null>(null);
 
   if (!relayerUrl) return <p className="muted">The assistant needs VITE_RELAYER_URL in the app's environment.</p>;
-  if (!account) {
+  if (!who) {
     return (
       <p className="muted">
         <Link to="/signin">Sign in</Link> to ask the assistant or the seller.
@@ -25,6 +25,7 @@ export function Assistant({ listingId }: { listingId: string }) {
     );
   }
   const url = relayerUrl;
+  const auth = (): Auth => (who.kind === "wallet" ? { signer: chainFor(who.account).signer } : { token: who.token });
 
   async function run(action: () => Promise<void>) {
     setBusy(true);
@@ -41,18 +42,18 @@ export function Assistant({ listingId }: { listingId: string }) {
   function ask(event: FormEvent) {
     event.preventDefault();
     const question = draft.trim();
-    if (!question || !account) return;
+    if (!question) return;
     setSent(false);
     void run(async () => {
-      setTurn({ question, reply: await askAssistant(url, chainFor(account).signer, listingId, question) });
+      setTurn({ question, reply: await askAssistant(url, auth(), listingId, question) });
       setDraft("");
     });
   }
 
   function passToSeller() {
-    if (!turn || !account) return;
+    if (!turn) return;
     void run(async () => {
-      await askSeller(url, chainFor(account).signer, listingId, turn.question);
+      await askSeller(url, auth(), listingId, turn.question);
       setSent(true);
     });
   }

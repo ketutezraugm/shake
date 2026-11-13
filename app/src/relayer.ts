@@ -22,12 +22,11 @@ export async function signedGet<T>(relayerUrl: string, signer: Signer, path: str
   return (await response.json()) as T;
 }
 
-async function signedWrite<T>(method: "POST" | "PUT", relayerUrl: string, signer: Signer, path: string, payload: object, what: string): Promise<T> {
-  const body = JSON.stringify(payload);
+async function send<T>(method: "POST" | "PUT", relayerUrl: string, path: string, auth: Record<string, string>, payload: object, what: string): Promise<T> {
   const response = await fetch(relayerUrl + path, {
     method,
-    headers: { "content-type": "application/json", ...(await signer.signRequest(method, path, body)) },
-    body,
+    headers: { "content-type": "application/json", ...auth },
+    body: JSON.stringify(payload),
   }).catch(() => {
     throw new Error(`${what} failed: could not reach the relayer`);
   });
@@ -38,6 +37,10 @@ async function signedWrite<T>(method: "POST" | "PUT", relayerUrl: string, signer
   return (await response.json()) as T;
 }
 
+async function signedWrite<T>(method: "POST" | "PUT", relayerUrl: string, signer: Signer, path: string, payload: object, what: string): Promise<T> {
+  return send(method, relayerUrl, path, await signer.signRequest(method, path, JSON.stringify(payload)), payload, what);
+}
+
 /** POSTs JSON to the relayer signed as `signer`; failures read as "<what> failed: <reason>". */
 export function signedPost<T>(relayerUrl: string, signer: Signer, path: string, payload: object, what: string): Promise<T> {
   return signedWrite("POST", relayerUrl, signer, path, payload, what);
@@ -46,4 +49,9 @@ export function signedPost<T>(relayerUrl: string, signer: Signer, path: string, 
 /** PUTs JSON to the relayer signed as `signer`; used by a wallet user to create their profile. */
 export function signedPut<T>(relayerUrl: string, signer: Signer, path: string, payload: object, what: string): Promise<T> {
   return signedWrite("PUT", relayerUrl, signer, path, payload, what);
+}
+
+/** POSTs JSON as a Google or email login, for the few routes open to someone without a NEAR account. */
+export function bearerPost<T>(relayerUrl: string, token: string, path: string, payload: object, what: string): Promise<T> {
+  return send("POST", relayerUrl, path, { authorization: `Bearer ${token}` }, payload, what);
 }

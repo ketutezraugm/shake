@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { errorFromHash, googleSignInUrl, loadSession, saveSession, sendEmailLink, sessionFromHash } from "./auth";
+import { emailOf, errorFromHash, googleSignInUrl, loadSession, saveSession, sendEmailLink, sessionFromHash } from "./auth";
 
 const config = { url: "https://proj.supabase.co", anonKey: "anon-key" };
 
@@ -57,5 +57,11 @@ describe("auth", () => {
     expect(googleSignInUrl(config, "http://localhost:5173/signin")).toBe(
       "https://proj.supabase.co/auth/v1/authorize?provider=google&redirect_to=http%3A%2F%2Flocalhost%3A5173%2Fsignin",
     );
+  });
+
+  it("reads the email from a login token and tolerates one that is not a JWT", () => {
+    const token = `h.${btoa(JSON.stringify({ email: "dita@example.com" }))}.s`;
+    expect(emailOf(token)).toBe("dita@example.com");
+    expect(emailOf("stand-in")).toBeNull();
   });
 });

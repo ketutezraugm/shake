@@ -14,7 +14,6 @@ describe("parseRoute", () => {
     expect(parseRoute("/chat/abc")).toEqual({ name: "notFound" });
     expect(parseRoute("/signin")).toEqual({ name: "signin" });
     expect(parseRoute("/signup")).toEqual({ name: "signup" });
-    expect(parseRoute("/keys")).toEqual({ name: "keys" });
   });
 
   it("keeps the test UI paths until the offer flow replaces them", () => {

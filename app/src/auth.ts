@@ -55,6 +55,17 @@ export function loadSession(storage: Storage = localStorage, now = Date.now()): 
   return session;
 }
 
+/** The email Supabase put in the access token, for display only; null for a token that is not a JWT. */
+export function emailOf(accessToken: string): string | null {
+  try {
+    const payload = accessToken.split(".")[1] ?? "";
+    const { email } = JSON.parse(atob(payload.replace(/-/g, "+").replace(/_/g, "/"))) as { email?: unknown };
+    return typeof email === "string" ? email : null;
+  } catch {
+    return null;
+  }
+}
+
 export function clearSession(storage: Storage = localStorage): void {
   storage.removeItem(SESSION_KEY);
 }
