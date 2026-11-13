@@ -224,9 +224,10 @@ impl Contract {
     }
 
     /// Callback from OutLayer with the matcher's result. If OutLayer's own execution failed (the promise
-    /// failed, so the matcher never answered) the round is handed back unused: both sides' limits for it are
-    /// cleared and they submit again, up to `MAX_MATCHER_RETRIES` times per deal. Any malformed or
-    /// mismatching result, and a failure past that cap, count as a no-deal for the round. The caller check is explicit because
+    /// failed, or it answered with an unparseable or `success:false` envelope, so the matcher never answered)
+    /// the round is handed back unused: both sides' limits for it are cleared and they submit again, up to
+    /// `MAX_MATCHER_RETRIES` times per deal. A mismatching or invalid matcher answer, and a failure past that
+    /// cap, count as a no-deal for the round. The caller check is explicit because
     /// `#[private]` only guards the compiled entry point, not direct calls in tests.
     pub fn on_outlayer_result(&mut self, deal_id: u64) {
         require!(
@@ -395,12 +396,15 @@ impl Contract {
         )
     }
 
-    /// True when the OutLayer call itself failed, as opposed to the matcher answering "no deal" or garbage.
+    /// True when OutLayer's execution failed: the promise failed, or its answer is not a matcher envelope
+    /// or says `success:false`. A matcher answer, including `matched:false` and its own `error:"invalid"`
+    /// (both `success:true`), is a real no-deal.
     fn execution_failed() -> bool {
-        matches!(
-            env::promise_result_checked(0, MAX_RESULT_BYTES),
-            Err(PromiseError::Failed)
-        )
+        match env::promise_result_checked(0, MAX_RESULT_BYTES) {
+            Err(PromiseError::Failed) => true,
+            Err(_) => false,
+            Ok(bytes) => serde_json::from_slice::<Envelope>(&bytes).map_or(true, |e| !e.success),
+        }
     }
 
     /// The matched price in yoctoNEAR, or None for a no-deal and for anything malformed.

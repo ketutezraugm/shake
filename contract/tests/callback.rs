@@ -42,9 +42,6 @@ mod on_outlayer {
     fn malformed_result_sets_nodeal() {
         let huge = "340282366920938463463374607431768211455";
         let bad = [
-            "not json".to_string(),
-            "{}".to_string(),
-            r#"{"success":false,"error":"boom"}"#.to_string(),
             r#"{"success":true,"result":{"deal_id":0,"matched":true}}"#.to_string(),
             matched(0, "0"),
             matched(0, "abc"),
@@ -87,6 +84,23 @@ mod on_outlayer {
         callback_context(&matched(id, "4300000"));
         c.on_outlayer_result(id);
         assert_eq!(c.get_deal(id).unwrap().state, State::Matched);
+    }
+
+    #[test]
+    fn an_unparseable_or_unsuccessful_answer_hands_the_round_back_too() {
+        for result in ["not json", "{}", r#"{"success":false,"error":"boom"}"#] {
+            let mut c = new_contract();
+            let id = deal(&mut c, 1);
+            play_round(&mut c, id, Some("tok"));
+            callback_context(result);
+            c.on_outlayer_result(id);
+            let d = c.get_deal(id).unwrap();
+            assert_eq!(
+                (d.state, d.matcher_retries),
+                (State::Waiting, 1),
+                "result {result}"
+            );
+        }
     }
 
     #[test]
