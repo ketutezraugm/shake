@@ -109,8 +109,8 @@ Tag every track the project honestly fits (no cap on tags per the rules verified
 ## Milestones
 - 11-12 evening: TypeScript types, migrations 0001 and 0002, screens on mocks.
 - 11-13: slot round trip on testnet (gate G2, 12:00 UTC); relayer endpoints, both sign-ins, screens, assistant, seed, hosting; UI flow on testnet (gate G3, 20:00 UTC).
-- 11-14 00:00 UTC: feature freeze.
-- 11-14 12:00 UTC: submit (repo public, X post live; both need the whole team). 23:59 UTC is buffer only.
+- 11-14 00:00 UTC (07:00 WIB): feature freeze.
+- 11-14 12:00 UTC (19:00 WIB): submit (repo public, X post live; both need the whole team). 23:59 UTC (06:59 WIB on 11-15) is buffer only.
 
 ## Open questions
 Resolved 2026-11-10 in DECISIONS.md: result trust (callback path Must, enclave signature Should), units (Rupiah in, fixed demo rate to testnet NEAR), randomness (TEE), account naming (parent account once the name is final), NEAR AI key (relayer proxy, E2EE prompts).
