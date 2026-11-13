@@ -9,8 +9,10 @@ import { Home } from "./screens/Home";
 import { Inbox } from "./screens/Inbox";
 import { Join } from "./screens/Join";
 import { Listing } from "./screens/Listing";
+import { MyOffers } from "./screens/MyOffers";
 import { Offer } from "./screens/Offer";
 import { Profile } from "./screens/Profile";
+import { Saved } from "./screens/Saved";
 import { Sell } from "./screens/Sell";
 import { Shell } from "./screens/Shell";
 import { NotFound } from "./screens/States";
@@ -24,6 +26,8 @@ export type Route =
   | { name: "offer"; dealId: number }
   | { name: "inbox" }
   | { name: "history" }
+  | { name: "offers" }
+  | { name: "saved" }
   | { name: "chat"; dealId: number }
   | { name: "signin" }
   | { name: "signup" }
@@ -39,6 +43,8 @@ const FIXED: Record<string, Route> = {
   "/sell": { name: "sell" },
   "/inbox": { name: "inbox" },
   "/history": { name: "history" },
+  "/offers": { name: "offers" },
+  "/saved": { name: "saved" },
   "/signin": { name: "signin" },
   "/signup": { name: "signup" },
   "/new": { name: "create" },
@@ -121,6 +127,10 @@ function Page({ route, query }: { route: Route; query: string }) {
       return <Offer dealId={route.dealId} />;
     case "inbox":
       return <Inbox />;
+    case "saved":
+      return <Saved />;
+    case "offers":
+      return <MyOffers />;
     case "history":
       return <History />;
     case "chat":

@@ -45,11 +45,11 @@ Mirrors docs/plans/IMPLEMENTATION.md (marketplace plan, Revision B: slots and tw
 
 ## Buyer and seller roles (decided 2026-11-13; spec `docs/superpowers/specs/2026-11-13-buyer-side-design.md`)
 - [ ] **MK-50** Frames: buyer screens, refund and reopen (DP); the role choice frames are done (#125)
-- [ ] **MK-51** Role-based tabs and switching (FE); the sign-up choice itself is built (#125)
-- [ ] **MK-52** My offers (FE)
+- [x] **MK-51** Role-based tabs and switching (DP, PR): buyer tabs Browse, Saved, My offers, Inbox; seller tabs as before; "Switch to buying/selling" in the account menu; unit test on the tab list per role
+- [x] **MK-52** My offers (DP, PR): `/offers`, one row per deal in progress with its state and next step, finished ones link to History; unit tests on the row text for every view and on the filter; clicked through on the mock chain (offer, no deal, row says "Raise your offer")
 - [ ] **MK-53** Get my money back after the delivery deadline (CT)
 - [ ] **MK-54** Reopen a listing whose buyer never paid (CT)
-- [ ] **MK-55** Saved items, this device only (FE, Should)
+- [x] **MK-55** Saved items, this device only (DP, PR): heart on cards and the listing page, `/saved`, survives a reload; unit test on add and remove
 - [ ] **MK-56** Seller sales view (FE, Should)
 
 ## Should (after G3)
