@@ -17,6 +17,10 @@ async function walletConnector(): Promise<NearConnector> {
   return connector;
 }
 
+export async function getWallet() {
+  return (await walletConnector()).wallet();
+}
+
 /** Wallet sign-in: the wallet adds a limited key for this app, and the account becomes the signed-in one. */
 export async function signInWithWallet(): Promise<WalletSession> {
   const session = await connectWallet(await walletConnector(), chain);
@@ -31,4 +35,9 @@ export async function signInWithWallet(): Promise<WalletSession> {
 export function createWalletProfile(relayerUrl: string, session: WalletSession, handle: string): Promise<Profile> {
   const signer = keySigner(session.accountId, session.secretKey, chain);
   return signedPut(relayerUrl, signer, "/me/profile", { handle, displayName: handle, bio: "", city: "", avatarUrl: null }, "creating your shop");
+}
+
+/** Drops the wallet connection if one was opened this page load; the stored limited key goes with the session. */
+export async function disconnectWallet(): Promise<void> {
+  await connector?.disconnect().catch(() => undefined);
 }

@@ -54,3 +54,7 @@ export function loadSession(storage: Storage = localStorage, now = Date.now()): 
   }
   return session;
 }
+
+export function clearSession(storage: Storage = localStorage): void {
+  storage.removeItem(SESSION_KEY);
+}
