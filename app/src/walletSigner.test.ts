@@ -29,7 +29,7 @@ function fakeWallet(accountId = "alice.testnet") {
 /** A connector whose sign-in reports `signedIn`, like the real one does after the user picks an account. */
 function fakeConnector(wallet: WalletLike, signedIn?: string) {
   let handler: ((event: { accounts: { accountId: string }[] }) => void) | undefined;
-  const connect = vi.fn(async (_input: unknown) => {
+  const connect = vi.fn<(input: unknown) => Promise<WalletLike>>(async () => {
     if (signedIn) handler?.({ accounts: [{ accountId: signedIn }] });
     return wallet;
   });
