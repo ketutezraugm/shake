@@ -7,7 +7,7 @@ const sha256Hex = async (text: string) =>
     .map((b) => b.toString(16).padStart(2, "0"))
     .join("");
 
-const chain = { contractId: "blind-deal-59xtyh4b.testnet", rpcUrl: "https://test.rpc.fastnear.com" };
+const chain = { contractId: "blind-deal-1wxklib7.testnet", rpcUrl: "https://test.rpc.fastnear.com" };
 
 describe("keySigner.signRequest", () => {
   it("signs the exact string the relayer verifies (relayer/src/auth.ts signingMessage)", async () => {

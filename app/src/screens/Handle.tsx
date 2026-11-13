@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from "react";
-import { createAccount, currentAccount, currentHandle, handleSuggestions, isHandleTaken, isValidHandle, openAccount, saveHandle } from "../accounts";
+import { createAccount, currentAccount, currentHandle, handleSuggestions, isHandleTaken, isValidHandle, saveHandle } from "../accounts";
 import { loadSession } from "../auth";
 import { authConfig, relayerUrl } from "../config";
 import backIcon from "../design/assets/icons/back.svg";
@@ -24,14 +24,13 @@ export function Handle() {
   }, [signedUp, walletSession, login]);
 
   async function create(): Promise<string> {
-    if (!walletSession && !authConfig) {
+    // Without a Supabase project (local work) there is no wallet either, so the shop is made on the mock chain.
+    if (!walletSession) {
       await createAccount(handle);
       return handle;
     }
     if (!relayerUrl) throw new Error("Sign-up needs VITE_RELAYER_URL in the app's environment.");
-    if (walletSession) return (await createWalletProfile(relayerUrl, walletSession, handle)).handle;
-    await openAccount(relayerUrl, login!.accessToken, handle);
-    return handle;
+    return (await createWalletProfile(relayerUrl, walletSession, handle)).handle;
   }
 
   async function submit(event: FormEvent) {
@@ -48,6 +47,20 @@ export function Handle() {
       else setError((e as Error).message);
       setBusy(false);
     }
+  }
+
+  if (!walletSession && authConfig) {
+    return (
+      <main className="page auth-page">
+        <Link to="/signin" className="pill">
+          <img src={backIcon} alt="" width={16} height={16} /> Back
+        </Link>
+        <h1 className="headline">Open a shop</h1>
+        <p className="muted">
+          A shop needs a NEAR wallet: it is the account that gets paid. <Link to="/signin">Connect a NEAR wallet</Link> to name your shop.
+        </p>
+      </main>
+    );
   }
 
   const valid = isValidHandle(handle);

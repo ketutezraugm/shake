@@ -1,13 +1,13 @@
 import { useEffect, useRef, useState } from "react";
-import { currentAccount, currentHandle } from "../accounts";
+import { currentHandle } from "../accounts";
 import { Link, navigate } from "../routes";
-import { leave } from "../session";
+import { leave, viewer } from "../session";
 
-/** Top-right of the shell: "Sign in" when signed out, otherwise the account chip that opens a menu with sign out. */
+/** Top-right of the shell: "Sign in" when signed out, otherwise the account (or Google login) chip that opens a menu with sign out. */
 export function AccountMenu() {
   const [open, setOpen] = useState(false);
   const root = useRef<HTMLDivElement>(null);
-  const accountId = currentAccount();
+  const who = viewer();
   const handle = currentHandle();
 
   useEffect(() => {
@@ -26,7 +26,7 @@ export function AccountMenu() {
     };
   }, [open]);
 
-  if (!accountId) return <Link to="/signin" className="pill">Sign in</Link>;
+  if (!who) return <Link to="/signin" className="pill">Sign in</Link>;
 
   async function signOutNow() {
     setOpen(false);
@@ -37,15 +37,21 @@ export function AccountMenu() {
   return (
     <div className="account" ref={root}>
       <button className="pill" aria-haspopup="menu" aria-expanded={open} onClick={() => setOpen(!open)}>
-        @{handle}
+        {who.kind === "wallet" ? `@${handle}` : who.label}
       </button>
       {open && (
         <div className="account-menu" role="menu">
-          <p className="muted">{accountId}</p>
+          <p className="muted">{who.kind === "wallet" ? who.account : "Browsing only"}</p>
           <span onClick={() => setOpen(false)}>
-            <Link to={`/@${handle}`} className="account-item">
-              My shop
-            </Link>
+            {who.kind === "wallet" ? (
+              <Link to={`/@${handle}`} className="account-item">
+                My shop
+              </Link>
+            ) : (
+              <Link to="/signin" className="account-item">
+                Connect a NEAR wallet
+              </Link>
+            )}
           </span>
           <button className="account-item" role="menuitem" onClick={() => void signOutNow()}>Sign out</button>
         </div>

@@ -1,13 +1,13 @@
 import { createHash } from "node:crypto";
 import { Hono, type Context } from "hono";
 import { cors } from "hono/cors";
-import { openAccount, type AccountsDeps } from "./accounts.js";
 import { answerQuestion, quota, type Chat } from "./assistant.js";
 import { createAuthenticator } from "./auth.js";
 import { HttpError } from "./errors.js";
 import type { ChainDeal, NearReader } from "./near.js";
 import { rateLimit } from "./rateLimit.js";
 import type { Store } from "./store.js";
+import type { JwtVerifier } from "./supabaseAuth.js";
 import type { ClaimRes, Inbox, Listing, ListingPage, SellerListing, Shop } from "./types.js";
 import {
   MAX_PHOTOS,
@@ -27,8 +27,8 @@ export type Deps = {
   store: Store;
   near: NearReader;
   allowedOrigin: string;
-  /** Absent when the relayer has no account-creating key; POST /accounts then answers 503. */
-  accounts?: AccountsDeps;
+  /** Checks a Google or email login; absent, the two routes open to a login answer 401 to it. */
+  verifyJwt?: JwtVerifier;
   /** Absent when there is no NEAR AI key; POST /assistant then answers 503. */
   chat?: Chat;
   now?: () => number;
@@ -36,7 +36,6 @@ export type Deps = {
 
 const PAGE_SIZE = 20;
 const REQUESTS_PER_MINUTE = 120;
-const ACCOUNTS_PER_IP_PER_HOUR = 3;
 const HOUR_MS = 60 * 60 * 1000;
 const ASSISTANT_PER_ACCOUNT_PER_HOUR = 20;
 // Protects the $10 NEAR AI credit; a restart resets it.
@@ -46,7 +45,7 @@ const HOLDING_STATES = new Set(["Matched", "Funded"]);
 // Chat and the inbox's matches open once a deal has matched; a NoDeal that kept `matched_at_ns` is an expired match.
 const MATCHED_STATES = new Set(["Matched", "Funded", "Released", "Refunded"]);
 
-export function createApp({ store, near, allowedOrigin, accounts, chat, now = Date.now }: Deps) {
+export function createApp({ store, near, allowedOrigin, verifyJwt, chat, now = Date.now }: Deps) {
   const app = new Hono();
   const authenticate = createAuthenticator(near, now);
   const accountQuota = quota(ASSISTANT_PER_ACCOUNT_PER_HOUR, HOUR_MS, now);
@@ -67,16 +66,29 @@ export function createApp({ store, near, allowedOrigin, accounts, chat, now = Da
     return c.json({ error: "internal error" }, 500);
   });
 
+  function parseBody(raw: string): unknown {
+    if (raw === "") return {};
+    try {
+      return JSON.parse(raw);
+    } catch {
+      throw new HttpError(400, "body must be JSON");
+    }
+  }
+
   /** Reads the body once, verifies the signature over it, and returns the caller with the parsed JSON. */
   async function signed(c: Context): Promise<{ account: string; body: unknown }> {
     const raw = await c.req.text();
     const account = await authenticate({ method: c.req.method, path: c.req.path, body: raw, header: (name) => c.req.header(name) });
-    if (raw === "") return { account, body: {} };
-    try {
-      return { account, body: JSON.parse(raw) };
-    } catch {
-      throw new HttpError(400, "body must be JSON");
-    }
+    return { account, body: parseBody(raw) };
+  }
+
+  /** `signed`, or a Google or email login as a bearer token: a login has no NEAR account, so it is named `supabase:<user id>`. */
+  async function signedOrLoggedIn(c: Context): Promise<{ account: string; body: unknown }> {
+    const token = c.req.header("authorization")?.match(/^Bearer (.+)$/)?.[1];
+    if (!token) return signed(c);
+    const userId = verifyJwt ? await verifyJwt(token) : null;
+    if (!userId) throw new HttpError(401, "sign in first");
+    return { account: `supabase:${userId}`, body: parseBody(await c.req.text()) };
   }
 
   async function findListing(id: string): Promise<Listing> {
@@ -114,17 +126,6 @@ export function createApp({ store, near, allowedOrigin, accounts, chat, now = Da
   };
 
   app.get("/health", (c) => c.json({ ok: true }));
-
-  app.post("/accounts", rateLimit(ACCOUNTS_PER_IP_PER_HOUR, now, HOUR_MS), async (c) => {
-    if (!accounts) throw new HttpError(503, "account creation is not configured");
-    let body: unknown;
-    try {
-      body = await c.req.json();
-    } catch {
-      throw new HttpError(400, "body must be JSON");
-    }
-    return c.json(await openAccount(accounts, store, c.req.header("authorization"), body), 201);
-  });
 
   app.get("/listings", async (c) => {
     const category = c.req.query("category");
@@ -248,14 +249,14 @@ export function createApp({ store, near, allowedOrigin, accounts, chat, now = Da
   app.get("/listings/:id/questions", async (c) => c.json(await store.answeredQuestions((await findListing(c.req.param("id"))).id)));
 
   app.post("/listings/:id/questions", async (c) => {
-    const { account, body } = await signed(c);
+    const { account, body } = await signedOrLoggedIn(c);
     const listing = await findListing(c.req.param("id"));
     if (listing.sellerAccount === account) throw new HttpError(403, "sellers cannot ask on their own listing");
     return c.json(await store.addQuestion(listing.id, account, parseAsk(body).question), 201);
   });
 
   app.post("/assistant", async (c) => {
-    const { account, body } = await signed(c);
+    const { account, body } = await signedOrLoggedIn(c);
     if (!chat) throw new HttpError(503, "assistant is not configured");
     const { listingId, question } = parseAssistantAsk(body);
     const listing = await findListing(listingId);

@@ -25,7 +25,7 @@ export function Chat({ dealId }: { dealId: number }) {
     return (
       <main className="page narrow">
         <h1 className="headline">Chat</h1>
-        <p className="muted"><Link to="/signin">Sign in</Link> to open your chat.</p>
+        <p className="muted"><Link to="/signin">Connect a NEAR wallet</Link> to open your chat.</p>
       </main>
     );
   }

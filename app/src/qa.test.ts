@@ -27,7 +27,7 @@ describe("askAssistant", () => {
   it("posts a signed question and returns the answer", async () => {
     const seen = stubRelayer(Response.json({ answer: "The listing says 8k." }));
 
-    const reply = await askAssistant(RELAYER, signer, "l1", "Shutter count?");
+    const reply = await askAssistant(RELAYER, { signer }, "l1", "Shutter count?");
 
     expect(reply).toEqual({ answer: "The listing says 8k." });
     expect(seen[0]?.url).toBe(`${RELAYER}/assistant`);
@@ -38,19 +38,32 @@ describe("askAssistant", () => {
   it("returns unknown when the assistant does not have the answer", async () => {
     stubRelayer(Response.json({ unknown: true }));
 
-    expect(await askAssistant(RELAYER, signer, "l1", "Comes with the box?")).toEqual({ unknown: true });
+    expect(await askAssistant(RELAYER, { signer }, "l1", "Comes with the box?")).toEqual({ unknown: true });
   });
 
   it.each([429, 503])("falls back to unknown when the assistant answers %i (rate limit or no key)", async (status) => {
     stubRelayer(Response.json({ error: "try later" }, { status }));
 
-    expect(await askAssistant(RELAYER, signer, "l1", "Anything?")).toEqual({ unknown: true });
+    expect(await askAssistant(RELAYER, { signer }, "l1", "Anything?")).toEqual({ unknown: true });
   });
 
   it("still reports other failures in words", async () => {
     stubRelayer(Response.json({ error: "broken" }, { status: 500 }));
 
-    await expect(askAssistant(RELAYER, signer, "l1", "Anything?")).rejects.toThrow("Asking the assistant failed: broken");
+    await expect(askAssistant(RELAYER, { signer }, "l1", "Anything?")).rejects.toThrow("Asking the assistant failed: broken");
+  });
+});
+
+describe("a login without a NEAR account", () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  it("sends its token as a bearer and no signature headers", async () => {
+    const seen = stubRelayer(Response.json({ answer: "Yes." }));
+
+    await askAssistant(RELAYER, { token: "jwt-1" }, "l1", "Works?");
+
+    expect(seen[0]?.headers.get("authorization")).toBe("Bearer jwt-1");
+    expect(seen[0]?.headers.get("x-signed")).toBeNull();
   });
 });
 
@@ -60,7 +73,7 @@ describe("askSeller", () => {
   it("posts the question to the listing's public questions", async () => {
     const seen = stubRelayer(Response.json({ id: 7, listingId: "l1", question: "Box?", answer: null }, { status: 201 }));
 
-    await askSeller(RELAYER, signer, "l1", "Box?");
+    await askSeller(RELAYER, { signer }, "l1", "Box?");
 
     expect(seen[0]?.url).toBe(`${RELAYER}/listings/l1/questions`);
     expect(seen[0]?.body).toEqual({ question: "Box?" });
@@ -70,7 +83,7 @@ describe("askSeller", () => {
   it("refuses an empty question before any request", async () => {
     const seen = stubRelayer(Response.json({}));
 
-    await expect(askSeller(RELAYER, signer, "l1", "   ")).rejects.toThrow("Type a question first");
+    await expect(askSeller(RELAYER, { signer }, "l1", "   ")).rejects.toThrow("Type a question first");
 
     expect(seen).toHaveLength(0);
   });

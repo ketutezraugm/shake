@@ -1,6 +1,6 @@
 # Data model
 
-Two stores hold data (marketplace pivot, Revision B, 2026-11-12; supersedes "no database" of 2026-11-10, to be recorded in DECISIONS.md). The contract is the source of truth for money, sealed limits and deals, and it is the v1 contract as deployed (`contract/src/lib.rs`, demo `blind-deal-59xtyh4b.testnet`). Supabase holds descriptive data and is reachable only through the relayer. This page maps every piece of data to the one place it lives, so the contract, the TEE, the relayer, Supabase and the app encode the same shapes. Source: docs/superpowers/specs/2026-11-12-marketplace-pivot-design.md.
+Two stores hold data (marketplace pivot, Revision B, 2026-11-12; supersedes "no database" of 2026-11-10, to be recorded in DECISIONS.md). The contract is the source of truth for money, sealed limits and deals, and it is the v1 contract as deployed (`contract/src/lib.rs`, demo `blind-deal-1wxklib7.testnet`). Supabase holds descriptive data and is reachable only through the relayer. This page maps every piece of data to the one place it lives, so the contract, the TEE, the relayer, Supabase and the app encode the same shapes. Source: docs/superpowers/specs/2026-11-12-marketplace-pivot-design.md.
 
 ## Where each piece of data lives
 
@@ -137,7 +137,7 @@ erDiagram
         timestamptz created_at
     }
     RATE_LIMIT_BUCKET {
-        string key PK "in memory: IP for /accounts, account for /assistant"
+        string key PK "in memory: account (or login) for /assistant"
         u8 count
         u64 window_start
     }
@@ -157,7 +157,7 @@ The anon Supabase key reads and writes no table: RLS is on with no policies and 
 |---|---|---|
 | `listings` | Anyone: `GET /listings`, `GET /listings/:id` (open listings only in the grid; `freeSlots` from the `listing_cards` view). Seller: `GET /me/listings` | `POST /listings` (signed), `POST /listings/:id/photos` (seller), `POST /listings/:id/close` (seller); `status` also by `POST /listings/:id/sync` (no auth, derived from chain) |
 | `slots` | Browse sees only the free count. Seller: `GET /me/listings` (deal id and buyer, never the token). Buyer: `GET /me/negotiations` (own claimed slots, with the token) | `POST /listings/:id/slots` (seller, verified on chain); claim through `claim_slot` via `POST /listings/:id/claim` (signed buyer) |
-| `profiles` | Anyone: `GET /profiles/:handle` (public fields only; `supabase_user_id` never returned) | `POST /accounts` (Supabase JWT) creates; `PUT /me/profile` (signed, own row) |
+| `profiles` | Anyone: `GET /profiles/:handle` (public fields only; `supabase_user_id` never returned) | `PUT /me/profile` (signed, own row) creates and updates; wallet users only |
 | `questions` | Anyone: `GET /listings/:id/questions` (answered only). The seller and asker see unanswered ones through `GET /me/inbox` | `POST /listings/:id/questions` (signed); `POST /questions/:id/answer` (the listing's seller only) |
 | `messages` | `GET /deals/:dealId/messages` (the deal's seller or buyer, deal Matched or later) | `POST /deals/:dealId/messages` (same rule) |
 | Storage `listing-photos` | Public read | Upload through the signed URL from `POST /listings/:id/photos`; JPEG, PNG or WebP, 2 MB each |

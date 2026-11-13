@@ -13,7 +13,7 @@
 ## Global Constraints
 
 - Now 2026-11-12. **Feature freeze 2026-11-14 00:00 UTC.** Submit by 2026-11-14 12:00 UTC; hard wall 23:59 UTC is buffer only.
-- Testnet only. Contract `blind-deal-59xtyh4b.testnet` and the TEE are not changed or redeployed. Commitments stay `blind-deal:v1` (`tee/testvectors.json`). Limits are canonical decimal Rupiah strings; rate 100,000,000 Rp per NEAR.
+- Testnet only. Demo contract `blind-deal-1wxklib7.testnet` (redeployed 2026-11-13 for the failed-run retry, DECISIONS) and the TEE. Commitments stay `blind-deal:v1` (`tee/testvectors.json`). Limits are canonical decimal Rupiah strings; rate 100,000,000 Rp per NEAR.
 - Slots: at most 10 per listing; one per buyer per listing; claims only while the listing is `open`. Listing status `open | reserved | sold | closed`, set only by `POST /listings/:id/sync` (and `close`).
 - Every listing shows a required asking price; the seller's floor (sealed minimum) is at or below it and never leaves the browser unsealed; the app caps offers at the asking price. No chat before a deal is Matched. The AI assistant never receives a limit; nothing server-side has one.
 - Supabase tables are reached only by the relayer's service role. The app's anon key is for Auth only.
@@ -128,7 +128,7 @@ D1-01 scaffold, D1-04/05 contract stub and TS types, D1-07 tokens and identity d
 - **Files:** `app/src/walletSigner.ts`, `app/src/walletSigner.test.ts`, `scripts/wallet-key-check.mts`; the wallet button in `SignIn.tsx` is Harfi's MK-20, wired to `connectWallet`.
 - **Produces:** `connectWallet(connector, chain, storage?) -> WalletSession` (asks the wallet for a function-call key on the deal contract, 1 NEAR gas allowance, methods `create_deal`, `submit_limit`, `cancel`, `confirm_received`, `refund`, `expire`; keeps `{accountId, secretKey}` in the browser), `loadWalletSession()`, `clearWalletSession()`, `walletSigner(session, getWallet, chain) -> Signer`: calls without a deposit are signed by the key (30 Tgas), calls that attach money (the round-completing `submit_limit`, `deposit`) go through the wallet.
 - **Done (passes):** `npm test -w app -- walletSigner` 5 passed; `npx tsx scripts/wallet-key-check.mts` prints `ok` for: the relayer accepts `PUT /me/profile` signed by the function-call key; `create_deal` and the seller's `submit_limit` through the key (deal `Waiting`); the key is refused when it attaches a deposit; then `RESULT: ok`.
-- **Still open:** one real wallet session (Meteor, Intear or Nightly on testnet) to check the popup, the key it adds and a payment through the wallet.
+- **Real wallet session (done 2026-11-13, Meteor on testnet):** `shake.testnet` sold, `shakebuyer.testnet` paid through the popup and pressed Received; deal 59 is Released on chain. Meteor adds its own function-call key (any method, 0.25 NEAR) rather than the six methods and 1 NEAR the app asks for; harmless, since a function-call key cannot attach money. With two accounts in one wallet the app can sign in as the wrong one (it takes the first account the wallet returns). Intear and Nightly are untested.
 
 ### MK-21 Browse, search, seller profile
 - **Owner:** FE. **Deps:** MK-30; #35 endpoints exist, `GET /profiles/:handle` from MK-12 (stub until then).
