@@ -1,5 +1,6 @@
 import react from "@vitejs/plugin-react";
-import { defineConfig, type Plugin } from "vite";
+import { type Plugin } from "vite";
+import { defineConfig } from "vitest/config";
 
 /** Dev-only shared mock chain, so a seller and a buyer in different browsers see the same deals until M1-11. */
 // The two request members used below; the repo has no current @types/node.
@@ -29,4 +30,12 @@ function mockChainStore(): Plugin {
   };
 }
 
-export default defineConfig({ plugins: [react(), mockChainStore()] });
+// The one .env sits at the repo root beside .env.example; only VITE_-prefixed names reach the browser.
+// Tests ignore the developer's .env: the app's own variables are pinned empty so they run on the mock chain.
+const unset = ["VITE_CONTRACT_ID", "VITE_RELAYER_URL", "VITE_TEE_PUBKEY", "VITE_SUPABASE_URL", "VITE_SUPABASE_ANON_KEY"];
+
+export default defineConfig({
+  envDir: "..",
+  plugins: [react(), mockChainStore()],
+  test: { env: Object.fromEntries(unset.map((name) => [name, ""])) },
+});
