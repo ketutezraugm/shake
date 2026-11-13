@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
+import { currentAccount, currentHandle } from "../accounts";
 import type { Shop } from "../market";
 import { market } from "../marketSource";
 import { ListingCard } from "./ListingCard";
+import { Sales } from "./Sales";
 import { ErrorState, NotFound } from "./States";
 
 export function Profile({ handle }: { handle: string }) {
@@ -35,6 +37,7 @@ export function Profile({ handle }: { handle: string }) {
   }
 
   const { profile, listings, soldCount } = shop;
+  const account = currentAccount();
   return (
     <main className="page profile-layout">
       <section className="profile-head" aria-label="Shop">
@@ -61,6 +64,8 @@ export function Profile({ handle }: { handle: string }) {
           {copied ? "Link copied" : "Copy shop link"}
         </button>
       </section>
+
+      {account && handle === currentHandle() && <Sales account={account} />}
 
       <div className="profile-listings">
         <div className="section-head">

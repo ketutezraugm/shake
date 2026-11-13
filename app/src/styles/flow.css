@@ -466,3 +466,9 @@
 .proof-row.differs {
   color: var(--danger);
 }
+
+.sales {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+}
