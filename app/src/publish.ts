@@ -66,8 +66,9 @@ async function uploadPhoto(relayerUrl: string, signer: Signer, listingId: string
 }
 
 /**
- * Sell flow: create the listing, upload photos, then make the on-chain offer slots.
- * Returns the listing id. If a later step fails the listing is deleted again, so a half-made one never shows.
+ * Sell flow: create the listing, upload photos, then make the on-chain offer slots. Returns the listing id.
+ * A listing with no slots would show in browse but take no offer, so if a later step fails the listing is deleted again
+ * and the seller gets the error to retry from the form.
  */
 export async function publishListing(input: PublishInput): Promise<string> {
   validate(input);
@@ -105,10 +106,11 @@ export async function publishListing(input: PublishInput): Promise<string> {
       relayerUrl,
       onProgress: (done, total) => onProgress?.({ stage: "slots", done, total }),
     });
-  } catch (error) {
-    // The seller needs the step that failed, not a failure of the cleanup.
-    await signedDelete(relayerUrl, signer, `/listings/${listing.id}`, "Removing the unfinished listing").catch(() => {});
-    throw error;
+  } catch (failure) {
+    const reason = (failure as Error).message;
+    // Deals already made on the contract stay there, unused: harmless, and they hold no money.
+    const removed = await signedDelete(relayerUrl, signer, `/listings/${listing.id}`, "Removing the unfinished listing").then(() => true, () => false);
+    throw new Error(removed ? `${reason}. Nothing was published; try again.` : `${reason}. The half-made listing could not be removed: close it from your shop.`);
   }
   return listing.id;
 }

@@ -249,6 +249,13 @@ export function createApp({ store, near, allowedOrigin, verifyJwt, chat, now = D
     return c.json(shop);
   });
 
+  app.get("/me/profile", async (c) => {
+    const { account } = await signed(c);
+    const profile = await store.profileOf(account);
+    if (!profile) throw new HttpError(404, "no shop for this account yet");
+    return c.json(profile);
+  });
+
   app.put("/me/profile", async (c) => {
     const { account, body } = await signed(c);
     const { handle, ...fields } = parseUpdateProfile(body);

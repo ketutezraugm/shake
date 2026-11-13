@@ -11,6 +11,7 @@ const UNIQUE_VIOLATION = "23505";
 type CardRow = {
   id: string;
   seller_account: string;
+  seller_handle: string | null;
   title: string;
   description: string;
   category: Category;
@@ -76,6 +77,7 @@ export function supabaseStore(url: string, serviceKey: string): Store {
   const toListing = (row: CardRow): Listing => ({
     id: row.id,
     sellerAccount: row.seller_account,
+    sellerHandle: row.seller_handle,
     title: row.title,
     description: row.description,
     category: row.category,

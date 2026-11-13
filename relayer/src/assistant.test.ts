@@ -5,6 +5,7 @@ import type { Listing, Question } from "./types.js";
 const listing: Listing = {
   id: "11111111-1111-4111-8111-111111111111",
   sellerAccount: "ann.test",
+  sellerHandle: "ann",
   title: "Used phone",
   description: "Battery 87%, small scratch on back",
   category: "electronics",

@@ -21,6 +21,7 @@ function seed(id: string, title: string, category: ShopListing["category"], hour
     id,
     askingPrice: ASKING_PRICES[id] ?? "1000000",
     sellerAccount: DEMO,
+    sellerHandle: "demo",
     title,
     description: "",
     category,
