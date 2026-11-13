@@ -17,7 +17,7 @@ Mirrors docs/plans/IMPLEMENTATION.md (marketplace plan, Revision B: slots and tw
 - [x] **MK-30** Marketplace screens in Claude Design (DP): 32 frames, `docs/design/shake-marketplace-screens.html` (#77), linked in #70
 
 ## Block B: 2026-11-13 00:00-12:00 UTC
-- [ ] **MK-07** Marketplace round trip on testnet (CT): chain half passes (EZ); the script now also runs on the real Supabase store (`SUPABASE_URL` + service key in `relayer/.env`); waits on migration 0003 being applied (#98)
+- [x] **MK-07** Marketplace round trip on testnet (CT): `npx tsx scripts/marketplace-roundtrip.mts` on the real Supabase store passes (3 of 3 traced runs: Matched in the overlap, reserved by the matching deal, Received, sold, NoDeal case); 2 of 3 untraced runs earlier returned NoDeal for the overlapping case and were not explained, see DECISIONS
 - [ ] **G2** Gate 12:00 UTC: MK-07 green (lead)
 - [x] **MK-11** `POST /accounts` with Supabase JWT (BI)
 - [x] **MK-12** Relayer: profiles, questions, messages, inbox, reserved sync (BI)
