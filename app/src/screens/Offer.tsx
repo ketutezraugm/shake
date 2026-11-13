@@ -12,6 +12,7 @@ import { digitsOnly, formatRp, groupThousands, rpFromYocto } from "../format";
 import { market } from "../marketSource";
 import { lastOffer, loadNegotiation, offerView, submitOffer, syncListing, type Negotiation, type OfferView } from "../offer";
 import { Link } from "../routes";
+import { ProofPanel } from "./Proof";
 
 const POLL_MS = 3000;
 
@@ -101,6 +102,7 @@ function OfferDeal({ dealId, account, negotiation }: { dealId: number; account: 
       />
 
       {error && <p className="error" role="alert">{error}</p>}
+      {deal.buyer_commits.length > 0 && <ProofPanel deal={deal} />}
     </main>
   );
 }

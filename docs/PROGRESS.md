@@ -44,7 +44,7 @@ Mirrors docs/plans/IMPLEMENTATION.md (marketplace plan, Revision B: slots and tw
 
 ## Should (after G3)
 - [ ] **S-02** AI negotiator
-- [ ] **S-01** Verified panel
+- [ ] **S-01** Verified panel: the buyer's proof panel is built (DP, PR): it recomputes each of the buyer's commitments in the browser and compares them with the chain, and shows the pinned WASM hash and the contract; the "fresh nonce per open" check against the sealed machine still needs CT
 - [ ] **S-12** Link a Google login to a wallet
 - [ ] **S-11** Ratings, saved items, email notifications
 - [ ] **S-13** Contract-level single sale
