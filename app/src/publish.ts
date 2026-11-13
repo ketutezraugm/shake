@@ -1,7 +1,8 @@
 import { PHOTO_TYPES, type Category, type Listing, type PhotoRes, type PhotoType } from "../../relayer/src/types";
 import type { ContractClient } from "./contract";
+import { isTeePublicKey } from "./crypto";
 import { isRupiah } from "./format";
-import { signedPost } from "./relayer";
+import { signedDelete, signedPost } from "./relayer";
 import type { Signer } from "./signer";
 import { createSlots } from "./slots";
 
@@ -55,6 +56,7 @@ function validate(input: PublishInput): void {
   if (!Number.isInteger(input.slotCount) || input.slotCount < 1 || input.slotCount > MAX_SLOTS) {
     throw new Error(`Make between 1 and ${MAX_SLOTS} offer slots`);
   }
+  if (!isTeePublicKey(input.teePubkey)) throw new Error("The app has no valid TEE key (VITE_TEE_PUBKEY), so prices cannot be sealed");
 }
 
 async function uploadPhoto(relayerUrl: string, signer: Signer, listingId: string, photo: Blob): Promise<void> {
@@ -65,7 +67,7 @@ async function uploadPhoto(relayerUrl: string, signer: Signer, listingId: string
 
 /**
  * Sell flow: create the listing, upload photos, then make the on-chain offer slots.
- * Returns the listing id. If a later step fails the listing stays, with what was finished so far.
+ * Returns the listing id. If a later step fails the listing is deleted again, so a half-made one never shows.
  */
 export async function publishListing(input: PublishInput): Promise<string> {
   validate(input);
@@ -86,21 +88,27 @@ export async function publishListing(input: PublishInput): Promise<string> {
     "Creating the listing",
   );
 
-  for (const [i, photo] of input.photos.entries()) {
-    onProgress?.({ stage: "photos", done: i, total: input.photos.length });
-    await uploadPhoto(relayerUrl, signer, listing.id, photo);
-  }
+  try {
+    for (const [i, photo] of input.photos.entries()) {
+      onProgress?.({ stage: "photos", done: i, total: input.photos.length });
+      await uploadPhoto(relayerUrl, signer, listing.id, photo);
+    }
 
-  await createSlots({
-    listingId: listing.id,
-    count: input.slotCount,
-    minimum: input.minimum,
-    maxRounds: input.maxRounds,
-    signer,
-    client: input.client,
-    teePubkey: input.teePubkey,
-    relayerUrl,
-    onProgress: (done, total) => onProgress?.({ stage: "slots", done, total }),
-  });
+    await createSlots({
+      listingId: listing.id,
+      count: input.slotCount,
+      minimum: input.minimum,
+      maxRounds: input.maxRounds,
+      signer,
+      client: input.client,
+      teePubkey: input.teePubkey,
+      relayerUrl,
+      onProgress: (done, total) => onProgress?.({ stage: "slots", done, total }),
+    });
+  } catch (error) {
+    // The seller needs the step that failed, not a failure of the cleanup.
+    await signedDelete(relayerUrl, signer, `/listings/${listing.id}`, "Removing the unfinished listing").catch(() => {});
+    throw error;
+  }
   return listing.id;
 }

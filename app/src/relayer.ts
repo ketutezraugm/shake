@@ -22,11 +22,13 @@ export async function signedGet<T>(relayerUrl: string, signer: Signer, path: str
   return (await response.json()) as T;
 }
 
-async function send<T>(method: "POST" | "PUT", relayerUrl: string, path: string, auth: Record<string, string>, payload: object, what: string): Promise<T> {
+type Method = "POST" | "PUT" | "DELETE";
+
+async function send<T>(method: Method, relayerUrl: string, path: string, auth: Record<string, string>, payload: object | null, what: string): Promise<T> {
   const response = await fetch(relayerUrl + path, {
     method,
     headers: { "content-type": "application/json", ...auth },
-    body: JSON.stringify(payload),
+    body: payload === null ? undefined : JSON.stringify(payload),
   }).catch(() => {
     throw new Error(`${what} failed: could not reach the relayer`);
   });
@@ -37,8 +39,8 @@ async function send<T>(method: "POST" | "PUT", relayerUrl: string, path: string,
   return (await response.json()) as T;
 }
 
-async function signedWrite<T>(method: "POST" | "PUT", relayerUrl: string, signer: Signer, path: string, payload: object, what: string): Promise<T> {
-  return send(method, relayerUrl, path, await signer.signRequest(method, path, JSON.stringify(payload)), payload, what);
+async function signedWrite<T>(method: Method, relayerUrl: string, signer: Signer, path: string, payload: object | null, what: string): Promise<T> {
+  return send(method, relayerUrl, path, await signer.signRequest(method, path, payload === null ? "" : JSON.stringify(payload)), payload, what);
 }
 
 /** POSTs JSON to the relayer signed as `signer`; failures read as "<what> failed: <reason>". */
@@ -49,6 +51,11 @@ export function signedPost<T>(relayerUrl: string, signer: Signer, path: string, 
 /** PUTs JSON to the relayer signed as `signer`; used by a wallet user to create their profile. */
 export function signedPut<T>(relayerUrl: string, signer: Signer, path: string, payload: object, what: string): Promise<T> {
   return signedWrite("PUT", relayerUrl, signer, path, payload, what);
+}
+
+/** DELETEs a resource on the relayer, signed as `signer`, with no body. */
+export function signedDelete<T>(relayerUrl: string, signer: Signer, path: string, what: string): Promise<T> {
+  return signedWrite("DELETE", relayerUrl, signer, path, null, what);
 }
 
 /** POSTs JSON as a Google or email login, for the few routes open to someone without a NEAR account. */

@@ -135,6 +135,8 @@ describe("publishListing", () => {
     ["an empty title", { title: "  " }, "title"],
     ["4 rounds", { maxRounds: 4 }, "1 to 3 rounds"],
     ["no slots", { slotCount: 0 }, "slot"],
+    ["a missing TEE key", { teePubkey: "" }, "TEE key"],
+    ["a malformed TEE key", { teePubkey: "02abcd" }, "TEE key"],
   ])("refuses %s before any request or fee", async (_name, overrides, message) => {
     const calls = fakeRelayer();
     const chain = fakeClient();
@@ -151,6 +153,15 @@ describe("publishListing", () => {
     });
 
     await expect(publishListing(input())).rejects.toThrow("Creating the listing failed: could not reach the relayer");
+  });
+
+  it("deletes the listing again when a later step fails, and reports that step", async () => {
+    const calls = fakeRelayer();
+    const client = { createDeal: async () => Promise.reject(new Error("RPC timed out")), submitLimit: async () => {} } as unknown as ContractClient;
+
+    await expect(publishListing(input({ client }))).rejects.toThrow("RPC timed out");
+
+    expect(calls.at(-1)).toMatchObject({ method: "DELETE", url: `${RELAYER}/listings/listing-1`, body: undefined });
   });
 
   it("says which step failed when the relayer refuses", async () => {
