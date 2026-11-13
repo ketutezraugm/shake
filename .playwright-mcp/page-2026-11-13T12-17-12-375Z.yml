@@ -1,0 +1,51 @@
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - link [ref=e5] [cursor=pointer]:
+      - /url: /
+      - img "Shake home" [ref=e6]
+    - search [ref=e7]:
+      - generic [ref=e8]:
+        - generic [ref=e9]: Search listings
+        - searchbox "Search listings" [ref=e10]
+    - navigation "Main" [ref=e11]:
+      - link "Browse Browse" [ref=e12] [cursor=pointer]:
+        - /url: /
+      - link "Sell Sell" [ref=e14] [cursor=pointer]:
+        - /url: /sell
+      - link "Inbox Inbox" [ref=e16] [cursor=pointer]:
+        - /url: /inbox
+      - link "My shop My shop" [ref=e18] [cursor=pointer]:
+        - /url: /@dita
+    - button "@dita" [ref=e21] [cursor=pointer]
+  - main [ref=e22]:
+    - generic [ref=e24]:
+      - heading "Post your price, keep your floor." [level=1] [ref=e25]
+      - paragraph [ref=e26]: Every item shows its asking price. Offer it or less; the seller never sees your number.
+    - navigation "Categories" [ref=e27]:
+      - button "All" [pressed] [ref=e28] [cursor=pointer]
+      - button "Electronics" [ref=e29] [cursor=pointer]
+      - button "Fashion" [ref=e30] [cursor=pointer]
+      - button "Home" [ref=e31] [cursor=pointer]
+      - button "Vehicles" [ref=e32] [cursor=pointer]
+      - button "Hobbies" [ref=e33] [cursor=pointer]
+      - button "Other" [ref=e34] [cursor=pointer]
+    - heading "Fresh listings" [level=2] [ref=e36]
+    - list "Loading listings" [ref=e37]:
+      - listitem
+      - listitem
+      - listitem
+      - listitem
+  - contentinfo [ref=e38]:
+    - generic [ref=e39]:
+      - region "Try it" [ref=e40]:
+        - link "Browse listings" [ref=e42] [cursor=pointer]:
+          - /url: /
+        - link "Sell something" [ref=e43] [cursor=pointer]:
+          - /url: /sell
+      - region "Built on" [ref=e44]:
+        - generic [ref=e46]: NEAR testnet
+        - generic [ref=e47]: OutLayer sealed machine
+      - region "The team" [ref=e48]:
+        - link "Read the code" [ref=e50] [cursor=pointer]:
+          - /url: https://github.com/ketutezraugm/blind-deal
+        - paragraph [ref=e51]: Testnet only. No real money moves, and nobody on the team ever sees your number.
