@@ -1,0 +1,209 @@
+/* The dark footer from Abel's landing page. Tokens only; nothing here animates. */
+
+.site-footer {
+  margin: var(--space-32) var(--gutter-phone) 0;
+  background: var(--ink);
+  color: var(--on-ink);
+  border-radius: var(--radius-hero);
+  overflow: hidden;
+}
+
+/* Phones keep only the note: the tab bar already has Browse and Sell, and the rest is for judges on a laptop. */
+.footer-cols {
+  display: none;
+}
+
+.footer-note {
+  padding: var(--space-24) var(--space-24) 0;
+  font-size: var(--text-13);
+  opacity: 0.8;
+}
+
+.footer-col {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.footer-pill {
+  height: 22px;
+  padding: 0 10px;
+  margin-bottom: var(--space-8);
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  color: var(--ink);
+  font-size: 11px;
+  font-weight: var(--weight-text-bold);
+}
+
+.footer-pill.sun {
+  background: var(--sun-tint);
+}
+
+.footer-pill.sky {
+  background: var(--sky-tint);
+}
+
+.footer-pill.pink {
+  background: var(--pink-tint);
+}
+
+.footer-col a,
+.footer-line {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  color: var(--on-ink);
+  font-size: var(--text-20);
+  font-weight: 800;
+  letter-spacing: var(--tracking-display);
+  line-height: 1.2;
+  text-decoration: none;
+}
+
+.footer-col a:hover {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.footer-small {
+  margin-top: var(--space-8);
+  font-size: var(--text-13);
+  opacity: 0.8;
+}
+
+.footer-art {
+  /* The stickers land one by one, left to right, on the finished word. */
+  --pop-base: calc(var(--dur-reveal) + 40ms);
+  --pop-stagger: 180ms;
+  position: relative;
+  margin-top: var(--space-8);
+  padding: clamp(36px, 7vw, 96px) var(--space-16) 0;
+}
+
+/* Cropped a sliver at the bottom edge, as in the landing page: the panel's overflow hides the foot of the letters. */
+.footer-write {
+  position: relative;
+  margin-bottom: -3.5%;
+}
+
+.footer-word {
+  display: block;
+  aspect-ratio: 281 / 78;
+  background: var(--ground);
+  -webkit-mask: var(--word) center / 100% 100% no-repeat;
+  mask: var(--word) center / 100% 100% no-repeat;
+}
+
+/* A curtain in the panel's colour over the word: sliding it right writes the word left to right, using only `translate`.
+   It starts left of the word so its soft edge is out of sight, and is wider than the word so it clears it. */
+.footer-curtain {
+  position: absolute;
+  inset: -20% -2% -20% -16%;
+  background: linear-gradient(to right, transparent, var(--ink) 12%);
+  pointer-events: none;
+}
+
+.footer-art .sticker {
+  position: absolute;
+  z-index: 1; /* above the masked wordmark, which paints later in the page */
+  width: clamp(34px, 6.5vw, 88px);
+  height: auto;
+  /* followCursor sets `translate` on each sticker; every new target retargets this transition, so the lean eases. */
+  transition: translate var(--dur-quick) var(--ease-out);
+}
+
+.footer-art .s1 {
+  --pop-index: 0;
+  left: 4%;
+  top: 28%;
+  transform: rotate(-8deg);
+}
+
+.footer-art .s2 {
+  --pop-index: 1;
+  left: 35%;
+  top: 4%;
+  transform: rotate(6deg);
+}
+
+.footer-art .s3 {
+  --pop-index: 2;
+  left: 57%;
+  top: 30%;
+  transform: rotate(-6deg);
+}
+
+.footer-art .s4 {
+  --pop-index: 3;
+  right: 4%;
+  top: 14%;
+  transform: rotate(8deg);
+}
+
+@media (min-width: 900px) {
+  .site-footer {
+    margin: var(--space-48) var(--desk-gutter);
+  }
+
+  .footer-cols {
+    padding: var(--space-48) var(--space-48) 0;
+    display: flex;
+    flex-direction: row;
+    gap: var(--space-64);
+  }
+
+  .footer-note {
+    display: none;
+  }
+
+  .footer-col {
+    flex: 1;
+  }
+}
+
+/* Reduced motion: the stickers stay where they land. */
+@media (prefers-reduced-motion: reduce) {
+  .footer-art .sticker {
+    transition: none;
+  }
+}
+
+/* The text fades up in a diagonal wave as the footer comes into view: each line waits for its column and its row, so
+   "Try it" leads and the small print under "The team" ends, just as the wordmark finishes writing. Screen readers still
+   read it while it waits, because only opacity and position change. */
+.footer-col:nth-child(2) {
+  --col: 1;
+}
+
+.footer-col:nth-child(3) {
+  --col: 2;
+}
+
+.footer-col > :nth-child(2) {
+  --row: 1;
+}
+
+.footer-col > :nth-child(3) {
+  --row: 2;
+}
+
+.site-footer.write-wait :is(.footer-col > *, .footer-note) {
+  opacity: 0;
+  translate: 0 8px;
+}
+
+.site-footer.write-go :is(.footer-col > *, .footer-note) {
+  transition:
+    opacity var(--dur-deliberate) var(--ease-out),
+    translate var(--dur-deliberate) var(--ease-out);
+  transition-delay: calc((var(--col, 0) + var(--row, 0)) * 60ms);
+}
+
+/* Reduced motion keeps the fade, which helps reading, and drops the movement. */
+@media (prefers-reduced-motion: reduce) {
+  .site-footer.write-wait :is(.footer-col > *, .footer-note) {
+    translate: none;
+  }
+}

@@ -2,6 +2,7 @@ import { useState, type FormEvent, type ReactNode } from "react";
 import { currentAccount } from "../accounts";
 import lockup from "../design/assets/logo/shake-lockup.svg";
 import { Link, navigate } from "../routes";
+import { Footer } from "./Footer";
 import { OfflineBanner } from "./States";
 
 type Tab = { to: string; label: string; icon: ReactNode };
@@ -56,6 +57,8 @@ const SHOP = (handle: string): Tab => ({
 export function Shell({ path, children }: { path: string; children: ReactNode }) {
   const account = currentAccount();
   const handle = account?.split(".")[0];
+  // The footer closes the pages people browse; the offer, chat and sign-in flows stay free of it.
+  const showFooter = path === "/" || path.startsWith("/@") || path.startsWith("/l/");
   const tabs = [BROWSE, SELL, INBOX, ...(handle ? [SHOP(handle)] : [])];
   const [draft, setDraft] = useState(() => new URLSearchParams(location.search).get("q") ?? "");
 
@@ -101,6 +104,7 @@ export function Shell({ path, children }: { path: string; children: ReactNode })
         {chip}
       </header>
       {children}
+      {showFooter && <Footer />}
       <div className="tabs">
         <nav aria-label="Main">
           {tabs.map((tab) => (
