@@ -281,6 +281,7 @@ function OfferForm({ round, rounds, retry, askingPrice, floor, busy, onLock }: F
   const [confirming, setConfirming] = useState(false);
   const valid = limit !== "" && BigInt(limit) <= BigInt(askingPrice) && (floor === null || BigInt(limit) >= BigInt(floor));
   const tooHigh = limit !== "" && BigInt(limit) > BigInt(askingPrice);
+  const tooLow = limit !== "" && floor !== null && BigInt(limit) < BigInt(floor);
 
   function review(event: FormEvent) {
     event.preventDefault();
@@ -335,6 +336,11 @@ function OfferForm({ round, rounds, retry, askingPrice, floor, busy, onLock }: F
       {tooHigh && (
         <p className="error" role="alert">
           That's above the asking price. The most you can offer is {formatRp(askingPrice)}.
+        </p>
+      )}
+      {tooLow && floor !== null && (
+        <p className="error" role="alert">
+          You can only raise your offer. Your last offer was {formatRp(floor)}.
         </p>
       )}
       <button className="primary big" disabled={!valid}>
