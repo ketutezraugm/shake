@@ -53,7 +53,7 @@ Mirrors docs/plans/IMPLEMENTATION.md (marketplace plan, Revision B: slots and tw
 - [x] **MK-56** Seller sales view (DP, PR): a "Your sales" section on the seller's own shop, one row per listing with its state (open with free slots and offers in progress, reserved waiting for payment, paid and waiting for Received, sold and paid out, closed); live ones first, a link to History for receipts; unit tests on every state; clicked through on the mock chain
 
 ## Should (after G3)
-- [ ] **S-02** AI negotiator
+- [ ] **S-02** AI negotiator: the buyer's "Say it in words" is built (DP, PR) and reads the sentence in the browser, not with an AI; an AI reading would send the buyer's limit to the relayer, so that part waits on a decision (see DECISIONS)
 - [ ] **S-01** Verified panel: the buyer's proof panel is built (DP, PR): it recomputes each of the buyer's commitments in the browser and compares them with the chain, and shows the pinned WASM hash and the contract; the "fresh nonce per open" check against the sealed machine still needs CT
 - [ ] **S-12** Link a Google login to a wallet
 - [ ] **S-11** Ratings, saved items, email notifications

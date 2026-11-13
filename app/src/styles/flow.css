@@ -512,3 +512,27 @@
 .sales .offer-row + .offer-row {
   margin-top: 0;
 }
+
+/* "Say it in words": the sentence, then the number it was read as, for the buyer to check before using it. */
+.words-box,
+.words-reading {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+.words-box textarea {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-field);
+  background: var(--surface);
+  font: inherit;
+  resize: vertical;
+}
+
+.words-reading {
+  padding: 14px 16px;
+  background: var(--sun-tint);
+  border-radius: var(--radius-field);
+}
