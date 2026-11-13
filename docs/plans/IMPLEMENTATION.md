@@ -208,6 +208,66 @@ D1-01 scaffold, D1-04/05 contract stub and TS types, D1-07 tokens and identity d
 - **Pass:** MK-24 green on testnet. Finish MK-25, MK-40, S-06.
 - **Fail:** apply the Must cut list from the top until MK-40 can pass by 23:00 UTC.
 
+## Buyer and seller roles (decided 2026-11-13; Must unless marked Should)
+
+Spec and reasons: `docs/superpowers/specs/2026-11-13-buyer-side-design.md`. No relayer, contract or schema change. Order: MK-53 and MK-54 can start now; the screens wait on MK-50.
+
+### MK-50 Frames: role choice, buyer screens, refund and reopen
+- **Owner:** DP. **Deps:** none.
+- **Frames (direction G, phone and desktop):**
+  - the role choice after the wallet sign-in
+  - the buyer's username step: "Pick a username", no shop link card
+  - the buyer tabs: Browse · Saved · My offers · Inbox
+  - My offers: one row per deal, with title, state and next action
+  - Saved: the list, and the heart on cards and the listing page
+  - "Get my money back" on the paid offer screen
+  - "Reopen listing" on the seller's own listing
+  - the seller's Sales list
+- **Done:** frames linked in #118, so MK-51 to MK-56 can be built without inventing visuals.
+
+### MK-51 Role choice at sign-up and role-based tabs
+- **Owner:** FE. **Deps:** MK-50.
+- **Files:** `app/src/screens/Handle.tsx`, `app/src/screens/Shell.tsx`, `app/src/screens/AccountMenu.tsx`, `app/src/accounts.ts`.
+- **Behaviour:** after the wallet sign-in and before the handle step, the account picks "I want to sell" or "I just want to buy".
+  - The choice is kept in this browser (`blind-deal:role`); the profile and relayer do not change.
+  - Seller: as today.
+  - Buyer: "Pick a username" (same handle rules), lands on `/`, tabs Browse · Saved · My offers · Inbox.
+  - The account menu switches role at any time.
+- **Done:** a new wallet account that picks "buy" never sees "Name your shop" and lands on `/` with the buyer tabs, and switching in the menu brings back Sell and My shop. Unit test on the tab list per role.
+
+### MK-52 My offers
+- **Owner:** FE. **Deps:** MK-50, MK-51.
+- **Files:** `app/src/screens/MyOffers.tsx` (route `/offers`), `app/src/myOffers.ts`.
+- **Data:** `GET /me/negotiations` (listing, title, seller, deal id), plus `get_deal` per deal turned into a state by `offerView` (`app/src/offer.ts`), so the labels match the offer screen. Each row opens `/offer/:dealId`.
+- **Done:** the buyer from the MK-06 run sees one row per deal with its state and next action: raise in round 2, pay, mark received, get my money back, or no deal. Unit test on the row for each `OfferView` kind.
+
+### MK-53 Get my money back after the delivery deadline
+- **Owner:** CT. **Deps:** none (existing primary button; copy from MK-50 when it lands).
+- **Files:** `app/src/offer.ts`, `app/src/screens/Offer.tsx`, `app/src/offer.test.ts`.
+- **Behaviour:** a Funded deal past `deadline_ns` gets its own view. The screen shows "Get my money back", which calls `refund` (anyone may call it; the contract pays the buyer) and then syncs the listing, so it reopens. Today the screen promises this, but nothing calls `refund`.
+- **Tests first:** Funded before the deadline stays "funded", after it becomes "refundable", and Refunded shows "refunded".
+- **Done:** tests pass. On a test contract deployed with `DELIVERY_WINDOW_SECS=30` (`scripts/deploy-contract.mjs`), a paid buyer taps the button after the deadline, the deal is Refunded, and the price is back in the buyer's account.
+
+### MK-54 Reopen a listing whose buyer never paid
+- **Owner:** CT. **Deps:** none.
+- **Files:** `app/src/ownListing.ts`, `app/src/screens/OwnListing.tsx`, tests next to them.
+- **Behaviour:** when the reserving deal is Matched and the 24 h funding window has passed, the seller's own listing shows "Reopen listing". It calls `expire`, then `POST /listings/:id/sync`; the relayer already reopens a listing whose reserving deal expired.
+- **Tests first:** the button is hidden before 24 h and shown after. After `expire` and sync, the listing is open.
+- **Done:** tests pass, and a click-through on the mock chain (its clock can pass 24 h) ends with the listing open.
+
+### MK-55 Saved items, this device only (Should)
+- **Owner:** FE. **Deps:** MK-50.
+- **Files:** `app/src/saved.ts`, `app/src/screens/Saved.tsx` (route `/saved`), the heart on `ListingCard.tsx` and `Listing.tsx`.
+- **Behaviour:** a list of listing ids in localStorage. Sold or closed items show as such. No relayer or database change; synced saved items stay in S-11.
+- **Done:** save from a card, see it on `/saved`, and still see it after a reload. Unit test on add and remove.
+
+### MK-56 Seller sales view (Should)
+- **Owner:** FE. **Deps:** MK-50.
+- **Files:** a Sales section on the seller's own shop, or `app/src/screens/Sales.tsx`.
+- **Data:** `GET /me/listings`, plus the reserving deal's state for reserved listings.
+- **Behaviour:** every listing with its state: open (free slots), offers in progress, reserved (waiting for payment, or paid and waiting for Received), sold and paid out, or closed.
+- **Done:** the seller from the MK-06 run sees the sold listing as "Sold, paid out" and an open one with its free slots.
+
 ---
 
 # Should (only after G3 passes, in this order)

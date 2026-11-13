@@ -42,6 +42,15 @@ Mirrors docs/plans/IMPLEMENTATION.md (marketplace plan, Revision B: slots and tw
 - [ ] **S-06** Hosted deploy (BI)
 - [ ] **G3** Gate 20:00 UTC: MK-24 green on testnet (lead)
 
+## Buyer and seller roles (decided 2026-11-13; spec `docs/superpowers/specs/2026-11-13-buyer-side-design.md`)
+- [ ] **MK-50** Frames: role choice, buyer screens, refund and reopen (DP)
+- [ ] **MK-51** Role choice at sign-up, role-based tabs (FE)
+- [ ] **MK-52** My offers (FE)
+- [ ] **MK-53** Get my money back after the delivery deadline (CT)
+- [ ] **MK-54** Reopen a listing whose buyer never paid (CT)
+- [ ] **MK-55** Saved items, this device only (FE, Should)
+- [ ] **MK-56** Seller sales view (FE, Should)
+
 ## Should (after G3)
 - [ ] **S-02** AI negotiator
 - [ ] **S-01** Verified panel
