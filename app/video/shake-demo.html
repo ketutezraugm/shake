@@ -1,0 +1,1687 @@
+<!doctype html>
+<!-- The Shake demo video (P-02) as one seekable motion graphic: the app's tokens, type and stickers, the real screens
+     redrawn. Open /video/shake-demo.html on the dev server to watch (?t=42 starts at 42 s, space restarts).
+     To render: open it with ?render=1 in a 1920 × 1080 browser window, wait for window.__ready, then for each frame i
+     call window.__seek(i / 30) and screenshot; encode the 2400 frames at 30 fps. -->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Shake demo video</title>
+    <link rel="stylesheet" href="/src/design/tokens.css" />
+    <style>
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+        overflow: hidden;
+        background: #111;
+      }
+
+      #stage {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 1920px;
+        height: 1080px;
+        transform-origin: 0 0;
+        overflow: hidden;
+        background: var(--ground);
+        color: var(--ink);
+        font-family: var(--font-text);
+        -webkit-font-smoothing: antialiased;
+      }
+
+      .scene {
+        position: absolute;
+        inset: 0;
+        opacity: 0;
+      }
+
+      .o0 {
+        opacity: 0;
+      }
+
+      .sticker {
+        position: absolute;
+        filter: var(--shadow-sticker);
+        opacity: 0;
+      }
+
+      .center {
+        position: absolute;
+        left: 0;
+        right: 0;
+        text-align: center;
+      }
+
+      .display {
+        font-weight: 800;
+        letter-spacing: -0.04em;
+        line-height: 1;
+      }
+
+      /* Scene 1: the hook */
+      #hook1 {
+        top: 300px;
+        font-size: 128px;
+      }
+
+      #hook1 span {
+        display: inline-block;
+        opacity: 0;
+      }
+
+      #hook2 {
+        top: 470px;
+        font-size: 280px;
+        opacity: 0;
+      }
+
+      #hook3 {
+        top: 300px;
+        font-size: 92px;
+        line-height: 1.12;
+      }
+
+      #hook3 div,
+      #hook4 {
+        opacity: 0;
+      }
+
+      #hook4 {
+        top: 640px;
+        font-size: 64px;
+      }
+
+      .nodeal {
+        display: inline-block;
+        margin-left: 24px;
+        padding: 6px 30px 12px;
+        border-radius: 999px;
+        background: var(--ink);
+        color: var(--on-ink);
+        opacity: 0;
+      }
+
+      /* Ink panels: the brand moment and the end card */
+      .ink-panel {
+        position: absolute;
+        inset: 0;
+        background: var(--ink);
+        color: var(--on-ink);
+        translate: 0 100%;
+      }
+
+      .word-wrap {
+        position: absolute;
+        left: 50%;
+        width: 1080px;
+        height: 300px;
+        margin-left: -540px;
+        overflow: hidden;
+      }
+
+      .word {
+        width: 100%;
+        height: 100%;
+        background: var(--ground);
+        -webkit-mask: url("/src/design/assets/logo/shake-wordmark.svg") center /
+          contain no-repeat;
+        mask: url("/src/design/assets/logo/shake-wordmark.svg") center / contain
+          no-repeat;
+      }
+
+      .curtain {
+        position: absolute;
+        inset: 0;
+        background: var(--ink);
+      }
+
+      .tagline {
+        font-size: 60px;
+        font-weight: 800;
+        letter-spacing: -0.03em;
+        opacity: 0;
+      }
+
+      /* Product scenes: copy on the left, the phone on the right */
+      .copy {
+        position: absolute;
+        left: 150px;
+        top: 250px;
+        width: 860px;
+      }
+
+      .step {
+        display: inline-block;
+        padding: 10px 22px;
+        border-radius: 999px;
+        border: 2px solid var(--ink);
+        font-size: 24px;
+        font-weight: 700;
+        opacity: 0;
+      }
+
+      .heads {
+        position: relative;
+        height: 230px;
+        margin-top: 36px;
+      }
+
+      .heads h2 {
+        position: absolute;
+        left: 0;
+        top: 0;
+        margin: 0;
+        font-size: 104px;
+        font-weight: 800;
+        letter-spacing: -0.04em;
+        line-height: 1.02;
+        opacity: 0;
+      }
+
+      .caps {
+        position: relative;
+        margin-top: 24px;
+      }
+
+      .caps p {
+        position: absolute;
+        left: 0;
+        top: 0;
+        margin: 0;
+        max-width: 760px;
+        font-size: 34px;
+        line-height: 1.4;
+        color: var(--ink-muted);
+        opacity: 0;
+      }
+
+      .phone {
+        position: absolute;
+        top: 40px;
+        left: 1190px;
+        width: 500px;
+        height: 1000px;
+        box-sizing: border-box;
+        padding: 13px;
+        border-radius: 74px;
+        background: var(--ink);
+        opacity: 0;
+      }
+
+      .glass {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        border-radius: 61px;
+        background: var(--ground);
+      }
+
+      .appbar {
+        position: absolute;
+        top: 26px;
+        left: 26px;
+        right: 26px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        z-index: 3;
+        font-size: 22px;
+        font-weight: 800;
+        letter-spacing: -0.03em;
+      }
+
+      .avatar {
+        width: 34px;
+        height: 34px;
+        border-radius: 999px;
+        background: var(--sun);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+      }
+
+      .scr {
+        position: absolute;
+        inset: 0;
+        box-sizing: border-box;
+        padding: 82px 22px 22px;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        background: var(--ground);
+        font-size: 20px;
+      }
+
+      .scr.later {
+        translate: 100% 0;
+      }
+
+      .scr h3 {
+        margin: 0;
+        font-size: 34px;
+        font-weight: 800;
+        letter-spacing: -0.03em;
+      }
+
+      .card {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        padding: 18px;
+        border: 1px solid var(--line);
+        border-radius: 22px;
+        background: var(--surface);
+      }
+
+      .label {
+        font-size: 17px;
+        font-weight: 600;
+        color: var(--ink-muted);
+      }
+
+      .field {
+        position: relative;
+        min-height: 66px;
+        box-sizing: border-box;
+        padding: 0 18px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        border: 1.5px solid var(--line);
+        border-radius: 12px;
+        background: var(--surface);
+        font-size: 28px;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+      }
+
+      .field small {
+        font-size: 18px;
+        color: var(--ink-muted);
+      }
+
+      .field .ring {
+        position: absolute;
+        inset: -1.5px;
+        border: 2px solid var(--ink);
+        border-radius: 12px;
+        opacity: 0;
+      }
+
+      .typed .ch {
+        opacity: 0;
+      }
+
+      .btn {
+        position: relative;
+        min-height: 64px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 999px;
+        background: var(--ink);
+        color: var(--on-ink);
+        font-size: 21px;
+        font-weight: 700;
+      }
+
+      .btn.ghost {
+        background: transparent;
+        color: var(--ink);
+        border: 1.5px solid var(--ink);
+      }
+
+      .amount {
+        font-size: 52px;
+        font-weight: 800;
+        letter-spacing: -0.035em;
+      }
+
+      .amount small {
+        font-size: 22px;
+        margin-right: 6px;
+      }
+
+      .deal {
+        color: var(--deal);
+      }
+
+      .note {
+        display: flex;
+        gap: 8px;
+        align-items: flex-start;
+        font-size: 17px;
+        line-height: 1.4;
+        color: var(--ink-muted);
+      }
+
+      .note img {
+        width: 18px;
+        height: 18px;
+        margin-top: 1px;
+      }
+
+      .muted {
+        color: var(--ink-muted);
+      }
+
+      .photo {
+        border-radius: 18px;
+        background: var(--sky-tint);
+      }
+
+      .chips {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+
+      .chip {
+        padding: 6px 14px;
+        border-radius: 999px;
+        border: 1px solid var(--line);
+        background: var(--surface);
+        font-size: 16px;
+        font-weight: 600;
+      }
+
+      .chip.on {
+        background: var(--ink);
+        border-color: var(--ink);
+        color: var(--on-ink);
+      }
+
+      .badge {
+        align-self: flex-start;
+        padding: 4px 12px;
+        border-radius: 999px;
+        background: var(--sun-tint);
+        font-size: 16px;
+        font-weight: 700;
+      }
+
+      /* Chat */
+      .bubble {
+        max-width: 78%;
+        padding: 14px 18px;
+        border-radius: 22px;
+        font-size: 19px;
+        line-height: 1.4;
+        opacity: 0;
+      }
+
+      .bubble.me {
+        align-self: flex-end;
+        background: var(--ink);
+        color: var(--on-ink);
+        border-bottom-right-radius: 6px;
+      }
+
+      .bubble.them {
+        align-self: flex-start;
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-bottom-left-radius: 6px;
+      }
+
+      .bubble.ai::before {
+        content: "Assistant";
+        display: block;
+        margin-bottom: 4px;
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--ink-muted);
+      }
+
+      .dots {
+        display: flex;
+        gap: 6px;
+        padding: 18px 20px;
+      }
+
+      .dots i {
+        width: 9px;
+        height: 9px;
+        border-radius: 999px;
+        background: var(--ink-muted);
+      }
+
+      /* The assistant's typing dots sit where its answer will appear. */
+      .slot {
+        position: relative;
+        align-self: flex-start;
+        width: 82%;
+      }
+
+      .slot .bubble {
+        max-width: 100%;
+        box-sizing: border-box;
+      }
+
+      .slot .dots {
+        position: absolute;
+        left: 0;
+        top: 0;
+      }
+
+      /* The wallet sheet */
+      .dim {
+        position: absolute;
+        inset: 0;
+        background: rgba(20, 20, 20, 0.45);
+        opacity: 0;
+        z-index: 4;
+      }
+
+      .sheet {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 5;
+        padding: 26px 24px 30px;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        border-radius: 34px 34px 0 0;
+        background: var(--surface);
+        translate: 0 110%;
+      }
+
+      .row {
+        display: flex;
+        justify-content: space-between;
+        font-size: 18px;
+        padding: 12px 0;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .row b {
+        font-weight: 700;
+      }
+
+      .pair-btn {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+
+      /* Escrow steps */
+      .steps {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 6px;
+        font-size: 17px;
+        font-weight: 600;
+        text-align: center;
+      }
+
+      .steps span {
+        position: relative;
+        padding: 10px 0;
+        border-radius: 999px;
+        background: var(--line);
+        color: var(--ink-muted);
+        overflow: hidden;
+      }
+
+      .steps .fill {
+        position: absolute;
+        inset: 0;
+        padding: 10px 0;
+        border-radius: 999px;
+        opacity: 0;
+      }
+
+      .fill.done {
+        background: var(--mint);
+        color: var(--mint-ink);
+      }
+
+      .fill.now {
+        background: var(--ink);
+        color: var(--on-ink);
+      }
+
+      .stamp {
+        position: absolute;
+        top: 150px;
+        right: 34px;
+        padding: 10px 30px 14px;
+        border-radius: 999px;
+        background: var(--ink);
+        color: var(--on-ink);
+        font-size: 44px;
+        font-weight: 800;
+        letter-spacing: -0.03em;
+        rotate: -8deg;
+        opacity: 0;
+        z-index: 2;
+      }
+
+      /* Cipher */
+      .cipher {
+        position: relative;
+        height: 60px;
+      }
+
+      .cipher div {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+        font-size: 26px;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        opacity: 0;
+      }
+
+      /* Scene 6: the sealed machine */
+      .pill {
+        position: absolute;
+        padding: 18px 28px;
+        border-radius: 999px;
+        background: var(--surface);
+        border: 1px solid var(--line);
+        font-size: 34px;
+        font-weight: 700;
+        white-space: nowrap;
+        opacity: 0;
+      }
+
+      .pill .mono {
+        font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+        margin-left: 12px;
+      }
+
+      .line {
+        position: absolute;
+        left: 410px;
+        top: 760px;
+        width: 1100px;
+        height: 10px;
+        border-radius: 999px;
+        background: var(--line);
+        opacity: 0;
+      }
+
+      .band {
+        position: absolute;
+        left: 275px;
+        top: -7px;
+        width: 275px;
+        height: 24px;
+        border-radius: 999px;
+        background: var(--mint);
+        transform-origin: left center;
+        scale: 0 1;
+      }
+
+      .mark {
+        position: absolute;
+        top: -30px;
+        width: 4px;
+        height: 70px;
+        margin-left: -2px;
+        border-radius: 2px;
+        background: var(--ink);
+        opacity: 0;
+      }
+
+      .mark-label {
+        position: absolute;
+        top: 52px;
+        padding: 10px 18px;
+        border-radius: 999px;
+        font-size: 22px;
+        font-weight: 700;
+        white-space: nowrap;
+        translate: -50% 0;
+      }
+
+      .ball {
+        position: absolute;
+        top: -14px;
+        left: 0;
+        width: 38px;
+        height: 38px;
+        margin-left: -19px;
+        border-radius: 999px;
+        background: var(--ink);
+        opacity: 0;
+      }
+
+      .landed {
+        position: absolute;
+        top: -120px;
+        left: 385px;
+        translate: -50% 0;
+        font-size: 56px;
+        font-weight: 800;
+        letter-spacing: -0.035em;
+        color: var(--deal);
+        white-space: nowrap;
+        opacity: 0;
+      }
+
+      /* Scene 7: both phones */
+      .pair {
+        position: absolute;
+        inset: 0;
+        scale: 0.82;
+        transform-origin: 50% 0;
+      }
+
+      .who {
+        position: absolute;
+        top: 30px;
+        font-size: 30px;
+        font-weight: 800;
+        opacity: 0;
+      }
+
+      .reveal {
+        align-items: center;
+        text-align: center;
+        justify-content: center;
+        gap: 14px;
+      }
+
+      .confetti {
+        position: absolute;
+        width: 14px;
+        height: 14px;
+        border-radius: 999px;
+        opacity: 0;
+      }
+
+      /* Scene 9: the recap row */
+      .recap {
+        position: absolute;
+        top: 420px;
+        left: 0;
+        right: 0;
+        display: flex;
+        justify-content: center;
+        gap: 70px;
+      }
+
+      .recap div {
+        position: relative;
+        font-size: 150px;
+        font-weight: 800;
+        letter-spacing: -0.045em;
+        opacity: 0;
+      }
+
+      .recap img {
+        position: absolute;
+        top: -150px;
+        left: 50%;
+        width: 150px;
+        margin-left: -75px;
+        filter: var(--shadow-sticker);
+        opacity: 0;
+      }
+
+      .end-line {
+        font-size: 30px;
+        font-weight: 600;
+        opacity: 0;
+      }
+
+      .end-small {
+        font-size: 22px;
+        color: #b9b5ac;
+        opacity: 0;
+      }
+
+      /* Second cut: the pieces timeline.js builds (word masks, phone rig, wipe, rail, ripple, rings, rolling digits). */
+      #hook1 .w,
+      #hook1 .wi {
+        opacity: 1;
+      }
+
+      .w {
+        display: inline-block;
+        overflow: hidden;
+        vertical-align: top;
+        padding: 0.1em 0.05em 0.2em;
+        margin: -0.1em -0.05em -0.2em;
+      }
+
+      .wi {
+        display: inline-block;
+        translate: 0 115%;
+        transform-origin: 0 100%;
+      }
+
+      .rig {
+        position: absolute;
+        inset: 0;
+      }
+
+      .ghost {
+        position: absolute;
+        left: 560px;
+        top: 10px;
+        font-size: 1000px;
+        font-weight: 800;
+        line-height: 1;
+        color: var(--line);
+        opacity: 0;
+      }
+
+      #grid {
+        position: absolute;
+        left: -100px;
+        top: -100px;
+        width: 2800px;
+        height: 1600px;
+        background-image: radial-gradient(
+          circle,
+          var(--line) 2.5px,
+          transparent 3px
+        );
+        background-size: 56px 56px;
+      }
+
+      #wipe {
+        position: absolute;
+        left: -25%;
+        top: -10%;
+        width: 150%;
+        height: 120%;
+        z-index: 20;
+        background: var(--ink);
+        transform: skewX(-10deg);
+        translate: -112% 0;
+      }
+
+      #rail {
+        position: absolute;
+        left: 150px;
+        top: 1004px;
+        z-index: 5;
+        display: flex;
+        gap: 38px;
+        font-size: 24px;
+        font-weight: 600;
+        color: var(--ink-muted);
+        opacity: 0;
+      }
+
+      #rail span {
+        position: relative;
+      }
+
+      #rail b {
+        position: absolute;
+        left: 0;
+        top: 0;
+        font-weight: 800;
+        color: var(--ink);
+        background: var(--ground);
+        white-space: nowrap;
+        opacity: 0;
+      }
+
+      #rail i {
+        position: absolute;
+        left: 0;
+        bottom: -10px;
+        width: 100px;
+        height: 4px;
+        border-radius: 2px;
+        background: var(--ink);
+        transform-origin: 0 50%;
+      }
+
+      .btn {
+        overflow: hidden;
+      }
+
+      .ripple {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: 120px;
+        height: 120px;
+        margin: -60px 0 0 -60px;
+        border-radius: 999px;
+        background: currentColor;
+        opacity: 0;
+      }
+
+      .pulse {
+        position: absolute;
+        left: 830px;
+        top: 270px;
+        width: 260px;
+        height: 260px;
+        box-sizing: border-box;
+        border: 3px solid var(--ink);
+        border-radius: 999px;
+        opacity: 0;
+      }
+
+      .col {
+        display: inline-block;
+        height: 1em;
+        line-height: 1;
+        overflow: hidden;
+        vertical-align: bottom;
+      }
+
+      .strip,
+      .strip span {
+        display: block;
+        height: 1em;
+        line-height: 1;
+      }
+
+      .strip {
+        height: auto;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="stage">
+      <!-- 1. Hook -->
+      <section class="scene" id="s1">
+        <div class="center display" id="hook1">
+          <span>Whoever</span> <span>names</span> <span>a number</span>
+          <span>first</span>
+        </div>
+        <div class="center display" id="hook2">loses.</div>
+        <img
+          class="sticker"
+          id="s1-tag"
+          src="/src/design/assets/stickers/price-tag.svg"
+          alt=""
+          style="left: 300px; top: 600px; width: 210px"
+          data-rot="-10"
+        />
+        <img
+          class="sticker"
+          id="s1-fingers"
+          src="/src/design/assets/stickers/four-fingers.svg"
+          alt=""
+          style="left: 1580px; top: 50px; width: 200px"
+          data-rot="12"
+        />
+        <div class="center display" id="hook3">
+          <div>She'd take Rp 5.000.000.</div>
+          <div>He'd pay Rp 5.500.000.</div>
+        </div>
+        <div class="center display" id="hook4">
+          Neither says it.<span class="nodeal">No deal.</span>
+        </div>
+      </section>
+
+      <!-- 2. Brand -->
+      <section class="scene" id="s2">
+        <div class="ink-panel" id="s2-panel">
+          <div class="word-wrap" style="top: 300px">
+            <div class="word"></div>
+            <div class="curtain" id="s2-curtain"></div>
+          </div>
+          <div class="center tagline" id="s2-tag" style="top: 660px">
+            Post your price. Keep your floor.
+          </div>
+          <img
+            class="sticker"
+            id="s2-a"
+            src="/src/design/assets/stickers/escrow-box.svg"
+            alt=""
+            style="left: 330px; top: 170px; width: 150px"
+            data-rot="-8"
+          />
+          <img
+            class="sticker"
+            id="s2-b"
+            src="/src/design/assets/stickers/sealed-machine.svg"
+            alt=""
+            style="left: 1450px; top: 190px; width: 150px"
+            data-rot="9"
+          />
+          <img
+            class="sticker"
+            id="s2-c"
+            src="/src/design/assets/stickers/price-pin.svg"
+            alt=""
+            style="left: 1500px; top: 560px; width: 130px"
+            data-rot="-6"
+          />
+          <img
+            class="sticker"
+            id="s2-d"
+            src="/src/design/assets/stickers/clipped-tags.svg"
+            alt=""
+            style="left: 290px; top: 560px; width: 150px"
+            data-rot="7"
+          />
+        </div>
+      </section>
+
+      <!-- 3. The seller lists and seals a floor -->
+      <section class="scene" id="s3">
+        <div class="copy">
+          <span class="step" id="s3-step">1 · List it</span>
+          <div class="heads">
+            <h2 id="s3-h1">Post your price.</h2>
+            <h2 id="s3-h2">Keep your floor.</h2>
+            <h2 id="s3-h3">Share one link.</h2>
+          </div>
+          <div class="caps">
+            <p id="s3-c1">
+              Photos, a title, and an asking price that everyone sees.
+            </p>
+            <p id="s3-c2">
+              The lowest price you'd take is sealed on your phone. Nobody sees
+              it, not even us.
+            </p>
+            <p id="s3-c3">
+              Put /@nadia in your bio. Every item you sell lives behind it.
+            </p>
+          </div>
+        </div>
+        <div class="phone" id="s3-phone" style="transform-origin: 50% 64%">
+          <div class="glass">
+            <div class="appbar">
+              <span>shake</span><span class="avatar">N</span>
+            </div>
+            <div class="scr" id="s3-form">
+              <h3>Add product</h3>
+              <div style="display: flex; gap: 10px">
+                <div
+                  class="photo o0"
+                  id="s3-p1"
+                  style="width: 140px; height: 120px"
+                ></div>
+                <div
+                  class="photo o0"
+                  id="s3-p2"
+                  style="
+                    width: 140px;
+                    height: 120px;
+                    background: var(--sun-tint);
+                  "
+                ></div>
+              </div>
+              <span class="label">What are you selling?</span>
+              <div class="field" id="s3-f1">
+                <span class="typed" id="s3-t1"></span
+                ><i class="ring" id="s3-r1"></i>
+              </div>
+              <span class="label">Asking price (Rp)</span>
+              <div class="field">
+                <small>Rp</small><span class="typed" id="s3-t2"></span
+                ><i class="ring" id="s3-r2"></i>
+              </div>
+              <span class="label">Lowest price you'd take (Rp)</span>
+              <div class="field" id="s3-f3">
+                <small>Rp</small>
+                <span class="typed" id="s3-t3"></span>
+                <span
+                  id="s3-dots"
+                  class="o0"
+                  style="position: absolute; left: 52px; letter-spacing: 0.12em"
+                  >● ● ● ● ●</span
+                >
+                <img
+                  id="s3-lock"
+                  class="o0"
+                  src="/src/design/assets/icons/lock.svg"
+                  alt=""
+                  style="position: absolute; right: 16px; width: 24px"
+                />
+                <i class="ring" id="s3-r3"></i>
+              </div>
+              <span class="note o0" id="s3-sealnote"
+                ><img src="/src/design/assets/icons/lock.svg" alt="" />Sealed on
+                this phone. Only the sealed code compares it.</span
+              >
+              <div class="btn" id="s3-btn" style="margin-top: auto">
+                Seal and publish
+              </div>
+              <img
+                class="sticker"
+                id="s3-cloth"
+                src="/src/design/assets/stickers/hand-under-cloth.svg"
+                alt=""
+                style="right: 46px; bottom: 120px; width: 140px"
+                data-rot="10"
+              />
+            </div>
+            <div class="scr later" id="s3-listing">
+              <div class="photo" style="height: 300px"></div>
+              <h3>Fujifilm X-T20 camera</h3>
+              <span class="label">Asking price</span>
+              <span class="amount"><small>Rp</small>6.000.000</span>
+              <div class="chips">
+                <span class="chip">Electronics</span
+                ><span class="chip">Up to 2 rounds</span>
+              </div>
+              <span class="badge">Blind offer</span>
+              <span class="note"
+                ><img src="/src/design/assets/icons/lock.svg" alt="" />Your
+                lowest price is sealed. Nobody sees it, not even us.</span
+              >
+            </div>
+          </div>
+        </div>
+        <div
+          class="card o0"
+          id="s3-bio"
+          style="
+            position: absolute;
+            left: 770px;
+            top: 640px;
+            width: 380px;
+            flex-direction: row;
+            align-items: center;
+            gap: 16px;
+            padding: 20px 24px;
+          "
+        >
+          <span
+            class="avatar"
+            style="width: 64px; height: 64px; font-size: 28px; flex: none"
+            >N</span
+          >
+          <div style="display: flex; flex-direction: column; gap: 4px">
+            <b style="font-size: 22px">nadia</b>
+            <span class="muted" style="font-size: 17px"
+              >selling my old stuff</span
+            >
+            <b style="font-size: 20px; text-decoration: underline">/@nadia</b>
+          </div>
+        </div>
+        <img
+          class="sticker"
+          id="s3-pin"
+          src="/src/design/assets/stickers/price-pin.svg"
+          alt=""
+          style="left: 1090px; top: 590px; width: 110px"
+          data-rot="12"
+        />
+      </section>
+
+      <!-- 4. A buyer asks the assistant -->
+      <section class="scene" id="s4">
+        <div class="copy">
+          <span class="step" id="s4-step">2 · Ask</span>
+          <div class="heads" style="height: 230px">
+            <h2 id="s4-h1">Ask anything.</h2>
+            <h2 id="s4-h2" style="top: 106px">Except the price.</h2>
+          </div>
+          <div class="caps">
+            <p id="s4-c1">
+              An AI assistant on NEAR AI Cloud answers from the listing. It
+              never knows anyone's price.
+            </p>
+          </div>
+        </div>
+        <div class="phone" id="s4-phone">
+          <div class="glass">
+            <div class="appbar">
+              <span>shake</span
+              ><span class="avatar" style="background: var(--sky)">R</span>
+            </div>
+            <div class="scr">
+              <div
+                class="card"
+                style="
+                  flex-direction: row;
+                  align-items: center;
+                  gap: 14px;
+                  padding: 12px;
+                "
+              >
+                <div
+                  class="photo"
+                  style="
+                    width: 64px;
+                    height: 64px;
+                    border-radius: 12px;
+                    flex: none;
+                  "
+                ></div>
+                <div style="display: flex; flex-direction: column">
+                  <b>Fujifilm X-T20 camera</b
+                  ><span class="muted" style="font-size: 15px"
+                    >Asking Rp 6.000.000</span
+                  >
+                </div>
+              </div>
+              <span class="label">Ask about this item</span>
+              <div class="bubble me" id="s4-q1">Is the charger included?</div>
+              <div class="slot">
+                <div class="bubble them dots" id="s4-d1">
+                  <i></i><i></i><i></i>
+                </div>
+                <div class="bubble them ai" id="s4-a1">
+                  Yes. The original charger and two batteries come with it.
+                </div>
+              </div>
+              <div class="bubble me" id="s4-q2">What's the lowest price?</div>
+              <div class="slot">
+                <div class="bubble them dots" id="s4-d2">
+                  <i></i><i></i><i></i>
+                </div>
+                <div class="bubble them ai" id="s4-a2">
+                  I can't share prices. Make a blind offer: the seller never
+                  sees your number.
+                </div>
+              </div>
+              <div class="btn o0" id="s4-btn" style="margin-top: auto">
+                Make a blind offer
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. The blind offer -->
+      <section class="scene" id="s5">
+        <div class="copy">
+          <span class="step" id="s5-step">3 · Offer blind</span>
+          <div class="heads">
+            <h2 id="s5-h1">The most you'd pay.</h2>
+            <h2 id="s5-h2">Signed. Sealed.</h2>
+          </div>
+          <div class="caps">
+            <p id="s5-c1">
+              Up to the asking price. Only you will ever see your number.
+            </p>
+            <p id="s5-c2">
+              You sign with your own NEAR wallet. The number is encrypted on
+              your phone before it leaves.
+            </p>
+          </div>
+        </div>
+        <div class="phone" id="s5-phone" style="transform-origin: 50% 34%">
+          <div class="glass">
+            <div class="appbar">
+              <span>shake</span
+              ><span class="avatar" style="background: var(--sky)">R</span>
+            </div>
+            <div class="scr" id="s5-a">
+              <span class="label">Round 1 of 2</span>
+              <div class="chips">
+                <span class="chip on">Type a number</span
+                ><span class="chip">Say it in words</span>
+              </div>
+              <h3 style="font-size: 24px">The most you'd pay</h3>
+              <div class="field">
+                <small>Rp</small><span class="typed" id="s5-t1"></span
+                ><i class="ring" id="s5-r1"></i>
+              </div>
+              <span class="note"
+                >Only you will ever see this number. Up to Rp 6.000.000, the
+                asking price.</span
+              >
+              <div class="btn" id="s5-btn1" style="margin-top: auto">
+                Review my offer
+              </div>
+            </div>
+            <div class="scr later" id="s5-b">
+              <span class="label">Round 1 of 2</span>
+              <h3>Lock this offer?</h3>
+              <span class="amount"><small>Rp</small>5.500.000</span>
+              <span class="note"
+                >You can't change it this round. If there's a deal, you pay this
+                or less.</span
+              >
+              <div class="btn" id="s5-btn2" style="margin-top: auto">
+                Lock Rp 5.500.000
+              </div>
+              <span style="text-align: center; font-weight: 700"
+                >Change the amount</span
+              >
+            </div>
+            <div class="scr later reveal" id="s5-c">
+              <div
+                class="card"
+                style="
+                  width: 100%;
+                  box-sizing: border-box;
+                  align-items: center;
+                  padding: 28px 18px;
+                "
+              >
+                <span class="label">Your offer</span>
+                <div class="cipher" style="width: 100%">
+                  <div
+                    id="s5-plain"
+                    style="
+                      opacity: 1;
+                      font-family: var(--font-text);
+                      font-size: 40px;
+                      font-weight: 800;
+                    "
+                  >
+                    Rp 5.500.000
+                  </div>
+                  <div class="cx">9f3a e1c0 77b2</div>
+                  <div class="cx">04de 8a19 c3f5</div>
+                  <div class="cx">b7e2 5d01 9a6c</div>
+                  <div class="cx">31fc a0e9 42d7</div>
+                  <div class="cx">e8a4 16bd 0f73</div>
+                  <div class="cx">6c92 fb38 d150</div>
+                  <div class="cx" id="s5-final">a7f3 09c1 e45b…</div>
+                </div>
+                <img
+                  id="s5-lock"
+                  class="o0"
+                  src="/src/design/assets/icons/lock.svg"
+                  alt=""
+                  style="width: 34px"
+                />
+                <span class="note o0" id="s5-enc"
+                  >Encrypted for the sealed machine</span
+                >
+              </div>
+            </div>
+            <div class="dim" id="s5-dim"></div>
+            <div class="sheet" id="s5-sheet">
+              <h3 style="margin: 0; font-size: 26px; font-weight: 800">
+                Approve transaction
+              </h3>
+              <span class="muted">Your NEAR wallet · testnet</span>
+              <div class="row">
+                <span>Action</span><b>Submit sealed offer</b>
+              </div>
+              <div class="row"><span>Offer</span><b>Encrypted</b></div>
+              <div class="pair-btn">
+                <div class="btn ghost">Cancel</div>
+                <div class="btn" id="s5-approve">Approve</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 6. The sealed machine -->
+      <section class="scene" id="s6">
+        <div
+          class="center display"
+          id="s6-h"
+          style="top: 80px; font-size: 80px; opacity: 0"
+        >
+          The sealed machine compares.
+        </div>
+        <div
+          class="center"
+          id="s6-sub"
+          style="
+            top: 180px;
+            font-size: 30px;
+            color: var(--ink-muted);
+            opacity: 0;
+          "
+        >
+          Public, hash-pinned code in a TEE on OutLayer
+        </div>
+        <img
+          class="sticker"
+          id="s6-machine"
+          src="/src/design/assets/stickers/sealed-machine.svg"
+          alt=""
+          style="left: 830px; top: 270px; width: 260px"
+          data-rot="0"
+        />
+        <div class="pill" id="s6-left" style="left: 260px; top: 360px">
+          Seller's floor<span class="mono">● ● ● ● ●</span>
+        </div>
+        <div class="pill" id="s6-right" style="left: 1170px; top: 360px">
+          Buyer's offer<span class="mono">a7f3 09c1…</span>
+        </div>
+        <div class="line" id="s6-line">
+          <div class="band" id="s6-band"></div>
+          <div class="mark" id="s6-m1" style="left: 275px">
+            <span
+              class="mark-label"
+              style="left: 2px; background: var(--pink-tint)"
+              >Floor Rp 5.000.000</span
+            >
+          </div>
+          <div class="mark" id="s6-m2" style="left: 550px">
+            <span
+              class="mark-label"
+              style="left: 2px; background: var(--sky-tint)"
+              >Max Rp 5.500.000</span
+            >
+          </div>
+          <div class="ball" id="s6-ball"></div>
+          <div class="landed" id="s6-landed">Rp 5.200.000</div>
+        </div>
+        <div
+          class="center"
+          id="s6-only"
+          style="
+            top: 900px;
+            font-size: 22px;
+            color: var(--ink-muted);
+            opacity: 0;
+          "
+        >
+          Only the machine ever sees both numbers.
+        </div>
+        <div
+          class="center"
+          id="s6-cap"
+          style="top: 942px; font-size: 34px; font-weight: 700; opacity: 0"
+        >
+          They overlap, so the price lands at random inside the gap.
+        </div>
+      </section>
+
+      <!-- 7. The reveal on both phones -->
+      <section class="scene" id="s7">
+        <div class="pair" id="s7-pair">
+          <div class="who" id="s7-w1" style="left: 510px; top: 0">
+            Seller sees
+          </div>
+          <div class="who" id="s7-w2" style="left: 1080px; top: 0">
+            Buyer sees
+          </div>
+          <div class="phone" id="s7-p1" style="left: 430px; top: 60px">
+            <div class="glass">
+              <div class="appbar">
+                <span>shake</span><span class="avatar">N</span>
+              </div>
+              <div class="scr reveal">
+                <img
+                  class="sticker"
+                  id="s7-st1"
+                  src="/src/design/assets/stickers/clipped-tags.svg"
+                  alt=""
+                  style="position: relative; width: 150px"
+                  data-rot="-6"
+                />
+                <b class="deal o0 s7-t" style="font-size: 22px">Cocok!</b>
+                <b
+                  class="o0 s7-t"
+                  style="font-size: 46px; letter-spacing: -0.03em"
+                  >It's a deal</b
+                >
+                <span class="amount deal o0 s7-t" style="font-size: 52px"
+                  ><small>Rp</small>5.200.000</span
+                >
+                <span class="note o0 s7-t" style="text-align: center"
+                  >Neither of you will see the other's number.</span
+                >
+                <div class="btn ghost o0 s7-t" style="align-self: stretch">
+                  Waiting for payment
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="phone" id="s7-p2" style="left: 1000px; top: 60px">
+            <div class="glass">
+              <div class="appbar">
+                <span>shake</span
+                ><span class="avatar" style="background: var(--sky)">R</span>
+              </div>
+              <div class="scr reveal">
+                <img
+                  class="sticker"
+                  id="s7-st2"
+                  src="/src/design/assets/stickers/clipped-tags.svg"
+                  alt=""
+                  style="position: relative; width: 150px"
+                  data-rot="6"
+                />
+                <b class="deal o0 s7-u" style="font-size: 22px">Cocok!</b>
+                <b
+                  class="o0 s7-u"
+                  style="font-size: 46px; letter-spacing: -0.03em"
+                  >It's a deal</b
+                >
+                <span class="amount deal o0 s7-u" style="font-size: 52px"
+                  ><small>Rp</small>5.200.000</span
+                >
+                <span class="note o0 s7-u" style="text-align: center"
+                  >Neither of you will see the other's number.</span
+                >
+                <div class="btn o0 s7-u" style="align-self: stretch">
+                  Pay Rp 5.200.000
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div id="s7-confetti"></div>
+        <div
+          class="center display"
+          id="s7-cap"
+          style="top: 905px; font-size: 64px; opacity: 0"
+        >
+          One fair price. Nobody's number shown.
+        </div>
+      </section>
+
+      <!-- 8. Escrow, chat, Received, Sold -->
+      <section class="scene" id="s8">
+        <div class="copy">
+          <span class="step" id="s8-step">4 · Pay, meet, done</span>
+          <div class="heads">
+            <h2 id="s8-h1">The money waits.</h2>
+            <h2 id="s8-h2">Then you talk.</h2>
+            <h2 id="s8-h3">Received. Sold.</h2>
+          </div>
+          <div class="caps">
+            <p id="s8-c1">
+              Payment goes into a NEAR escrow contract. No admin key. Nothing
+              arrives in 7 days? It comes back.
+            </p>
+            <p id="s8-c2">
+              Chat opens only after a deal, to arrange the handover. No haggling
+              in DMs.
+            </p>
+            <p id="s8-c3">
+              Tap Received and the seller is paid. Every step has a receipt on
+              NEAR testnet.
+            </p>
+          </div>
+        </div>
+        <div class="phone" id="s8-phone">
+          <div class="glass">
+            <div class="appbar">
+              <span>shake</span
+              ><span class="avatar" style="background: var(--sky)">R</span>
+            </div>
+            <div class="scr" id="s8-esc">
+              <div class="card">
+                <span class="label">Deal price</span>
+                <span class="amount deal"><small>Rp</small>5.200.000</span>
+                <span class="note"
+                  >Payment is held. It goes to the seller when you tap
+                  Received.</span
+                >
+                <img
+                  class="sticker"
+                  id="s8-box"
+                  src="/src/design/assets/stickers/escrow-box.svg"
+                  alt=""
+                  style="right: -12px; top: -40px; width: 100px"
+                  data-rot="8"
+                />
+              </div>
+              <div class="steps">
+                <span>Paid<b class="fill done" id="s8-paid">Paid</b></span>
+                <span>Held<b class="fill now" id="s8-held">Held</b></span>
+                <span
+                  >Received<b class="fill done" id="s8-recv">Received</b></span
+                >
+              </div>
+              <div class="card">
+                <b>Got the item?</b>
+                <span class="note"
+                  >Tap Received once it's in your hands. If it never arrives,
+                  you get your money back after the deadline.</span
+                >
+              </div>
+              <div class="btn" id="s8-btn" style="margin-top: auto">
+                Received
+              </div>
+              <span style="text-align: center; font-weight: 700"
+                >Message the seller</span
+              >
+            </div>
+            <div class="scr later" id="s8-chat" style="z-index: 2">
+              <h3 style="font-size: 24px">@nadia</h3>
+              <span class="label">Deal at Rp 5.200.000 · chat opened</span>
+              <div class="bubble them" id="s8-m1">
+                Meet at the campus gate at 4?
+              </div>
+              <div class="bubble me" id="s8-m2">See you there!</div>
+              <div class="bubble them" id="s8-m3">
+                I'll bring both batteries.
+              </div>
+            </div>
+            <div class="scr later" id="s8-done" style="z-index: 3">
+              <div class="card">
+                <h3>Paid out</h3>
+                <span>Rp 5.200.000 sent to the seller. Enjoy it.</span>
+              </div>
+              <div class="card" style="gap: 12px">
+                <b>Receipts</b>
+                <span class="o0 s8-r" style="font-size: 15px"
+                  >Paid into escrow · Rp 5.200.000 ·
+                  <u>View transaction</u></span
+                >
+                <span class="o0 s8-r" style="font-size: 15px"
+                  >Escrow paid the seller · Rp 5.200.000 ·
+                  <u>View transaction</u></span
+                >
+                <span class="o0 s8-r muted" style="font-size: 15px"
+                  >Held by the <u>escrow contract</u> on NEAR testnet</span
+                >
+              </div>
+              <div
+                class="card"
+                id="s8-listing"
+                style="
+                  flex-direction: row;
+                  gap: 14px;
+                  align-items: center;
+                  opacity: 0;
+                "
+              >
+                <div
+                  class="photo"
+                  style="
+                    width: 76px;
+                    height: 76px;
+                    border-radius: 12px;
+                    flex: none;
+                  "
+                ></div>
+                <div style="display: flex; flex-direction: column">
+                  <b>Fujifilm X-T20 camera</b
+                  ><span class="muted" style="font-size: 15px">Listing</span>
+                </div>
+              </div>
+              <div class="stamp" id="s8-sold" style="top: auto; bottom: 120px">
+                Sold
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 9. Recap and end card -->
+      <section class="scene" id="s9">
+        <div class="recap">
+          <div id="r1">
+            <img
+              src="/src/design/assets/stickers/hand-under-cloth.svg"
+              alt=""
+            />Seal.
+          </div>
+          <div id="r2">
+            <img
+              src="/src/design/assets/stickers/four-fingers.svg"
+              alt=""
+            />Offer.
+          </div>
+          <div id="r3">
+            <img
+              src="/src/design/assets/stickers/sealed-machine.svg"
+              alt=""
+            />Match.
+          </div>
+          <div id="r4">
+            <img src="/src/design/assets/stickers/escrow-box.svg" alt="" />Paid.
+          </div>
+        </div>
+        <div class="ink-panel" id="s9-panel">
+          <div class="word-wrap" style="top: 200px">
+            <div class="word"></div>
+            <div class="curtain" id="s9-curtain"></div>
+          </div>
+          <div class="center tagline" id="s9-tag" style="top: 540px">
+            Post your price. Keep your floor.
+          </div>
+          <div class="center end-line" id="s9-l1" style="top: 660px">
+            Sealed limits in a TEE on OutLayer · Payment in NEAR escrow
+          </div>
+          <div
+            class="center end-line"
+            id="s9-l2"
+            style="top: 730px; font-weight: 800"
+          >
+            Built at NEAR HACKATHON · @NEARProtocol #NEARHackathon
+          </div>
+          <div class="center end-small" id="s9-l3" style="top: 830px">
+            Testnet demo. OutLayer runs the enclave centrally today.
+          </div>
+          <img
+            class="sticker"
+            id="s9-a"
+            src="/src/design/assets/stickers/price-tag.svg"
+            alt=""
+            style="left: 250px; top: 130px; width: 160px"
+            data-rot="-10"
+          />
+          <img
+            class="sticker"
+            id="s9-b"
+            src="/src/design/assets/stickers/scratch-card.svg"
+            alt=""
+            style="left: 1500px; top: 120px; width: 170px"
+            data-rot="8"
+          />
+          <img
+            class="sticker"
+            id="s9-c"
+            src="/src/design/assets/stickers/balance-scale.svg"
+            alt=""
+            style="left: 210px; top: 780px; width: 160px"
+            data-rot="6"
+          />
+          <img
+            class="sticker"
+            id="s9-d"
+            src="/src/design/assets/stickers/four-fingers.svg"
+            alt=""
+            style="left: 1540px; top: 760px; width: 150px"
+            data-rot="-9"
+          />
+        </div>
+      </section>
+    </div>
+
+    <script type="module" src="/video/timeline.js"></script>
+  </body>
+</html>
