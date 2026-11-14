@@ -64,7 +64,7 @@ Mirrors docs/plans/IMPLEMENTATION.md (marketplace plan, Revision B: slots and tw
 
 ## 2026-11-14: freeze 00:00 UTC, submit by 12:00 UTC
 - [ ] **P-04** Freeze
-- [ ] **P-01** README on a clean clone
-- [ ] **P-02** Video and visuals
-- [ ] **P-03** X post and pitch text
+- [x] **P-01** README on a clean clone
+- [x] **P-02** Video and visuals
+- [x] **P-03** X post and pitch text
 - [ ] **P-05** Submit
