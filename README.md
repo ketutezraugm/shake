@@ -138,7 +138,7 @@ and one hint to raise. Raise to `1800000`, then as the seller open **Inbox** and
 ```bash
 npm run typecheck
 npm run lint
-npm test                  # app (154 tests) and relayer (50)
+npm test                  # app and relayer; the 5 live-network relayer tests skip without credentials
 npm run build
 cargo test --workspace    # contract and sealed-machine code, needs Rust
 ```
