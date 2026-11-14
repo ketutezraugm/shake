@@ -21,6 +21,8 @@ export function SignIn() {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const redirectTo = `${location.origin}/signin`;
+  // On the real chain the stand-in token would sign nobody in (the relayer refuses it), so these buttons wait for a Supabase project.
+  const loginUnavailable = !authConfig && Boolean(chain.contractId);
 
   // main.tsx takes a returned session; a cancelled Google or an expired link comes back here with an error after the `#`.
   useEffect(() => {
@@ -83,16 +85,16 @@ export function SignIn() {
       </div>
       <p className="muted">Make offers, open your shop, chat after a deal.</p>
 
-      <button className="primary big" onClick={google} disabled={busy}>
+      <button className="primary big" onClick={google} disabled={busy || loginUnavailable}>
         Continue with Google
       </button>
 
       <form className="auth-email" onSubmit={sendLink}>
         <label>
           Or use your email
-          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" required disabled={busy} />
+          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" required disabled={busy || loginUnavailable} />
         </label>
-        <button className="outline-button" disabled={busy || !email}>
+        <button className="outline-button" disabled={busy || loginUnavailable || !email}>
           Email me a sign-in link
         </button>
       </form>
@@ -108,7 +110,10 @@ export function SignIn() {
           {error}
         </p>
       )}
-      {!authConfig && <p className="hint">Local mode: no Supabase project is set, so signing in skips the email.</p>}
+      {loginUnavailable && (
+        <p className="hint">Google and email sign-in are not switched on in this demo yet. Connect a NEAR wallet below to sell or make offers.</p>
+      )}
+      {!authConfig && !loginUnavailable && <p className="hint">Local mode: no Supabase project is set, so signing in skips the email.</p>}
 
       <p className="auth-divider" aria-hidden="true">
         <span />
