@@ -20,8 +20,9 @@ export async function sendEmailLink(config: AuthConfig, email: string, redirectT
   }
 }
 
+/** `select_account` makes Google show its account picker even when the browser is already signed in to one account. */
 export function googleSignInUrl(config: AuthConfig, redirectTo: string): string {
-  return `${config.url}/auth/v1/authorize?provider=google&redirect_to=${encodeURIComponent(redirectTo)}`;
+  return `${config.url}/auth/v1/authorize?provider=google&prompt=select_account&redirect_to=${encodeURIComponent(redirectTo)}`;
 }
 
 /** The session Supabase puts after `#` when it sends the browser back; null when the fragment holds none. */

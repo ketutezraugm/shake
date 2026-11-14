@@ -55,7 +55,7 @@ describe("auth", () => {
 
   it("builds the Google sign-in address", () => {
     expect(googleSignInUrl(config, "http://localhost:5173/signin")).toBe(
-      "https://proj.supabase.co/auth/v1/authorize?provider=google&redirect_to=http%3A%2F%2Flocalhost%3A5173%2Fsignin",
+      "https://proj.supabase.co/auth/v1/authorize?provider=google&prompt=select_account&redirect_to=http%3A%2F%2Flocalhost%3A5173%2Fsignin",
     );
   });
 
