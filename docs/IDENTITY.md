@@ -1,6 +1,6 @@
 # IDENTITY (direction G, approved 2026-11-12)
 
-The spec, not inspiration. Every design and build step reads this. Name: Shake (approved in #42; the working title was "Blind deal"). Replaces the 2026-11-10 marosok blue-and-yellow identity (Ezra approved the change in issue #32). Living reference with previews: the Blind deal design system artifact (https://claude.ai/artifact/C52dyDv46uwPsNeJzL1Rgi); screens: https://claude.ai/artifact/2a84fxGdsY2sezcJvjVAaG, page "New directions", row G.
+The spec, not inspiration. Every design and build step reads this. Name: Shake (approved in #42; the working title was "Blind deal"). Replaces the 2026-11-10 marosok blue-and-yellow identity (Ezra approved the change in issue #32). Living reference with previews: the design system artifact (https://claude.ai/artifact/C52dyDv46uwPsNeJzL1Rgi); screens: https://claude.ai/artifact/2a84fxGdsY2sezcJvjVAaG, page "New directions", row G.
 
 **Direction G, "broken white & ink":** a clean light app with one dark action colour, and fun reserved for the details (stickers, confetti dots, small tints).
 

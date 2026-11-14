@@ -4,7 +4,7 @@ description: First-time setup for a teammate on this machine - identity, tools, 
 Set this teammate up so their first task can start right after. Talk to them in plain words; they may be new to parts of this.
 
 1. **Who:** `gh auth status` (not logged in → ask them to run `gh auth login` and stop). `gh api user --jq .login`, then find their role(s) in `.github/ROLES`. Not listed → tell them to ask Ezra and stop. Map roles to task owners in `docs/plans/IMPLEMENTATION.md`: contracts-tee = CT, backend-integration = BI, frontend = FE, design-packaging = DP.
-2. **Repo:** `git config core.hooksPath .githooks`, then `git checkout dev && git pull`. Confirm the GitHub invite is accepted (`gh api repos/ketutezraugm/blind-deal --jq .permissions.push` prints `true`); if not, send them to https://github.com/ketutezraugm/blind-deal/invitations.
+2. **Repo:** `git config core.hooksPath .githooks`, then `git checkout dev && git pull`. Confirm the GitHub invite is accepted (`gh api repos/ketutezraugm/shake --jq .permissions.push` prints `true`); if not, send them to https://github.com/ketutezraugm/shake/invitations.
 3. **Tools,** checked with version commands, missing ones listed with the install command for their OS (Windows: winget; macOS: brew):
    - everyone: `git`, `gh`, `node` 20+ (`npm`)
    - CT: `rustup`/`cargo` (`winget install Rustlang.Rustup`), `cargo near` (`cargo install cargo-near`), `near` CLI (https://docs.near.org/tools/near-cli)

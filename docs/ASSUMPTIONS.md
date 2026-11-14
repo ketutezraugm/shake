@@ -22,7 +22,7 @@ Tag: `verified (source)` or `unverified (how to verify)`.
 - Gallery snapshot 2026-11-09: 373 public submissions; security 182, agents 179, realworld 78, privacy 68, business 67, open 66, defi 62, thesis 33, swarms 32, nfts 29, games 28, social 28, memecoins 20. — verified (https://nearhackathon.com/api/projects, raw/gallery.json)
 - Gallery shows only public submissions; more teams will submit before 11-14. — unverified (assume total ends ~2x current)
 
-## Blind deal tech (spike 2026-11-10, raw/tee-spike.md)
+## Shake tech (spike 2026-11-10, raw/tee-spike.md)
 - OutLayer runs custom WASM in a TDX TEE, callable from a NEAR contract via `outlayer.testnet` `request_execution`, with TEE-generated PROTECTED_ secrets; closest template: github.com/out-layer/private-dao-example. — verified (docs, per spike)
 - PROTECTED_ secrets usable for ECIES decryption of browser-encrypted limits and for signing. — unverified (build a 2-3 h spike first thing in the build)
 - OutLayer fees, testnet worker availability, network access. — unverified (spike)

@@ -9,7 +9,7 @@ import { Link } from "../routes";
 import { followCursor } from "../cursorFollow";
 import { hasPopped, markPopped } from "../stickerPop";
 
-const REPO = "https://github.com/ketutezraugm/blind-deal";
+const REPO = "https://github.com/ketutezraugm/shake";
 const WRITE_ID = "footer:write";
 const NOTE = "Testnet only. No real money moves, and nobody on the team ever sees your number.";
 
