@@ -12,8 +12,8 @@ Every session after that: **`/inbox`** to start, **`/ship`** to finish a task, *
 ## Branches
 | Branch | What it holds | Who writes to it |
 |---|---|---|
-| `main` | The finished product: what judges, the hosted demo and the submission see | Only via a **release PR** from `dev` |
-| `dev` | The integration branch: working, reviewed code (default branch) | Only via **feature PRs** |
+| `main` | The finished product: what judges, the hosted demo and the submission see (the default branch) | Only via a **release PR** from `dev` |
+| `dev` | The integration branch: working, reviewed code; PRs land here and reach `main` through a release PR | Only via **feature PRs** |
 | `<role>/<task-id>-<short-name>` | One task in progress, e.g. `ct/m1-02-submit-limit`, `fe/d1-10-skeleton`, `bi/d1-03-render`, `dp/d1-07-tokens`, `lead/docs-git-rules` | The task owner (and their Claude) |
 
 Role prefixes: `ct` Contracts & TEE, `bi` Backend & integration, `fe` Frontend, `dp` Design & packaging, `lead` planning and docs.
