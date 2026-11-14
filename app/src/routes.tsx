@@ -7,6 +7,7 @@ import { History } from "./screens/History";
 import { Home } from "./screens/Home";
 import { Inbox } from "./screens/Inbox";
 import { Join } from "./screens/Join";
+import { Landing } from "./screens/Landing";
 import { Listing } from "./screens/Listing";
 import { MyOffers } from "./screens/MyOffers";
 import { Offer } from "./screens/Offer";
@@ -26,6 +27,7 @@ export type Route =
   | { name: "inbox" }
   | { name: "history" }
   | { name: "offers" }
+  | { name: "welcome" }
   | { name: "saved" }
   | { name: "chat"; dealId: number }
   | { name: "signin" }
@@ -43,6 +45,7 @@ const FIXED: Record<string, Route> = {
   "/inbox": { name: "inbox" },
   "/history": { name: "history" },
   "/offers": { name: "offers" },
+  "/welcome": { name: "welcome" },
   "/saved": { name: "saved" },
   "/signin": { name: "signin" },
   "/signup": { name: "signup" },
@@ -128,6 +131,8 @@ function Page({ route, query }: { route: Route; query: string }) {
       return <Inbox />;
     case "saved":
       return <Saved />;
+    case "welcome":
+      return <Landing />;
     case "offers":
       return <MyOffers />;
     case "history":

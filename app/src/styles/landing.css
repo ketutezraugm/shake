@@ -1,0 +1,466 @@
+/* The landing page (/welcome). Direction G tokens only. The hero is a sticker collage like the footer's (IDENTITY.md
+   allows one to three stickers per screen; the collage is the page's one exception, kept off the text). Every other
+   section keeps to one to three. Stickers pop in by themselves (stickerPop.ts) and the hero's lean toward the cursor. */
+
+.landing {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-64);
+  padding: 0 var(--gutter-phone) var(--space-64);
+}
+
+/* Scroll reveal (reveal.ts): each block fades up 24 px once, the first time it is on screen; blocks that arrive together
+   follow one another by --pop-stagger. Previews also grow from 96%, so the miniature screen seems to be set down. */
+.reveal-on [data-reveal] {
+  opacity: 0;
+  translate: 0 24px;
+  transition:
+    opacity var(--dur-reveal) var(--ease-out),
+    translate var(--dur-reveal) var(--ease-out),
+    scale var(--dur-reveal) var(--ease-out);
+  transition-delay: calc(var(--reveal-index, 0) * var(--pop-stagger));
+}
+
+.reveal-on .preview-wrap[data-reveal] {
+  scale: 0.96;
+}
+
+.reveal-on [data-reveal].revealed {
+  opacity: 1;
+  translate: none;
+  scale: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal-on [data-reveal],
+  .reveal-on .preview-wrap[data-reveal] {
+    translate: none;
+    scale: none;
+    transition: opacity var(--dur-quick) linear;
+  }
+}
+
+.landing h2 {
+  font-size: var(--text-28);
+  font-weight: 800;
+  letter-spacing: var(--tracking-display);
+  line-height: var(--leading-display);
+}
+
+.landing h3 {
+  font-size: var(--text-20);
+  font-weight: 800;
+  letter-spacing: var(--tracking-display);
+  line-height: var(--leading-display);
+}
+
+.landing-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-12);
+}
+
+.landing-actions a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}
+
+/* Hero: the text sits in the middle of a band; the stickers live in the band's edges, never over a word. */
+.landing-hero {
+  position: relative;
+  padding: 168px 0 140px;
+}
+
+.landing-hero-text {
+  position: relative;
+  z-index: 1;
+  max-width: 640px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+  text-align: center;
+  align-items: center;
+}
+
+.landing-hero h1 {
+  font-size: var(--text-40);
+  font-weight: 800;
+  letter-spacing: var(--tracking-display);
+  line-height: var(--leading-display);
+}
+
+.landing-hero p {
+  font-size: var(--text-17);
+  color: var(--ink-muted);
+}
+
+.landing-hero .landing-actions {
+  justify-content: center;
+}
+
+.collage {
+  position: absolute;
+  width: 64px;
+  height: 64px;
+  transition: translate var(--dur-quick) var(--ease-out);
+}
+
+/* Phone: five across the top band, four across the bottom band. */
+.collage.price-tag { top: 16px; left: 2%; transform: rotate(-8deg); }
+.collage.clip { top: 64px; left: 22%; transform: rotate(6deg); }
+.collage.cloth { top: 8px; left: 42%; transform: rotate(-4deg); }
+.collage.fingers { top: 60px; left: 62%; transform: rotate(9deg); }
+.collage.machine { top: 12px; right: 2%; transform: rotate(-6deg); }
+.collage.escrow { bottom: 20px; left: 6%; transform: rotate(7deg); }
+.collage.pin { bottom: 52px; left: 30%; transform: rotate(-9deg); }
+.collage.scale { bottom: 16px; left: 54%; transform: rotate(5deg); }
+.collage.scratch { bottom: 56px; right: 4%; transform: rotate(-5deg); }
+
+.landing-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+}
+
+/* How one deal works: each step is its text, a miniature of the real screen, and one sticker on the miniature's corner. */
+.steps {
+  margin: var(--space-16) 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-48);
+}
+
+.step {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-24);
+}
+
+.step-text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+.step-text p {
+  color: var(--ink-muted);
+}
+
+.step-number {
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: var(--ink);
+  color: var(--on-ink);
+  font-weight: 800;
+}
+
+/* The step's sticker sits on its preview's top corner, over the card's edge and padding, never over its text. */
+.preview-wrap {
+  position: relative;
+  width: 100%;
+  max-width: 300px;
+  align-self: center;
+}
+
+.step-sticker {
+  position: absolute;
+  top: -30px;
+  right: -22px;
+  width: 68px;
+  height: 68px;
+  transform: rotate(8deg);
+}
+
+.step:nth-child(even) .step-sticker {
+  transform: rotate(-8deg);
+}
+
+.preview {
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-hero);
+  font-size: var(--text-14);
+}
+
+.pv-photo {
+  height: 120px;
+  border-radius: var(--radius-field);
+}
+
+.pv-label {
+  font-size: var(--text-13);
+  font-weight: 600;
+  color: var(--ink-muted);
+}
+
+.pv-amount {
+  font-size: var(--text-28);
+  font-weight: 800;
+  letter-spacing: var(--tracking-display);
+}
+
+.pv-amount.deal {
+  color: var(--deal);
+}
+
+.pv-note {
+  display: flex;
+  gap: var(--space-8);
+  align-items: flex-start;
+  font-size: var(--text-13);
+  color: var(--ink-muted);
+}
+
+.pv-field {
+  min-height: 56px;
+  padding: 0 14px;
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  border: 1.5px solid var(--ink);
+  border-radius: var(--radius-field);
+  font-size: var(--text-20);
+  font-weight: 800;
+}
+
+.pv-field small {
+  font-size: var(--text-14);
+  color: var(--ink-muted);
+}
+
+.pv-button {
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: var(--ink);
+  color: var(--on-ink);
+  font-weight: 700;
+}
+
+.pv-sticker {
+  width: 72px;
+  height: 72px;
+  align-self: center;
+  filter: var(--shadow-sticker);
+}
+
+.pv-cocok {
+  align-self: center;
+  font-weight: 800;
+  color: var(--deal);
+}
+
+.pv-title {
+  align-self: center;
+  font-size: var(--text-20);
+}
+
+.preview .pv-amount.deal {
+  align-self: center;
+}
+
+.pv-steps {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-4);
+  font-size: var(--text-13);
+  font-weight: 600;
+  text-align: center;
+}
+
+.pv-steps span {
+  padding: 6px 0;
+  border-radius: 999px;
+  background: var(--ground);
+  color: var(--ink-muted);
+}
+
+.pv-steps .done {
+  background: var(--mint);
+  color: var(--mint-ink);
+}
+
+.pv-steps .now {
+  background: var(--ink);
+  color: var(--on-ink);
+}
+
+/* What stays private: two hidden numbers either side of the scale, then the one thing both people see. */
+.private-row {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-16);
+}
+
+.private-card {
+  width: 100%;
+  max-width: 320px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-panel);
+}
+
+.hidden-amount {
+  font-size: var(--text-28);
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.private-sticker {
+  width: 80px;
+  height: 80px;
+  transform: rotate(-6deg);
+}
+
+.private-result {
+  text-align: center;
+  font-size: var(--text-17);
+}
+
+.features {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-16);
+}
+
+.features li {
+  position: relative;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-panel);
+}
+
+.features p {
+  color: var(--ink-muted);
+}
+
+.feature-sticker {
+  position: absolute;
+  top: -22px;
+  right: 16px;
+  width: 60px;
+  height: 60px;
+  transform: rotate(10deg);
+}
+
+.landing-cta {
+  padding: 32px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+  align-items: center;
+  text-align: center;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-hero);
+}
+
+.landing-cta p {
+  max-width: 520px;
+  color: var(--ink-muted);
+}
+
+.landing-cta .landing-actions {
+  justify-content: center;
+}
+
+@media (min-width: 900px) {
+  .landing {
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 0 var(--desk-gutter, 40px) var(--space-64);
+    gap: 96px;
+  }
+
+  .landing h2 {
+    font-size: var(--text-40);
+  }
+
+  .landing-hero {
+    padding: 112px 0 104px;
+  }
+
+  .landing-hero h1 {
+    font-size: 64px;
+  }
+
+  .collage {
+    width: 92px;
+    height: 92px;
+  }
+
+  /* Desktop: four stickers in each side margin (the text is 640 px wide in the middle), one under the buttons. */
+  .collage.price-tag { top: 24px; left: 0; bottom: auto; right: auto; }
+  .collage.scratch { top: 160px; left: 3%; bottom: auto; right: auto; }
+  .collage.pin { top: 300px; left: 5%; bottom: auto; right: auto; }
+  .collage.cloth { top: auto; bottom: 24px; left: 9%; right: auto; }
+  .collage.fingers { top: 24px; right: 0; bottom: auto; left: auto; }
+  .collage.scale { top: 160px; right: 3%; bottom: auto; left: auto; }
+  .collage.machine { top: 300px; right: 5%; bottom: auto; left: auto; }
+  .collage.escrow { top: auto; bottom: 24px; right: 9%; left: auto; }
+  .collage.clip { top: auto; bottom: -8px; left: calc(50% - 46px); right: auto; }
+
+  .step {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: center;
+    gap: var(--space-64);
+  }
+
+  .step:nth-child(even) .step-text {
+    order: 2;
+  }
+
+  .step-sticker {
+    width: 84px;
+    height: 84px;
+    top: -38px;
+    right: -32px;
+  }
+
+  .private-row {
+    flex-direction: row;
+    justify-content: center;
+  }
+
+  .private-sticker {
+    width: 112px;
+    height: 112px;
+  }
+
+  .features {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .landing-cta {
+    padding: 56px 40px;
+  }
+}

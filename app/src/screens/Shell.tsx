@@ -79,7 +79,7 @@ function DeskNav({ tabs, path }: { tabs: Tab[]; path: string }) {
  */
 export function Shell({ path, children }: { path: string; children: ReactNode }) {
   // The footer closes the pages people browse; the offer, chat and sign-in flows stay free of it.
-  const showFooter = path === "/" || path.startsWith("/@") || path.startsWith("/l/");
+  const showFooter = path === "/" || path === "/welcome" || path.startsWith("/@") || path.startsWith("/l/");
   const [draft, setDraft] = useState(() => new URLSearchParams(location.search).get("q") ?? "");
 
   function search(event: FormEvent) {
