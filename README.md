@@ -1,5 +1,7 @@
 # Shake
 
+![Shake: post your price, keep your floor](docs/images/banner.png)
+
 **Shake** is a second-hand marketplace where nobody has to haggle in public. Every listing
 shows an asking price. The seller also seals the lowest price they would take, and nobody can read
 it, including us. Each buyer makes a private offer. A small program inside a sealed machine
@@ -25,6 +27,20 @@ deployed NEAR account cannot be renamed and the sealed machine's hashes depend o
 
 No time to deploy anything? [Try it locally](#try-it-locally) in about 3 minutes with no
 accounts and no keys.
+
+## How a deal works
+
+![The four moments of a deal: the seller seals a floor, the sealed machine draws a price, both phones show it, escrow pays out](docs/images/deal-flow.png)
+
+The full walkthrough is in the demo video above.
+
+## What buyers see
+
+![The marketplace home, a listing with its asking price, and the blind-offer panel, on a phone](docs/images/browse.png)
+
+Every item shows a photo and an asking price. The seller's lowest price is never shown.
+
+<sub>Pictures: the banner and the phone screens are screenshots of the hosted demo; the deal steps are frames from the demo video (`app/video`), drawn from the app's own tokens and stickers. Nothing is stock or third-party.</sub>
 
 ## Tracks
 
