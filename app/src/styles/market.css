@@ -42,6 +42,18 @@
   gap: var(--space-8);
 }
 
+/* Frame "4 Listing": Back on the left, Share on the right. */
+.top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-8);
+}
+
+.top-bar > .pill {
+  gap: var(--space-8);
+}
+
 .tabs {
   position: fixed;
   z-index: 20; /* above the footer stickers that scroll under it */

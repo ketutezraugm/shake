@@ -12,6 +12,7 @@ import { market } from "../marketSource";
 import { claimSlot } from "../offer";
 import { Link, navigate } from "../routes";
 import { SaveButton } from "./SaveButton";
+import { ShareButton } from "./ShareButton";
 import { Assistant } from "./Assistant";
 import { OwnListing } from "./OwnListing";
 import { Questions } from "./Questions";
@@ -112,9 +113,12 @@ export function Listing({ id }: { id: string }) {
 
   return (
     <main className="page">
-      <Link to="/" className="pill">
-        <img src={backIcon} alt="" width={16} height={16} /> Back
-      </Link>
+      <div className="top-bar">
+        <Link to="/" className="pill">
+          <img src={backIcon} alt="" width={16} height={16} /> Back
+        </Link>
+        <ShareButton path={`/l/${listing.id}`} title={listing.title} />
+      </div>
 
       <div className="listing-layout">
         <div className="listing-media">
