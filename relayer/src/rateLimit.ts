@@ -7,8 +7,8 @@ export function rateLimit(limit: number, now: () => number = Date.now, windowMs 
   const buckets = new Map<string, { count: number; windowStart: number }>();
 
   return async (c, next) => {
-    // Render puts the client address first in x-forwarded-for.
-    const ip = c.req.header("x-forwarded-for")?.split(",")[0]?.trim() ?? "local";
+    // Not x-forwarded-for: Render keeps whatever the client sent as its first entry. Cloudflare sets cf-connecting-ip itself and rejects a client-sent one.
+    const ip = c.req.header("cf-connecting-ip") ?? "local";
     const time = now();
     const bucket = buckets.get(ip);
     if (!bucket || time - bucket.windowStart >= windowMs) {
