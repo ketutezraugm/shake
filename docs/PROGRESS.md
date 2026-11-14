@@ -38,7 +38,7 @@ Mirrors docs/plans/IMPLEMENTATION.md (marketplace plan, Revision B: slots and tw
 - [x] **MK-25** Chat and inbox (FE): #81, restyled in #90; unit-tested; live run still open; two-pane inbox (conversations left, chat right, one at a time on a phone) on `bi/mk-25-inbox-two-pane`
 - [x] **MK-41** Receipts and history (BI): the relayer checks a payment's transaction on chain and keeps it as a receipt; `/history` and the offer page show each with a nearblocks link and the item photo; unit-tested, migration 0005 applied to the shared project; the live testnet buy is still open
 - [x] **MK-31** Seed photos (DP): `seed/` with 6 freely licensed photos, listings and sources
-- [ ] **MK-14** Seed: demo shop (BI)
+- [ ] **MK-14** Seed: demo shop (BI): `npm run demo:seed` (EZ) made `@demo` on the hosted relayer with 6 listings, photos and 3 slots each (2026-11-14); the scripted live offers, the Released deal and the chat are not done
 - [ ] **MK-40** End-to-end happy path (BI)
 - [x] **S-06** Hosted deploy (EZ): app https://shake-app.onrender.com and relayer https://shake-relayer.onrender.com on Render (2026-11-14); a wallet sign-in and `PUT /me/profile` pass in a browser; Google/email sign-in uses the stand-in until the Supabase anon key and Auth settings are set (#96)
 - [ ] **G3** Gate 20:00 UTC: MK-24 green on testnet (lead)
