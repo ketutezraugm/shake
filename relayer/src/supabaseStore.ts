@@ -381,7 +381,8 @@ export function supabaseStore(url: string, serviceKey: string): Store {
         amount_yocto: receipt.amountYocto,
         recorded_at: receipt.recordedAt,
       };
-      check(await db.from("receipts").upsert(row, { onConflict: "deal_id,kind", ignoreDuplicates: true }));
+      // An upsert returns no row, so check() would always throw here; only a database error matters.
+      optional(await db.from("receipts").upsert(row, { onConflict: "deal_id,kind", ignoreDuplicates: true }));
       const stored = check(await db.from("receipts").select(RECEIPT_COLUMNS).eq("deal_id", receipt.dealId).eq("kind", receipt.kind).single<ReceiptRow>());
       return toReceipt(stored);
     },
