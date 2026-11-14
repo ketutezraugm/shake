@@ -93,3 +93,16 @@ export function useWaiting(account: string | null): number {
   }, [account]);
   return waiting;
 }
+
+/** Whether a CSS media query matches now, updating when the viewport crosses it. */
+export function useMediaQuery(query: string): boolean {
+  const [matches, setMatches] = useState(() => matchMedia(query).matches);
+  useEffect(() => {
+    const list = matchMedia(query);
+    const onChange = () => setMatches(list.matches);
+    onChange();
+    list.addEventListener("change", onChange);
+    return () => list.removeEventListener("change", onChange);
+  }, [query]);
+  return matches;
+}

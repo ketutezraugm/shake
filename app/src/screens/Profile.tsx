@@ -1,13 +1,14 @@
 import { useEffect, useState } from "react";
 import { currentAccount, currentHandle } from "../accounts";
 import type { Shop } from "../market";
-import { useWaiting } from "../menuHooks";
+import { useMediaQuery, useWaiting } from "../menuHooks";
 import { market } from "../marketSource";
 import { readMenuHidden, sectionFromQuery, writeMenuHidden, type ShopSection } from "../shopSection";
 import { Inbox } from "./Inbox";
 import { ListingCard } from "./ListingCard";
 import { Orders } from "./Orders";
 import { Sell } from "./Sell";
+import { ShopRail } from "./ShopRail";
 import { ShopSidebar } from "./ShopSidebar";
 import { ErrorState, NotFound } from "./States";
 
@@ -17,7 +18,9 @@ export function Profile({ handle }: { handle: string }) {
   const [copied, setCopied] = useState(false);
   const [attempt, setAttempt] = useState(0);
   const [tab, setTab] = useState<ShopSection>(() => sectionFromQuery(location.search));
-  const [menuHidden, setMenuHidden] = useState(readMenuHidden);;
+  const [menuHidden, setMenuHidden] = useState(readMenuHidden);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const desktop = useMediaQuery("(min-width: 900px)");
 
   const owner = currentAccount() !== null && handle === currentHandle();
   const waiting = useWaiting(owner ? currentAccount() : null);
@@ -42,6 +45,7 @@ export function Profile({ handle }: { handle: string }) {
 
   function selectSection(next: ShopSection) {
     setTab(next);
+    setDrawerOpen(false);
     // replaceState so switching sections doesn't fill the back button; a refresh keeps the section.
     history.replaceState(null, "", next === "products" ? location.pathname : `?tab=${next}`);
   }
@@ -55,6 +59,14 @@ export function Profile({ handle }: { handle: string }) {
     setMenuHidden(hidden);
     writeMenuHidden(hidden);
   }
+
+  // Escape closes the phone drawer, like the header menus.
+  useEffect(() => {
+    if (!drawerOpen) return;
+    const onKey = (event: KeyboardEvent) => event.key === "Escape" && setDrawerOpen(false);
+    addEventListener("keydown", onKey);
+    return () => removeEventListener("keydown", onKey);
+  }, [drawerOpen]);
 
   if (error) return <main className="page"><ErrorState message={error} onRetry={() => setAttempt((a) => a + 1)} /></main>;
   if (shop === undefined) return <main className="page"><p className="muted">Loading…</p></main>;
@@ -84,12 +96,16 @@ export function Profile({ handle }: { handle: string }) {
   if (isOwner && account) {
     return (
       <main className={`page shop-admin${menuHidden ? " menu-hidden" : ""}`}>
-        {menuHidden ? (
-          <button className="sidebar-show outline-button" onClick={() => setHidden(false)}>
-            Show menu
-          </button>
-        ) : (
+        {desktop && !menuHidden ? (
           <ShopSidebar shop={shop} section={tab} waiting={waiting} copied={copied} onSelect={selectSection} onHide={() => setHidden(true)} onCopy={() => void copyLink()} />
+        ) : (
+          <ShopRail shop={shop} section={tab} waiting={waiting} onSelect={selectSection} onExpand={() => (desktop ? setHidden(false) : setDrawerOpen(true))} />
+        )}
+        {!desktop && drawerOpen && (
+          <div className="sidebar-drawer">
+            <button className="sidebar-scrim" aria-label="Close menu" onClick={() => setDrawerOpen(false)} />
+            <ShopSidebar shop={shop} section={tab} waiting={waiting} copied={copied} onSelect={selectSection} onHide={() => setDrawerOpen(false)} onCopy={() => void copyLink()} />
+          </div>
         )}
         <div className="shop-content">
           {tab === "inbox" ? (

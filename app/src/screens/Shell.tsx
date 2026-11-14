@@ -3,53 +3,16 @@ import lockup from "../design/assets/logo/shake-lockup.svg";
 import { Link, navigate } from "../routes";
 import { AccountMenu } from "./AccountMenu";
 import { Footer } from "./Footer";
+import { BubbleIcon, GridIcon, HeartIcon, TagIcon } from "./icons";
 import { ShopMenu } from "./ShopMenu";
 import { OfflineBanner } from "./States";
 
 type Tab = { to: string; label: string; icon: ReactNode };
 
-const stroke = { fill: "none", stroke: "currentColor", strokeWidth: 2, strokeLinecap: "round", strokeLinejoin: "round", "aria-hidden": true } as const;
-
-const BROWSE: Tab = {
-  to: "/",
-  label: "Browse",
-  icon: (
-    <svg viewBox="0 0 24 24" {...stroke}>
-      <rect x="4" y="4" width="6.5" height="6.5" rx="1.5" />
-      <rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5" />
-      <rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5" />
-      <rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.5" />
-    </svg>
-  ),
-};
-const INBOX: Tab = {
-  to: "/inbox",
-  label: "Inbox",
-  icon: (
-    <svg viewBox="0 0 24 24" {...stroke}>
-      <path d="M4 6.5A2.5 2.5 0 0 1 6.5 4h11A2.5 2.5 0 0 1 20 6.5v8a2.5 2.5 0 0 1-2.5 2.5H10l-4.5 3.5V17H6.5A2.5 2.5 0 0 1 4 14.5z" />
-    </svg>
-  ),
-};
-const SAVED: Tab = {
-  to: "/saved",
-  label: "Saved",
-  icon: (
-    <svg viewBox="0 0 24 24" {...stroke}>
-      <path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.5A4 4 0 0 1 19 10c0 5.6-7 10-7 10z" />
-    </svg>
-  ),
-};
-const OFFERS: Tab = {
-  to: "/offers",
-  label: "My offers",
-  icon: (
-    <svg viewBox="0 0 24 24" {...stroke}>
-      <path d="M4 12.5V5a1 1 0 0 1 1-1h7.5L20 11.5 12.5 19z" />
-      <circle cx="8.5" cy="8.5" r="1.2" />
-    </svg>
-  ),
-};
+const BROWSE: Tab = { to: "/", label: "Browse", icon: <GridIcon /> };
+const INBOX: Tab = { to: "/inbox", label: "Inbox", icon: <BubbleIcon /> };
+const SAVED: Tab = { to: "/saved", label: "Saved", icon: <HeartIcon /> };
+const OFFERS: Tab = { to: "/offers", label: "My offers", icon: <TagIcon /> };
 const TABS = [BROWSE, SAVED, OFFERS, INBOX];
 
 /** A chat lives inside the inbox, so the inbox tab stays lit on it. */

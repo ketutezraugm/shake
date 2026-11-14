@@ -26,7 +26,7 @@ export function ShopMenu() {
   return (
     <div className="account shop-menu" ref={root} {...hoverProps}>
       <button className="pill account-chip" aria-haspopup="menu" aria-expanded={open} aria-label={waiting > 0 ? `My shop, ${waiting} waiting` : "My shop"} onClick={() => setOpen(!open)}>
-        <span className="shop-chip-name">My shop</span>
+        My shop
         {waiting > 0 && <span className="convo-badge num">{waiting}</span>}
       </button>
       {open && (

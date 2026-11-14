@@ -1130,8 +1130,112 @@ button.pill {
   gap: var(--space-16);
 }
 
-.sidebar-show {
-  align-self: flex-start;
+/* The collapsed menu: an icon column against the left edge, the current section marked by a mint bar. */
+.shop-rail {
+  position: sticky;
+  top: 0;
+  align-self: start;
+  min-height: calc(100vh - 64px - 72px);
+  padding: var(--space-8) 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+  background: var(--surface);
+  border-right: 1px solid var(--line);
+}
+
+.shop-rail nav {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.rail-button {
+  position: relative;
+  width: 56px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--ink-muted);
+  cursor: pointer;
+}
+
+.rail-button svg {
+  width: 22px;
+  height: 22px;
+}
+
+.rail-button[aria-current="page"] {
+  color: var(--mint-ink);
+  box-shadow: inset 3px 0 0 var(--mint-ink);
+}
+
+.rail-badge {
+  position: absolute;
+  top: 2px;
+  right: 6px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  font-size: 11px;
+}
+
+.shop-rail .rail-avatar {
+  width: 32px;
+  height: 32px;
+  font-size: var(--text-14);
+}
+
+.rail-divider {
+  width: 32px;
+  height: 1px;
+  margin: var(--space-4) 0;
+  background: var(--line);
+}
+
+/* Phones: the menu slides over the page from the left instead of stacking above the work. */
+.sidebar-drawer {
+  position: fixed;
+  inset: 0;
+  z-index: 30; /* above the bottom tab bar */
+}
+
+.sidebar-scrim {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  padding: 0;
+  background: var(--ink);
+  opacity: 0.35;
+  cursor: pointer;
+  animation: scrim-in var(--dur-quick) var(--ease-out);
+}
+
+@keyframes scrim-in {
+  from {
+    opacity: 0;
+  }
+}
+
+.sidebar-drawer .shop-sidebar {
+  position: relative;
+  width: min(300px, 85vw);
+  height: 100%;
+  overflow-y: auto;
+  border-width: 0 1px 0 0;
+  border-radius: 0;
+  animation-name: drawer-in;
+}
+
+@keyframes drawer-in {
+  from {
+    transform: translateX(-100%);
+  }
 }
 
 @media (min-width: 900px) {
@@ -1155,8 +1259,9 @@ button.pill {
     border-radius: 0;
   }
 
-  .sidebar-show {
-    margin: 16px;
+  .shop-rail {
+    position: static;
+    align-self: stretch;
   }
 
   .shop-content {
@@ -1169,7 +1274,8 @@ button.pill {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .shop-sidebar {
+  .shop-sidebar,
+  .sidebar-scrim {
     animation: none;
   }
 
@@ -1234,9 +1340,22 @@ button.pill {
   text-decoration: none;
 }
 
-@media (max-width: 640px) {
-  .shop-chip-name {
-    display: none;
+@media (max-width: 899px) {
+  /* The rail hugs the left edge and the work keeps the usual right gutter. */
+  .page.shop-admin {
+    display: grid;
+    grid-template-columns: 56px minmax(0, 1fr);
+    gap: var(--space-12);
+    padding-left: 0;
+  }
+
+  /* Keep the shop chip next to the account chip instead of floating mid-header. */
+  .topbar {
+    gap: var(--space-8);
+  }
+
+  .topbar .shop-menu {
+    margin-left: auto;
   }
 }
 
