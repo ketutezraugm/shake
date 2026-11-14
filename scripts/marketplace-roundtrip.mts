@@ -213,7 +213,16 @@ if (check(c.deal?.state === "Retry" && c.deal.round === 2, `round 1 expected Ret
   await resubmitSeller({ listingId: c.listingId, dealId: c.dealId, round: 2, limit: "4200000", client: sellerClient, teePubkey: TEE_PUBKEY });
   const raised = await sealLimit(c.dealId, "buyer", 2, "4600000", TEE_PUBKEY);
   await buyerClient.submitLimit(c.dealId, raised.ct, raised.commit, null);
-  const second = await settle(c.dealId);
+  let second = await settle(c.dealId);
+  // The matcher failed and the contract handed round 2 back (one limit per side left, state Waiting): both submit it again.
+  while (second?.state === "Waiting" && second.round === 2 && second.seller_cts.length === 1 && second.buyer_cts.length === 1) {
+    retries++;
+    console.log(`  matcher failed in round 2, handed back (retry ${second.matcher_retries} on deal ${c.dealId}); submitting again`);
+    await resubmitSeller({ listingId: c.listingId, dealId: c.dealId, round: 2, limit: "4200000", client: sellerClient, teePubkey: TEE_PUBKEY });
+    const again = await sealLimit(c.dealId, "buyer", 2, "4600000", TEE_PUBKEY);
+    await buyerClient.submitLimit(c.dealId, again.ct, again.commit, null);
+    second = await settle(c.dealId);
+  }
   if (check(second?.state === "Matched", `round 2 expected Matched, got ${second?.state}`)) {
     const rupiah = BigInt(second!.price!) / 10n ** 16n;
     check(rupiah >= 4_200_000n && rupiah <= 4_600_000n, `round 2 price Rp ${rupiah} is outside [4200000, 4600000]`);

@@ -43,16 +43,26 @@ export function nearClient(signer: Signer, chain: ChainConfig): ContractClient {
     },
 
     async submitLimit(dealId, ct, commit, linkToken) {
-      const deal = await getDeal(dealId);
-      if (!deal) throw new Error(`deal ${dealId} does not exist`);
+      const read = async () => {
+        const deal = await getDeal(dealId);
+        if (!deal) throw new Error(`deal ${dealId} does not exist`);
+        return deal;
+      };
       // The contract wants the fee on the call that completes the round and refuses it on any other.
-      const otherSide = signer.accountId === deal.seller ? deal.buyer_cts : deal.seller_cts;
-      const completesRound = otherSide.length === deal.round;
-      await call(
-        "submit_limit",
-        { deal_id: dealId, ct, commit, link_token: linkToken },
-        completesRound ? OUTLAYER_FEE : undefined,
-      );
+      const completes = (deal: Deal) => (signer.accountId === deal.seller ? deal.buyer_cts : deal.seller_cts).length === deal.round;
+      const submit = (completesRound: boolean) =>
+        call("submit_limit", { deal_id: dealId, ct, commit, link_token: linkToken }, completesRound ? OUTLAYER_FEE : undefined);
+
+      const first = completes(await read());
+      try {
+        await submit(first);
+      } catch (error) {
+        // The node can answer a block behind, so the other side's submit may be missing from the read the fee was chosen from.
+        // A refused call changes nothing on chain; read again and retry once only if that changes the fee. (A second stale read is not retried.)
+        const again = await read().then(completes, () => first);
+        if (again === first) throw error;
+        await submit(again);
+      }
     },
 
     async deposit(dealId) {

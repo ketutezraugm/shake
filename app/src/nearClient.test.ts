@@ -53,6 +53,58 @@ function recordingSigner(accountId: string) {
 
 afterEach(() => vi.unstubAllGlobals());
 
+/** Each RPC read answers the next deal, the last one repeating: a node a block behind, then one that has caught up. */
+function stubChainSequence(deals: Deal[]) {
+  let reads = 0;
+  vi.stubGlobal("fetch", async () => {
+    const deal = deals[Math.min(reads++, deals.length - 1)];
+    return new Response(JSON.stringify({ result: { result: [...new TextEncoder().encode(JSON.stringify(deal))] } }));
+  });
+  return () => reads;
+}
+
+/** Like the contract: a call that completes the round without the fee is refused. */
+function feeCheckingSigner(accountId: string, completes: () => boolean) {
+  const calls: { deposit: bigint | undefined }[] = [];
+  const signer: Signer = {
+    accountId,
+    signRequest: async () => ({}),
+    call: async (_method, _args, deposit) => {
+      calls.push({ deposit });
+      if (completes() && deposit === undefined) throw new Error("WebAssembly trap: An `unreachable` opcode was executed.");
+      return 0;
+    },
+    send: async () => "TXHASH",
+  };
+  return { signer, calls };
+}
+
+describe("nearClient.submitLimit when the node's answer is a block behind", () => {
+  // After OutLayer failed, the round is handed back: the seller resubmits, then the buyer does.
+  const handedBack = { ...base, buyer: "buyer.testnet", seller_cts: [], seller_commits: [] };
+  const sellerBackIn = { ...handedBack, seller_cts: [[1]], seller_commits: [[0]] };
+
+  it("retries once with the fee when a fresh read shows the seller is already in", async () => {
+    const reads = stubChainSequence([handedBack, sellerBackIn]);
+    const { signer, calls } = feeCheckingSigner("buyer.testnet", () => true);
+
+    await nearClient(signer, chain).submitLimit(7, [9], [3], null);
+
+    expect(calls).toEqual([{ deposit: undefined }, { deposit: FEE }]);
+    expect(reads()).toBe(2);
+  });
+
+  it("does not retry a refusal that a fresh read does not explain", async () => {
+    stubChainSequence([sellerBackIn]);
+    const { signer, calls } = feeCheckingSigner("buyer.testnet", () => true);
+    const refuse = vi.spyOn(signer, "call").mockRejectedValue(new Error("only the deal's buyer can submit"));
+
+    await expect(nearClient(signer, chain).submitLimit(7, [9], [3], null)).rejects.toThrow("only the deal's buyer can submit");
+    expect(refuse).toHaveBeenCalledTimes(1);
+    expect(calls).toEqual([]);
+  });
+});
+
 describe("nearClient.submitLimit attaches the OutLayer fee only on the call that completes the round", () => {
   it("buyer joining a waiting deal completes round 1, so the fee is attached", async () => {
     stubChain(base);
