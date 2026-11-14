@@ -1,5 +1,4 @@
 import { useEffect, useState, type MouseEvent, type ReactNode } from "react";
-import { Chat } from "./screens/Chat";
 import { Create } from "./screens/Create";
 import { DealPage } from "./screens/DealPage";
 import { Demo } from "./screens/Demo";
@@ -134,7 +133,7 @@ function Page({ route, query }: { route: Route; query: string }) {
     case "history":
       return <History />;
     case "chat":
-      return <Chat dealId={route.dealId} />;
+      return <Inbox dealId={route.dealId} />;
     case "signin":
       return <SignIn />;
     case "signup":

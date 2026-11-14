@@ -536,3 +536,94 @@
   background: var(--sun-tint);
   border-radius: var(--radius-field);
 }
+
+/* Inbox: conversations on the left, the open one on the right; a phone shows one at a time. */
+.inbox-list,
+.inbox-pane {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+  min-width: 0;
+}
+
+.inbox.chat-open .inbox-list,
+.inbox-empty {
+  display: none;
+}
+
+.convo {
+  padding: 12px;
+  display: flex;
+  align-items: center;
+  gap: var(--space-12);
+  border-radius: var(--radius-panel);
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.convo[aria-current="page"] {
+  background: var(--sun-tint);
+}
+
+.convo .avatar {
+  width: 44px;
+  height: 44px;
+  font-size: var(--text-17);
+}
+
+.convo-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.convo-text > * {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.convo-badge {
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: var(--ink);
+  color: var(--ground);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+@media (min-width: 900px) {
+  .page.inbox {
+    display: grid;
+    grid-template-columns: 320px minmax(0, 1fr);
+    gap: 0;
+    align-items: stretch;
+    min-height: calc(100vh - 80px);
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+
+  .inbox-list {
+    padding: 32px var(--space-16) 32px 0;
+    border-right: 1px solid var(--line);
+  }
+
+  .inbox.chat-open .inbox-list {
+    display: flex;
+  }
+
+  .inbox-pane {
+    padding: 32px 0 32px 32px;
+  }
+
+  .inbox-empty {
+    display: block;
+    margin: auto;
+  }
+}
