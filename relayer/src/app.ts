@@ -387,7 +387,7 @@ export function createApp({ store, near, allowedOrigin, verifyJwt, chat, now = D
   app.get("/me/inbox", async (c) => {
     const { account } = await signed(c);
     const after = afterId(c.req.query("after"));
-    const inbox: Inbox = { questions: await store.unansweredFor(account), roundsWaiting: [], matches: [], newMessages: [] };
+    const inbox: Inbox = { questions: await store.unansweredFor(account), asked: await store.askedBy(account), roundsWaiting: [], matches: [], newMessages: [] };
 
     const seen = new Set<number>();
     const note = (deal: ChainDeal, listingId: string, title: string, role: "seller" | "buyer") => {

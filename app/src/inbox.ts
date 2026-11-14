@@ -44,6 +44,7 @@ export function splitInbox(inbox: Inbox, side: InboxSide): Inbox {
   const deals = new Set(matches.map((m) => m.dealId));
   return {
     questions: selling ? inbox.questions : [],
+    asked: selling ? [] : inbox.asked,
     roundsWaiting: selling ? inbox.roundsWaiting : [],
     matches,
     newMessages: inbox.newMessages.filter((m) => deals.has(m.dealId)),

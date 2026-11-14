@@ -398,6 +398,17 @@ describe("questions", () => {
     expect(json[0]).toMatchObject({ question: "Any scratches?", answer: "A small one" });
   });
 
+  it("sends the asker their question and, once answered, the seller's answer in their inbox", async () => {
+    const { json: asked } = await call(asker, "POST", `/listings/${listing.id}/questions`, { question: "Any scratches?" });
+    const waiting = (await call(asker, "GET", "/me/inbox")).json.asked;
+    expect(waiting).toHaveLength(1);
+    expect(waiting[0]).toMatchObject({ question: "Any scratches?", answer: null, listingTitle: listing.title });
+
+    await call(seller, "POST", `/questions/${asked.id}/answer`, { answer: "A small one" });
+    expect((await call(asker, "GET", "/me/inbox")).json.asked[0]).toMatchObject({ answer: "A small one" });
+    expect((await call(seller, "GET", "/me/inbox")).json.asked).toEqual([]);
+  });
+
   it("refuses the seller asking on their own listing and an empty question", async () => {
     expect((await call(seller, "POST", `/listings/${listing.id}/questions`, { question: "Hi" })).status).toBe(403);
     expect((await call(asker, "POST", `/listings/${listing.id}/questions`, { question: "" })).status).toBe(400);

@@ -105,6 +105,20 @@ describe("nearClient.submitLimit when the node's answer is a block behind", () =
   });
 });
 
+describe("nearClient.submitLimit when the node times out waiting for OutLayer", () => {
+  it("counts a timeout on the completing call as submitted, and still reports a real refusal", async () => {
+    stubChain({ ...base, buyer: "buyer.testnet" });
+    const { signer } = feeCheckingSigner("buyer.testnet", () => false);
+    const slow = vi.spyOn(signer, "call").mockRejectedValue(Object.assign(new Error("Transaction has timed out after 120 seconds"), { name: "TimeoutError" }));
+
+    await expect(nearClient(signer, chain).submitLimit(7, [9], [3], null)).resolves.toBeUndefined();
+    expect(slow).toHaveBeenCalledTimes(1);
+
+    slow.mockRejectedValue(new Error("only the deal's buyer can submit"));
+    await expect(nearClient(signer, chain).submitLimit(7, [9], [3], null)).rejects.toThrow("only the deal's buyer can submit");
+  });
+});
+
 describe("nearClient.submitLimit attaches the OutLayer fee only on the call that completes the round", () => {
   it("buyer joining a waiting deal completes round 1, so the fee is attached", async () => {
     stubChain(base);

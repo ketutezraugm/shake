@@ -10,6 +10,9 @@ type Sealed = { limit: string; salt: string };
 
 const sealedKey = (dealId: number, round: number) => `blind-deal:sealed:${dealId}:${round}`;
 
+/** True when this browser sealed and submitted an offer for that round. */
+export const hasSealed = (dealId: number, round: number): boolean => localStorage.getItem(sealedKey(dealId, round)) !== null;
+
 export function rememberSealed(dealId: number, round: number, limit: string, salt: string): void {
   localStorage.setItem(sealedKey(dealId, round), JSON.stringify({ limit, salt } satisfies Sealed));
 }

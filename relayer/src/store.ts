@@ -55,6 +55,8 @@ export interface Store {
   /** Null when the question already has an answer. */
   answerQuestion(id: number, answer: string): Promise<Question | null>;
   unansweredFor(seller: string): Promise<(Question & { listingTitle: string })[]>;
+  /** The latest questions an account asked, newest first, answered or not. */
+  askedBy(asker: string): Promise<(Question & { listingTitle: string })[]>;
   addMessage(dealId: number, sender: string, body: string): Promise<Message>;
   messagesOf(dealId: number, after: number): Promise<Message[]>;
   /** Messages in these deals with an id above `after`, written by anyone but `notFrom`. */

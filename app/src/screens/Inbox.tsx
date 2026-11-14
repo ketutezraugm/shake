@@ -106,7 +106,18 @@ function InboxFor({ account, relayerUrl, dealId, side: wanted, embedded }: ForPr
             </Link>
           );
         })}
-        {tasks === 0 && inbox.matches.length === 0 && <p className="muted">Nothing yet. Questions, offers and deals land here.</p>}
+        {inbox.asked.map((q) => (
+          <Link key={q.id} to={`/l/${q.listingId}`} className="convo">
+            <span className="avatar" aria-hidden="true">?</span>
+            <span className="convo-text">
+              <strong>Your question: {q.listingTitle}</strong>
+              <span className="muted">{q.answer ?? `${q.question} (waiting for the seller)`}</span>
+            </span>
+          </Link>
+        ))}
+        {tasks === 0 && inbox.matches.length === 0 && inbox.asked.length === 0 && (
+          <p className="muted">Nothing yet. Questions, offers and deals land here.</p>
+        )}
       </aside>
 
       <section className="inbox-pane" aria-label={dealId === undefined ? "Needs you" : "Chat"}>

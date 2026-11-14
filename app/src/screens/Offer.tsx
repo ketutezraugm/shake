@@ -12,7 +12,18 @@ import sealedMachine from "../design/assets/stickers/sealed-machine.svg";
 import { digitsOnly, formatRp, groupThousands, rpFromYocto } from "../format";
 import { market } from "../marketSource";
 import { readLimit } from "../limitWords";
-import { lastOffer, loadNegotiation, offerView, submitOffer, syncListing, type Negotiation, type OfferView } from "../offer";
+import {
+  lastOffer,
+  loadNegotiation,
+  machineTroubled,
+  MAX_MATCHER_RETRIES,
+  offerView,
+  submitOffer,
+  syncListing,
+  wasHandedBack,
+  type Negotiation,
+  type OfferView,
+} from "../offer";
 import { getHistory, postReceipt } from "../receipts";
 import { Link } from "../routes";
 import { ReceiptList } from "./ReceiptList";
@@ -173,15 +184,29 @@ function OfferStep({ view, deal, negotiation, busy, onOffer, onPay, onReceived, 
     case "enter":
     case "retry":
       return (
-        <OfferForm
-          round={view.round}
-          rounds={view.rounds}
-          retry={view.kind === "retry"}
-          askingPrice={negotiation.askingPrice}
-          floor={view.kind === "retry" ? lastOffer(deal.id) : null}
-          busy={busy}
-          onLock={onOffer}
-        />
+        <>
+          {wasHandedBack(deal) && (
+            <p className="note" role="status">
+              The sealed machine didn't answer, so nothing was compared and your offer came back. Offer again, and the seller opens the round
+              again too. This has happened {deal.matcher_retries} of {MAX_MATCHER_RETRIES} times on this item.
+            </p>
+          )}
+          {view.kind === "retry" && machineTroubled(deal) && (
+            <p className="note" role="status">
+              The sealed machine also had trouble answering on this item, so the last "no deal" may not reflect your offer.
+            </p>
+          )}
+          <OfferForm
+            round={view.round}
+            rounds={view.rounds}
+            retry={view.kind === "retry"}
+            askingPrice={negotiation.askingPrice}
+            floor={view.kind === "retry" ? lastOffer(deal.id) : null}
+            initial={wasHandedBack(deal) ? lastOffer(deal.id) ?? "" : ""}
+            busy={busy}
+            onLock={onOffer}
+          />
+        </>
       );
     case "computing":
       return (
@@ -210,6 +235,9 @@ function OfferStep({ view, deal, negotiation, busy, onOffer, onPay, onReceived, 
         <section className="flow-card">
           <h2>No deal</h2>
           <p>That was your last round on this item. Neither of you learns more than that.</p>
+          {machineTroubled(deal) && (
+            <p className="muted">The sealed machine also had trouble answering on this item, so this result may not reflect your offers.</p>
+          )}
           {more}
         </section>
       );
@@ -331,12 +359,14 @@ type FormProps = {
   retry: boolean;
   askingPrice: string;
   floor: string | null;
+  /** The number to start with: the buyer's last offer after the machine handed the round back. */
+  initial: string;
   busy: boolean;
   onLock: (limit: string) => void;
 };
 
-function OfferForm({ round, rounds, retry, askingPrice, floor, busy, onLock }: FormProps) {
-  const [limit, setLimit] = useState("");
+function OfferForm({ round, rounds, retry, askingPrice, floor, initial, busy, onLock }: FormProps) {
+  const [limit, setLimit] = useState(initial);
   const [confirming, setConfirming] = useState(false);
   const [inWords, setInWords] = useState(false);
   const [words, setWords] = useState("");

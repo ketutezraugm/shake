@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { ContractClient, Deal } from "./contract";
-import { claimSlot, loadNegotiation, offerView, saveNegotiation, submitOffer, syncListing } from "./offer";
+import { claimSlot, loadNegotiation, machineTroubled, offerView, saveNegotiation, submitOffer, syncListing, wasHandedBack } from "./offer";
+import { rememberSealed } from "./proof";
 import type { Signer } from "./signer";
 
 // A real compressed secp256k1 public key (the TEE test key); sealing needs a valid one.
@@ -95,6 +96,23 @@ describe("offerView", () => {
 
   it("refuses an account that is not the deal's buyer", () => {
     expect(offerView(deal({ buyer: "someone.else" }), ME, null)).toEqual({ kind: "notYours" });
+  });
+});
+
+describe("machine trouble", () => {
+  it("knows a round was handed back only when this browser sealed an offer the chain no longer holds", () => {
+    const handedBack = deal({ id: 31, matcher_retries: 1, state: "Waiting", round: 1, buyer_cts: [], seller_cts: [] });
+    expect(wasHandedBack(handedBack)).toBe(false); // nothing was ever sealed here
+
+    rememberSealed(31, 1, "1800000", "salt");
+    expect(wasHandedBack(handedBack)).toBe(true);
+    expect(wasHandedBack({ ...handedBack, buyer_cts: [[2]] })).toBe(false); // the offer is on the chain again
+    expect(wasHandedBack({ ...handedBack, round: 2 })).toBe(false); // round 2 has not been sealed yet
+  });
+
+  it("flags a deal whose machine failed as often as the contract tolerates", () => {
+    expect(machineTroubled(deal({ matcher_retries: 2 }))).toBe(false);
+    expect(machineTroubled(deal({ matcher_retries: 3 }))).toBe(true);
   });
 });
 

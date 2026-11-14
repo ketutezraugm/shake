@@ -76,6 +76,8 @@ export type SendMessageReq = { body: string };
 /** Everything waiting on the caller. The app keeps the last message id it has seen and passes it as `?after=`. */
 export type Inbox = {
   questions: (Question & { listingTitle: string })[];
+  /** Questions this account asked on other people's listings, newest first, so an answer reaches the asker's inbox. */
+  asked: (Question & { listingTitle: string })[];
   /** Slots in `Retry` where the seller must resubmit for the next round. */
   roundsWaiting: { listingId: string; title: string; dealId: number; round: number }[];
   matches: { listingId: string; title: string; dealId: number; role: "seller" | "buyer"; counterparty: string; state: string }[];
