@@ -1,15 +1,14 @@
 # Shake
 
-**Shake** is a second-hand marketplace where **nobody has to haggle in public**. Every listing
+**Shake** is a second-hand marketplace where nobody has to haggle in public. Every listing
 shows an asking price. The seller also seals the lowest price they would take, and nobody can read
 it, including us. Each buyer makes a private offer. A small program inside a sealed machine
-(an **OutLayer TEE**) compares the two numbers. If they overlap, the deal closes at a random price
-inside the overlap and the buyer pays into a **NEAR escrow contract**. If not, the buyer sees only
+(an OutLayer TEE) compares the two numbers. If they overlap, the deal closes at a random price
+inside the overlap and the buyer pays into a NEAR escrow contract. If not, the buyer sees only
 "no deal".
 
-Built for NEAR Hackathon 2026. This is a working build on **NEAR testnet**, not a mockup: limits
-are sealed in the browser, matched inside OutLayer, and settled by our own contract. No real money
-moves.
+Built for NEAR Hackathon 2026. This is a working build on NEAR testnet: limits are sealed in the
+browser, matched inside OutLayer, and settled by our own contract. No real money moves.
 
 ## Live demo
 
@@ -29,23 +28,23 @@ accounts and no keys.
 | Track | How this repo fits it |
 | --- | --- |
 | **Privacy & Private AI** | Limits are encrypted in the browser to a key that only exists inside the TEE, and that key opens only for the pinned WASM build. The machine returns `{deal_id, matched, price}` and nothing else. The relayer and the AI assistant never see a lowest price or an offer. The buyer's proof panel recomputes each commitment to show the sealed offer is the one they sent. |
-| **Real-World Money** | Escrowed payments between real sellers and buyers: reserved, paid, sold, refunded and reopened states, receipts with transaction links, a shop link for a social bio, and Google or email sign-in for people who have never held a wallet. |
+| **Real-World Money** | Escrowed payments between sellers and buyers: reserved, paid, sold, refunded and reopened states, receipts with transaction links, a shop link for a social bio, and Google or email sign-in for people who have never held a wallet. |
 | **Agent Economy** | The product assistant runs on NEAR AI Cloud through the relayer. It answers from the listing and its public Q&A, never discusses offers or the lowest price, and hands anything it can't answer to the seller. |
 
 ## What's built
 
 | Feature | Status | Where |
 | --- | --- | --- |
-| Sealed lowest price and blind offers | **Built**: encrypted in the browser (ECIES) to the TEE's public key, with a `sha256` commitment stored next to each ciphertext | [`app/src/crypto.ts`](app/src/crypto.ts), [`app/src/offer.ts`](app/src/offer.ts) |
-| Matching inside the TEE | **Built**: decrypts both limits, checks commitments, draws a random price inside the overlap | [`tee/src`](tee/src) |
-| Escrow and deal states on NEAR | **Built**: claim, match, pay, release on **Received**, refund after the deadline, reopen | [`contract/src/lib.rs`](contract/src/lib.rs) |
-| Up to 3 private rounds, chosen by the seller | **Built**: each "no deal" gives the buyer one hint to raise | [`app/src/screens/Offer.tsx`](app/src/screens/Offer.tsx) |
-| Up to 10 offer slots per listing | **Built**: pre-created deals, so several buyers can offer against one sealed price | [`app/src/slots.ts`](app/src/slots.ts) |
-| Proof panel | **Built**: the buyer recomputes their own commitments against the chain | [`app/src/proof.ts`](app/src/proof.ts), [`app/src/screens/Proof.tsx`](app/src/screens/Proof.tsx) |
-| Seller shops linked from a bio (`/@name`) | **Built**: listings with photos, a shop hub with orders and sales | [`app/src/screens/Profile.tsx`](app/src/screens/Profile.tsx), [`app/src/screens/Orders.tsx`](app/src/screens/Orders.tsx) |
-| AI product assistant and public Q&A | **Built**: needs a NEAR AI key on the relayer; falls back to "Ask the seller" without one | [`app/src/screens/Assistant.tsx`](app/src/screens/Assistant.tsx), [`app/src/qa.ts`](app/src/qa.ts) |
+| Sealed lowest price and blind offers | Built: encrypted in the browser (ECIES) to the TEE's public key, with a `sha256` commitment stored next to each ciphertext | [`app/src/crypto.ts`](app/src/crypto.ts), [`app/src/offer.ts`](app/src/offer.ts) |
+| Matching inside the TEE | Built: decrypts both limits, checks commitments, draws a random price inside the overlap | [`tee/src`](tee/src) |
+| Escrow and deal states on NEAR | Built: claim, match, pay, release on **Received**, refund after the deadline, reopen | [`contract/src/lib.rs`](contract/src/lib.rs) |
+| Up to 3 private rounds, chosen by the seller | Built: each "no deal" gives the buyer one hint to raise | [`app/src/screens/Offer.tsx`](app/src/screens/Offer.tsx) |
+| Up to 10 offer slots per listing | Built: pre-created deals, so several buyers can offer against one sealed price | [`app/src/slots.ts`](app/src/slots.ts) |
+| Proof panel | Built: the buyer recomputes their own commitments against the chain | [`app/src/proof.ts`](app/src/proof.ts), [`app/src/screens/Proof.tsx`](app/src/screens/Proof.tsx) |
+| Seller shops linked from a bio (`/@name`) | Built: listings with photos, a shop hub with orders and sales | [`app/src/screens/Profile.tsx`](app/src/screens/Profile.tsx), [`app/src/screens/Orders.tsx`](app/src/screens/Orders.tsx) |
+| AI product assistant and public Q&A | Built: needs a NEAR AI key on the relayer; falls back to "Ask the seller" without one | [`app/src/screens/Assistant.tsx`](app/src/screens/Assistant.tsx), [`app/src/qa.ts`](app/src/qa.ts) |
 | Chat after a deal | **Built** | [`app/src/screens/Chat.tsx`](app/src/screens/Chat.tsx), [`app/src/inbox.ts`](app/src/inbox.ts) |
-| Sign-in with Google, email or a NEAR wallet | **Built**: browsing and asking need any sign-in; selling and buying need a NEAR account | [`app/src/auth.ts`](app/src/auth.ts), [`app/src/wallet.ts`](app/src/wallet.ts) |
+| Sign-in with Google, email or a NEAR wallet | Built: browsing and asking need any sign-in; selling and buying need a NEAR account | [`app/src/auth.ts`](app/src/auth.ts), [`app/src/wallet.ts`](app/src/wallet.ts) |
 | Proof that a result came from the pinned WASM | Not built: see [Honest limits](#honest-limits) | — |
 
 ## Architecture
@@ -160,18 +159,16 @@ The real path needs a Supabase project, a NEAR testnet wallet and an OutLayer de
 
 | | Status |
 | --- | --- |
-| Sealing limits in the browser, commitments on the chain | **Real** on testnet |
-| Matching inside OutLayer (Intel TDX), hash-pinned WASM | **Real** on testnet |
-| Escrow, release on **Received**, refund after the deadline | **Real**: testnet NEAR moves through the contract |
-| Listings, photos, Q&A, chat | **Real**: Supabase through the relayer |
-| AI product assistant | **Real** with a NEAR AI key on the relayer |
-| Rupiah to NEAR conversion | **Simulated**: a fixed demo rate |
-| Local mode (`npm run dev:relayer`) | **Simulated** chain in the browser, for trying the flow without keys |
+| Sealing limits in the browser, commitments on the chain | Real on testnet |
+| Matching inside OutLayer (Intel TDX), hash-pinned WASM | Real on testnet |
+| Escrow, release on **Received**, refund after the deadline | Real: testnet NEAR moves through the contract |
+| Listings, photos, Q&A, chat | Real: Supabase through the relayer |
+| AI product assistant | Real with a NEAR AI key on the relayer |
+| Rupiah to NEAR conversion | Simulated: a fixed demo rate |
+| Local mode (`npm run dev:relayer`) | Simulated chain in the browser, for trying the flow without keys |
 | Mainnet | Not used. Testnet only |
 
 ## Honest limits
-
-We would rather say these here than have you find them.
 
 - **OutLayer is centrally operated today.** You trust its operator to run the public code as
   published. The contract accepts a result only through OutLayer's callback path, but nothing yet
@@ -191,6 +188,14 @@ We would rather say these here than have you find them.
   deadline; whether the item is good is between you and the seller.
 - **The price is an estimate.** Each OutLayer run cost about 0.001 NEAR on testnet; we have not
   verified what it costs elsewhere.
+- **Offer slots can be squatted.** Claiming a slot is free and a claim never expires, so a few
+  accounts could claim all 10 slots of a listing and show other buyers "Offers full".
+- **Questions are not capped per account**, so one account can flood a seller's inbox.
+- **The relayer's rate-limit counters and signature cache live in memory and are never pruned.** A
+  restart clears them.
+- **`POST /listings/:id/sync` needs no sign-in** and makes up to 10 chain reads per call.
+- **A signed relayer request can be replayed for 5 minutes**, because it carries no nonce. TLS
+  covers it in transit, but a replayed call that creates something would create it twice.
 
 ## Repo layout
 
@@ -209,6 +214,9 @@ We would rather say these here than have you find them.
 
 - Stickers, icons, logo and motion were drawn for this project
   ([`app/src/design/assets/`](app/src/design/assets)).
+- The demo video is HTML that redraws the app's screens ([`app/video/`](app/video)). Its sound
+  effects are CC0 clips with sources in [`app/video/sfx/SOURCES.md`](app/video/sfx/SOURCES.md), and
+  its voiceover was generated with ElevenLabs.
 - Seed photos are freely licensed images from Wikimedia Commons, with their sources in
   [`seed/SOURCES.md`](seed/SOURCES.md).
 - Libraries are listed in `package.json` and `Cargo.toml`. The approach for the sealed key follows
