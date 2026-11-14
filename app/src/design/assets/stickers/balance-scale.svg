@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="-12 -12 144 144" width="144" height="144" role="img" aria-label="Balance scale">
-  <!-- Source: Blind deal design system (Claude Design, Abel), sticker "balance scale": fair. -->
+  <!-- Source: Shake design system (Claude Design, Abel), sticker "balance scale": fair. -->
   <g stroke-linejoin="round" stroke-linecap="round">
     <g fill="#FFFFFF" stroke="#FFFFFF" stroke-width="30"><path d="M4 66H40Q40 84 22 84Q4 84 4 66Z"/><path d="M80 66H116Q116 84 98 84Q80 84 80 66Z"/><rect x="55.5" y="18" width="9" height="86"/><rect x="14" y="21.5" width="92" height="9" rx="4.5"/><rect x="36" y="100" width="48" height="12" rx="4"/><path d="M22 26L10 66M22 26L34 66M98 26L86 66M98 26L110 66" fill="none"/></g>
     <g fill="#1D1C1A"><rect x="55.5" y="18" width="9" height="86"/><rect x="14" y="21.5" width="92" height="9" rx="4.5"/><rect x="36" y="100" width="48" height="12" rx="4"/></g>

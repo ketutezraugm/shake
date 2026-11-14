@@ -20,6 +20,9 @@ browser, matched inside OutLayer, and settled by our own contract. No real money
 | **Sealed-machine WASM** (SHA-256) | `789705434c9498d88c739cd5e28b5331cf6ff44c2a1dad5f2a9e435d3479b904` |
 | **Contract code hash** | `a62f3e91d2c75c79fb8ef628f6b894a08da66a1b95cb163a6a2190620e9dc7c2` |
 
+The contract and a few internal identifiers keep their original `blind-deal` names, because a
+deployed NEAR account cannot be renamed and the sealed machine's hashes depend on them.
+
 No time to deploy anything? [Try it locally](#try-it-locally) in about 3 minutes with no
 accounts and no keys.
 
@@ -104,8 +107,8 @@ About 3 minutes, no accounts, no keys. You need **Node 22 or newer**; no Rust, n
 `.env`.
 
 ```bash
-git clone https://github.com/ketutezraugm/blind-deal.git
-cd blind-deal
+git clone https://github.com/ketutezraugm/shake.git
+cd shake
 npm ci
 npm run dev:relayer                                         # terminal 1: a local stand-in for the server
 VITE_RELAYER_URL=http://localhost:8787 npm run dev -w app   # terminal 2: the app

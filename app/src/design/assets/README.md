@@ -1,6 +1,6 @@
 # Design assets
 
-Drawn in Claude Design by Abel (design system "Blind deal", direction G). Screens that use them: the "Final screens (G)" page of the screens canvas. Each SVG names its source in a one-line comment.
+Drawn in Claude Design by Abel (design system "Shake", direction G). Screens that use them: the "Final screens (G)" page of the screens canvas. Each SVG names its source in a one-line comment.
 
 ## Stickers (`stickers/`)
 

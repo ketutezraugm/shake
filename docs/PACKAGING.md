@@ -1,6 +1,6 @@
 # Packaging: Shake
 
-Draft 2026-11-12, updated 2026-11-13 for the name Shake (#42), the asking price and the buyer cap. Binding sources: PRD, marketplace pivot design (docs/superpowers/specs/2026-11-12-marketplace-pivot-design.md, 2026-11-12), IDEAS (Blind deal), DECISIONS, RECON 1/4/5, HACKATHON "2. The demo post". Demo numbers (asking price 6.0M, seller minimum 5.0M, buyer offer 5.5M, deal 5.2M) are seed values; a buyer can offer at most the asking price, so the asking price must be at least the buyer's number; [TBD: confirm in `demo:seed`]. Anything unverified is `[TBD: ...]`.
+Draft 2026-11-12, updated 2026-11-13 for the name Shake (#42), the asking price and the buyer cap. Binding sources: PRD, marketplace pivot design (docs/superpowers/specs/2026-11-12-marketplace-pivot-design.md, 2026-11-12), IDEAS, DECISIONS, RECON 1/4/5, HACKATHON "2. The demo post". Demo numbers (asking price 6.0M, seller minimum 5.0M, buyer offer 5.5M, deal 5.2M) are seed values; a buyer can offer at most the asking price, so the asking price must be at least the buyer's number; [TBD: confirm in `demo:seed`]. Anything unverified is `[TBD: ...]`.
 
 ## 1. Demo video script (target 2:10, captions on)
 
@@ -31,7 +31,7 @@ Draft for team approval (P-03, 2026-11-13 20:30 UTC). Checked against the app as
 1. "How it works: a seller puts one shop link in their bio. Every listing shows an asking price; the seller's real floor stays sealed. Offers are encrypted on the buyer's phone to a key that only exists inside the TEE. Public, hash-pinned code returns deal or no deal, and a price."
 2. "Browse and ask with Google or email. To sell or make an offer you connect a NEAR wallet, so every offer is signed by its owner and the app holds nobody's keys or money. Escrow releases on 'Received'; nothing arrives in 7 days, the buyer takes it back. No admin key."
 3. "Each buyer can check on their own phone that the sealed offer on the chain is exactly the one they sent. An AI assistant on NEAR AI Cloud answers questions about the item and never sees anyone's limit. Honest limit: OutLayer runs the enclave centrally today."
-4. "Repo: https://github.com/ketutezraugm/blind-deal · Demo: https://shake-app.onrender.com · Testnet only. Question for anyone who sells used things: would you put a shop link like this in your bio instead of haggling in DMs? @NearLegion @NearBuilders"
+4. "Repo: https://github.com/ketutezraugm/shake · Demo: https://shake-app.onrender.com · Testnet only. Question for anyone who sells used things: would you put a shop link like this in your bio instead of haggling in DMs? @NearLegion @NearBuilders"
 
 Cut from the old draft: "no wallet and no seed phrase" (wrong since 2026-11-13: a Google login no longer gets a NEAR account), and the real-deals count (no deals are logged yet; add "[N] real deals so far" to tweet 4 only if S-08 logs some).
 
@@ -49,7 +49,7 @@ A match reserves the item. The buyer pays into a NEAR escrow contract and chat o
 
 **README-ready version**
 
-*Overview.* The text above, then the README's "Try it" steps (local, no keys) and the hosted demo: https://shake-app.onrender.com (repo: https://github.com/ketutezraugm/blind-deal).
+*Overview.* The text above, then the README's "Try it" steps (local, no keys) and the hosted demo: https://shake-app.onrender.com (repo: https://github.com/ketutezraugm/shake).
 
 *Track: Privacy.* Limits are encrypted in the browser to a key derived inside the TEE from a `PROTECTED_` secret. The WASM runs in Intel TDX on `outlayer.testnet`, is public and hash-pinned (`789705434c9498d88c739cd5e28b5331cf6ff44c2a1dad5f2a9e435d3479b904`), and returns only `{deal_id, matched, price}`; the key opens only for that build. The relayer and the AI assistant never see a lowest price or an offer. The chain holds ciphertexts and `sha256` commitments, and the buyer's proof panel recomputes each of their own commitments to show the sealed offer is the one they sent. Stated limits: OutLayer is operated centrally; nothing yet proves a result came from the pinned WASM (enclave-signed results are S-07, not built); each round leaks one bit; users trust the served frontend.
 
