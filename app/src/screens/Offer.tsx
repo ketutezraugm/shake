@@ -11,6 +11,7 @@ import handUnderCloth from "../design/assets/stickers/hand-under-cloth.svg";
 import sealedMachine from "../design/assets/stickers/sealed-machine.svg";
 import { digitsOnly, formatRp, groupThousands, rpFromYocto } from "../format";
 import { market } from "../marketSource";
+import { readLimit } from "../limitWords";
 import { lastOffer, loadNegotiation, offerView, submitOffer, syncListing, type Negotiation, type OfferView } from "../offer";
 import { getHistory, postReceipt } from "../receipts";
 import { Link } from "../routes";
@@ -337,13 +338,22 @@ type FormProps = {
 function OfferForm({ round, rounds, retry, askingPrice, floor, busy, onLock }: FormProps) {
   const [limit, setLimit] = useState("");
   const [confirming, setConfirming] = useState(false);
-  const valid = limit !== "" && BigInt(limit) <= BigInt(askingPrice) && (floor === null || BigInt(limit) >= BigInt(floor));
+  const [inWords, setInWords] = useState(false);
+  const [words, setWords] = useState("");
+  const reading = readLimit(words);
+  const valid =limit !== "" && BigInt(limit) <= BigInt(askingPrice) && (floor === null || BigInt(limit) >= BigInt(floor));
   const tooHigh = limit !== "" && BigInt(limit) > BigInt(askingPrice);
   const tooLow = limit !== "" && floor !== null && BigInt(limit) < BigInt(floor);
 
   function review(event: FormEvent) {
     event.preventDefault();
     if (valid) setConfirming(true);
+  }
+
+  // The reading only fills the number field: the buyer still sees it, can edit it, and reviews it like a typed one.
+  function takeReading(amount: string) {
+    setLimit(amount);
+    setInWords(false);
   }
 
   if (confirming) {
@@ -374,6 +384,45 @@ function OfferForm({ round, rounds, retry, askingPrice, floor, busy, onLock }: F
         </>
       )}
       <span className="eyebrow">Round {round} of {rounds}</span>
+      <div className="chips" role="group" aria-label="How to enter your offer">
+        <button type="button" className="chip" aria-pressed={!inWords} onClick={() => setInWords(false)}>
+          Type a number
+        </button>
+        <button type="button" className="chip" aria-pressed={inWords} onClick={() => setInWords(true)}>
+          Say it in words
+        </button>
+      </div>
+      {inWords && (
+        <div className="words-box">
+          <label>
+            Your limit, in your words
+            <textarea value={words} onChange={(e) => setWords(e.target.value)} rows={2} placeholder="Paling mahal 4,3 juta" />
+          </label>
+          <span className="hint">Read on this phone only. Your words are never sent anywhere.</span>
+          {words.trim() !== "" && (
+            <div className="words-reading" aria-live="polite">
+              {reading.amount !== null && (
+                <>
+                  <span className="eyebrow">We read this as</span>
+                  <p className="big-amount num">
+                    <Amount rp={groupThousands(reading.amount)} />
+                  </p>
+                </>
+              )}
+              {reading.notes.map((note) => (
+                <p key={note} className="muted">
+                  {note}
+                </p>
+              ))}
+              {reading.amount !== null && (
+                <button type="button" className="outline-button" onClick={() => takeReading(reading.amount ?? "")}>
+                  Use {formatRp(reading.amount)}
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+      )}
       <label>
         The most you'd pay
         <span className="amount-field">
