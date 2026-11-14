@@ -7,10 +7,12 @@ import { digitsOnly, formatRp, groupThousands } from "../format";
 import { answerQuestion, badgeCount, getInbox, resubmitRound } from "../inbox";
 import { Link } from "../routes";
 import { storedMinimum } from "../slots";
+import { ChatThread } from "./Chat";
 
 const POLL_MS = 10_000;
 
-export function Inbox() {
+/** Conversations on the left, the open one on the right; on a phone the list and the chat take turns. */
+export function Inbox({ dealId }: { dealId?: number }) {
   const account = currentAccount();
   if (!account) {
     return (
@@ -28,10 +30,10 @@ export function Inbox() {
       </main>
     );
   }
-  return <InboxFor account={account} relayerUrl={relayerUrl} />;
+  return <InboxFor account={account} relayerUrl={relayerUrl} dealId={dealId} />;
 }
 
-function InboxFor({ account, relayerUrl }: { account: string; relayerUrl: string }) {
+function InboxFor({ account, relayerUrl, dealId }: { account: string; relayerUrl: string; dealId?: number }) {
   const chain = useRef(chainFor(account)).current;
   const [inbox, setInbox] = useState<InboxData | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -61,65 +63,77 @@ function InboxFor({ account, relayerUrl }: { account: string; relayerUrl: string
   }
 
   const count = badgeCount(inbox);
-  const empty = inbox.questions.length + inbox.roundsWaiting.length + inbox.matches.length + inbox.newMessages.length === 0;
+  const tasks = inbox.roundsWaiting.length + inbox.questions.length;
+  const unread = (id: number) => inbox.newMessages.filter((m) => m.dealId === id);
 
   return (
-    <main className="page narrow">
-      <div className="section-head">
-        <h1 className="headline">Inbox</h1>
-        <span className="num muted">{count > 0 ? `${count} new` : "All caught up"}</span>
-      </div>
-      {error && <p className="error" role="alert">{error}</p>}
-      {empty && <p className="muted">Nothing yet. Questions, offers and deals land here.</p>}
-
-      {inbox.roundsWaiting.map((r) => (
-        <RoundRequest
-          key={r.dealId}
-          request={r}
-          onOpen={async (limit) => {
-            await resubmitRound({ listingId: r.listingId, dealId: r.dealId, round: r.round, limit, client: chain.client, teePubkey: chain.teePubkey });
-            await reload();
-          }}
-        />
-      ))}
-
-      {inbox.questions.map((q) => (
-        <AnswerQuestion
-          key={q.id}
-          title={q.listingTitle}
-          question={q.question}
-          onAnswer={async (text) => {
-            await answerQuestion(relayerUrl, chain.signer, q.id, text);
-            await reload();
-          }}
-        />
-      ))}
-
-      {inbox.matches.map((m) => (
-        <section className="inbox-card" key={m.dealId}>
-          <span className="tag">Deal · {m.state}</span>
-          <h2>{m.title}</h2>
-          <p className="muted">
-            {m.role === "seller" ? "Buyer" : "Seller"}: {m.counterparty}
-          </p>
-          <p>
-            <Link to={`/chat/${m.dealId}`}>Message</Link>
-            {m.role === "buyer" && <> · <Link to={`/deals/${m.dealId}`}>Open the deal</Link></>}
-          </p>
-        </section>
-      ))}
-
-      {inbox.newMessages.length > 0 && (
-        <section className="stack" aria-label="New messages">
-          <h2 className="section-title">New messages</h2>
-          {inbox.newMessages.map((m) => (
-            <Link key={m.id} to={`/chat/${m.dealId}`} className="inbox-card">
-              <strong>{m.senderAccount}</strong>
-              <span>{m.body}</span>
+    <main className={dealId === undefined ? "page inbox" : "page inbox chat-open"}>
+      <aside className="inbox-list" aria-label="Conversations">
+        <div className="section-head">
+          <h1 className="headline">Inbox</h1>
+          <span className="num muted">{count > 0 ? `${count} new` : "All caught up"}</span>
+        </div>
+        {error && <p className="error" role="alert">{error}</p>}
+        {tasks > 0 && (
+          <Link to="/inbox" className="convo" current={dealId === undefined}>
+            <span className="avatar" aria-hidden="true">!</span>
+            <span className="convo-text">
+              <strong>Needs you</strong>
+              <span className="muted">{tasks === 1 ? "1 thing to answer" : `${tasks} things to answer`}</span>
+            </span>
+          </Link>
+        )}
+        {inbox.matches.map((m) => {
+          const fresh = unread(m.dealId);
+          return (
+            <Link key={m.dealId} to={`/chat/${m.dealId}`} className="convo" current={m.dealId === dealId}>
+              <span className="avatar" aria-hidden="true">{m.counterparty.charAt(0).toUpperCase()}</span>
+              <span className="convo-text">
+                <strong>{m.counterparty}</strong>
+                <span className="muted">{fresh.at(-1)?.body ?? m.title}</span>
+              </span>
+              {fresh.length > 0 && <span className="convo-badge num">{fresh.length}</span>}
             </Link>
-          ))}
-        </section>
-      )}
+          );
+        })}
+        {tasks === 0 && inbox.matches.length === 0 && <p className="muted">Nothing yet. Questions, offers and deals land here.</p>}
+      </aside>
+
+      <section className="inbox-pane" aria-label={dealId === undefined ? "Needs you" : "Chat"}>
+        {dealId !== undefined ? (
+          <>
+            <Link to="/inbox" className="mobile-only">← All conversations</Link>
+            <ChatThread key={dealId} dealId={dealId} account={account} relayerUrl={relayerUrl} chain={chain} />
+            {inbox.matches.some((m) => m.dealId === dealId && m.role === "buyer") && <Link to={`/deals/${dealId}`}>Open the deal</Link>}
+          </>
+        ) : tasks === 0 ? (
+          <p className="inbox-empty muted">Pick a conversation to read it here.</p>
+        ) : (
+          <>
+            {inbox.roundsWaiting.map((r) => (
+              <RoundRequest
+                key={r.dealId}
+                request={r}
+                onOpen={async (limit) => {
+                  await resubmitRound({ listingId: r.listingId, dealId: r.dealId, round: r.round, limit, client: chain.client, teePubkey: chain.teePubkey });
+                  await reload();
+                }}
+              />
+            ))}
+            {inbox.questions.map((q) => (
+              <AnswerQuestion
+                key={q.id}
+                title={q.listingTitle}
+                question={q.question}
+                onAnswer={async (text) => {
+                  await answerQuestion(relayerUrl, chain.signer, q.id, text);
+                  await reload();
+                }}
+              />
+            ))}
+          </>
+        )}
+      </section>
     </main>
   );
 }

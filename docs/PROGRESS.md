@@ -35,7 +35,7 @@ Mirrors docs/plans/IMPLEMENTATION.md (marketplace plan, Revision B: slots and tw
 ## Block C: 2026-11-13 12:00-24:00 UTC
 - [x] **MK-05** AI product assistant (CT): `POST /assistant` live-model checks pass; the asking price joins the prompt once MK-15 lands
 - [ ] **MK-24** Offer flow (FE): #80, restyled in #90; unit-tested; two browser profiles on the mock chain (DP, 2026-11-13): offer below the minimum gives no deal, the buyer raises, the seller opens round 2 from the inbox, "It's a deal" at Rp 1.503.190 inside the overlap, pay, Received, "Paid out", the listing is sold (leaves browse, the shop shows 1 sold); the two-browser testnet run (gate G3) is still open
-- [x] **MK-25** Chat and inbox (FE): #81, restyled in #90; unit-tested; live run still open
+- [x] **MK-25** Chat and inbox (FE): #81, restyled in #90; unit-tested; live run still open; two-pane inbox (conversations left, chat right, one at a time on a phone) on `bi/mk-25-inbox-two-pane`
 - [x] **MK-41** Receipts and history (BI): the relayer checks a payment's transaction on chain and keeps it as a receipt; `/history` and the offer page show each with a nearblocks link and the item photo; unit-tested, migration 0005 applied to the shared project; the live testnet buy is still open
 - [x] **MK-31** Seed photos (DP): `seed/` with 6 freely licensed photos, listings and sources
 - [ ] **MK-14** Seed: demo shop (BI)

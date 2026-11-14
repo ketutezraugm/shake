@@ -71,6 +71,11 @@ const SHOP = (handle: string): Tab => ({
   ),
 });
 
+/** A chat lives inside the inbox, so the inbox tab stays lit on it. */
+function isCurrent(tab: Tab, path: string): boolean {
+  return path === tab.to || (tab.to === "/inbox" && path.startsWith("/chat/"));
+}
+
 /**
  * The wide-screen links. Each link holds its own underline, exactly as wide as its text (press.css), and only the
  * current link's is shown. When the current link changes, the new line starts where the old one was, at the old one's
@@ -113,7 +118,7 @@ function DeskNav({ tabs, path }: { tabs: Tab[]; path: string }) {
   return (
     <nav ref={nav} className="desk-nav desktop-only" aria-label="Main">
       {tabs.map((tab) => (
-        <Link key={tab.to} to={tab.to} className="desk-link" current={path === tab.to}>
+        <Link key={tab.to} to={tab.to} className="desk-link" current={isCurrent(tab, path)}>
           <span className="desk-label" data-label={tab.label}>
             {tab.label}
           </span>
@@ -166,7 +171,7 @@ export function Shell({ path, children }: { path: string; children: ReactNode })
       <div className="tabs">
         <nav aria-label="Main">
           {tabs.map((tab) => (
-            <Link key={tab.to} to={tab.to} className="tab" current={path === tab.to}>
+            <Link key={tab.to} to={tab.to} className="tab" current={isCurrent(tab, path)}>
               {tab.icon}
               {tab.label}
             </Link>

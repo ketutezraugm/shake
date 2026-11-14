@@ -1,12 +1,9 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import type { Message } from "../../../relayer/src/types";
-import { currentAccount } from "../accounts";
 import { chainFor } from "../client";
-import { relayerUrl } from "../config";
 import type { Deal } from "../contract";
 import { rpFromYocto } from "../format";
 import { getMessages, sendMessage } from "../inbox";
-import { Link } from "../routes";
 
 const POLL_MS = 3000;
 const CHAT_OPEN = new Set(["Matched", "Funded", "Released", "Refunded"]);
@@ -18,30 +15,10 @@ const HELD: Record<string, string> = {
   Refunded: "refunded",
 };
 
-/** The buyer-and-seller chat for one deal; it only exists after a match. */
-export function Chat({ dealId }: { dealId: number }) {
-  const account = currentAccount();
-  if (!account) {
-    return (
-      <main className="page narrow">
-        <h1 className="headline">Chat</h1>
-        <p className="muted"><Link to="/signin">Connect a NEAR wallet</Link> to open your chat.</p>
-      </main>
-    );
-  }
-  if (!relayerUrl) {
-    return (
-      <main className="page narrow">
-        <h1 className="headline">Chat</h1>
-        <p className="muted">Chat needs VITE_RELAYER_URL in the app's environment.</p>
-      </main>
-    );
-  }
-  return <DealChat dealId={dealId} account={account} relayerUrl={relayerUrl} />;
-}
+type Chain = ReturnType<typeof chainFor>;
 
-function DealChat({ dealId, account, relayerUrl }: { dealId: number; account: string; relayerUrl: string }) {
-  const chain = useRef(chainFor(account)).current;
+/** The buyer-and-seller chat for one deal, shown in the inbox's right pane; it only exists after a match. */
+export function ChatThread({ dealId, account, relayerUrl, chain }: { dealId: number; account: string; relayerUrl: string; chain: Chain }) {
   const [deal, setDeal] = useState<Deal | null | undefined>(undefined);
   const [messages, setMessages] = useState<Message[]>([]);
   const [draft, setDraft] = useState("");
@@ -89,24 +66,18 @@ function DealChat({ dealId, account, relayerUrl }: { dealId: number; account: st
     }
   }
 
-  if (deal === undefined) return <main className="page narrow"><p className="muted">Loading…</p></main>;
+  if (deal === undefined) return <p className="muted">Loading…</p>;
   if (deal === null || (deal.buyer !== account && deal.seller !== account)) {
-    return <main className="page narrow"><h1 className="headline">Chat</h1><p className="muted">This chat isn't yours.</p></main>;
+    return <p className="muted">This chat isn't yours.</p>;
   }
   const other = deal.seller === account ? (deal.buyer ?? "the buyer") : deal.seller;
 
   if (!CHAT_OPEN.has(deal.state)) {
-    return (
-      <main className="page narrow">
-        <h1 className="headline">Chat</h1>
-        <p className="flow-card">Chat opens once you have a deal.</p>
-        <p><Link to="/inbox">Back to inbox</Link></p>
-      </main>
-    );
+    return <p className="flow-card">Chat opens once you have a deal.</p>;
   }
 
   return (
-    <main className="page narrow">
+    <>
       <div className="chat-head">
         <span className="avatar" aria-hidden="true">{other.charAt(0).toUpperCase()}</span>
         <div>
@@ -135,6 +106,6 @@ function DealChat({ dealId, account, relayerUrl }: { dealId: number; account: st
           {busy ? "Sending…" : "Send"}
         </button>
       </form>
-    </main>
+    </>
   );
 }
