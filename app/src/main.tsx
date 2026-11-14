@@ -8,6 +8,7 @@ import "./styles/stickers.css";
 import "./styles/press.css";
 import { saveSession, sessionFromHash } from "./auth";
 import { Router } from "./routes";
+import { CrashGuard } from "./screens/CrashGuard";
 import { watchStickers } from "./stickerPop";
 
 // Supabase falls back to its Site URL when the redirect is not allow-listed, so a returned session is taken on any page.
@@ -17,5 +18,9 @@ if (returned) {
   history.replaceState(null, "", "/");
 }
 
-createRoot(document.getElementById("root")!).render(<Router />);
+createRoot(document.getElementById("root")!).render(
+  <CrashGuard>
+    <Router />
+  </CrashGuard>,
+);
 watchStickers();
