@@ -599,7 +599,7 @@
 }
 
 @media (min-width: 900px) {
-  .page.inbox {
+  .inbox {
     display: grid;
     grid-template-columns: 320px minmax(0, 1fr);
     gap: 0;
@@ -607,6 +607,10 @@
     min-height: calc(100vh - 80px);
     padding-top: 0;
     padding-bottom: 0;
+  }
+
+  .inbox.embedded {
+    min-height: 0;
   }
 
   .inbox-list {
@@ -625,5 +629,130 @@
   .inbox-empty {
     display: block;
     margin: auto;
+  }
+}
+
+.order-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8);
+}
+
+.order-tabs button {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-8);
+  padding: 8px 14px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-panel);
+  color: var(--ink-muted);
+  font-weight: 600;
+}
+
+.order-tabs button[aria-pressed="true"] {
+  border-color: var(--ink);
+  color: var(--ink);
+  font-weight: 800;
+}
+
+.order-count {
+  font-size: var(--text-14);
+}
+
+/* An order: photo on the left, title and state in the middle, the negotiated price over the struck asking price on the right. */
+.order-card {
+  padding: 16px;
+  display: grid;
+  grid-template-columns: 72px 1fr auto;
+  gap: var(--space-12);
+  align-items: start;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-panel);
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.order-card.attention {
+  border-color: var(--ink);
+}
+
+.order-photo {
+  position: relative;
+  width: 72px;
+  height: 72px;
+  border-radius: var(--radius-panel);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.order-photo > img:not(.sticker) {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.order-off {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--sun-tint);
+  color: var(--ink);
+  font-size: var(--text-13);
+  font-weight: 800;
+}
+
+.order-body {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.order-meta {
+  font-size: var(--text-13);
+  color: var(--ink-muted);
+  overflow-wrap: anywhere;
+}
+
+.order-prices {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--space-4);
+}
+
+.order-deal {
+  font-size: var(--text-17);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.order-asking {
+  font-size: var(--text-13);
+  color: var(--ink-muted);
+}
+
+/* Phones: the prices drop under the title so a long name keeps its width. */
+@media (max-width: 480px) {
+  .order-card {
+    grid-template-columns: 64px 1fr;
+  }
+
+  .order-photo {
+    width: 64px;
+    height: 64px;
+  }
+
+  .order-prices {
+    grid-column: 2;
+    flex-direction: row;
+    align-items: baseline;
+    gap: var(--space-8);
   }
 }

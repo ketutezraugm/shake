@@ -55,7 +55,7 @@ Mirrors docs/plans/IMPLEMENTATION.md (marketplace plan, Revision B: slots and tw
 ## Should (after G3)
 - [ ] **S-02** AI negotiator: the buyer's "Say it in words" is built (DP, PR) and reads the sentence in the browser, not with an AI; an AI reading would send the buyer's limit to the relayer, so that part waits on a decision (see DECISIONS)
 - [ ] **S-01** Verified panel: the buyer's proof panel is built (DP, PR): it recomputes each of the buyer's commitments in the browser and compares them with the chain, and shows the pinned WASM hash and the contract; the "fresh nonce per open" check against the sealed machine still needs CT
-- [ ] **S-12** Link a Google login to a wallet
+- [x] **S-12** Link a Google login to a wallet (BI): `PUT /me/login`, `GET /login/profile`; a login made before the wallet links on the next wallet sign-in
 - [ ] **S-11** Ratings, saved items, email notifications
 - [ ] **S-13** Contract-level single sale
 - [ ] **S-07** Enclave-signed results

@@ -32,6 +32,24 @@ export function answerQuestion(relayerUrl: string, signer: Signer, questionId: n
 /** The number on the Inbox tab: things waiting on the person. Matches are listed but are not "new". */
 export const badgeCount = (inbox: Inbox): number => inbox.questions.length + inbox.roundsWaiting.length + inbox.newMessages.length;
 
+export type InboxSide = "buying" | "selling";
+
+/**
+ * One account does both jobs, so the relayer sends everything together. The shop's inbox shows the selling side
+ * (questions, rounds, chats where the person sells); /inbox shows the buying side.
+ */
+export function splitInbox(inbox: Inbox, side: InboxSide): Inbox {
+  const selling = side === "selling";
+  const matches = inbox.matches.filter((m) => (m.role === "seller") === selling);
+  const deals = new Set(matches.map((m) => m.dealId));
+  return {
+    questions: selling ? inbox.questions : [],
+    roundsWaiting: selling ? inbox.roundsWaiting : [],
+    matches,
+    newMessages: inbox.newMessages.filter((m) => deals.has(m.dealId)),
+  };
+}
+
 export type ResubmitRoundOptions = {
   listingId: string;
   dealId: number;

@@ -6,7 +6,7 @@ import backIcon from "../design/assets/icons/back.svg";
 import checkIcon from "../design/assets/icons/check.svg";
 import shakeMark from "../design/assets/logo/shake-mark.svg";
 import { Link, navigate } from "../routes";
-import { fetchMyProfile, signInWithWallet } from "../wallet";
+import { fetchMyProfile, linkLoginToWallet, signInWithWallet } from "../wallet";
 
 type WalletState = "idle" | "connecting" | "rejected";
 
@@ -61,7 +61,10 @@ export function SignIn() {
       const session = await signInWithWallet();
       // A returning account keeps its shop; only a first sign-in names one.
       const shop = relayerUrl ? await fetchMyProfile(relayerUrl, session) : null;
-      if (shop) saveHandle(shop.handle);
+      if (shop) {
+        saveHandle(shop.handle);
+        if (relayerUrl) await linkLoginToWallet(relayerUrl, session);
+      }
       navigate(shop ? `/@${shop.handle}` : "/signup");
     } catch {
       setWallet("rejected");

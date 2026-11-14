@@ -1,27 +1,26 @@
-import { useEffect, useState, type KeyboardEvent } from "react";
+import { useEffect, useState } from "react";
 import { currentAccount, currentHandle } from "../accounts";
 import type { Shop } from "../market";
+import { useWaiting } from "../menuHooks";
 import { market } from "../marketSource";
+import { readMenuHidden, sectionFromQuery, writeMenuHidden, type ShopSection } from "../shopSection";
+import { Inbox } from "./Inbox";
 import { ListingCard } from "./ListingCard";
-import { Sales } from "./Sales";
+import { Orders } from "./Orders";
+import { Sell } from "./Sell";
+import { ShopSidebar } from "./ShopSidebar";
 import { ErrorState, NotFound } from "./States";
-
-const TABS = [
-  { key: "for-sale", label: "For sale" },
-  { key: "sales", label: "Your sales" },
-] as const;
-type ShopTab = (typeof TABS)[number]["key"];
-
-function tabFromUrl(): ShopTab {
-  return new URLSearchParams(location.search).get("tab") === "sales" ? "sales" : "for-sale";
-}
 
 export function Profile({ handle }: { handle: string }) {
   const [shop, setShop] = useState<Shop | null | undefined>(undefined);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [attempt, setAttempt] = useState(0);
-  const [tab, setTab] = useState<ShopTab>(tabFromUrl);
+  const [tab, setTab] = useState<ShopSection>(() => sectionFromQuery(location.search));
+  const [menuHidden, setMenuHidden] = useState(readMenuHidden);;
+
+  const owner = currentAccount() !== null && handle === currentHandle();
+  const waiting = useWaiting(owner ? currentAccount() : null);
 
   useEffect(() => {
     let current = true;
@@ -41,17 +40,20 @@ export function Profile({ handle }: { handle: string }) {
     setCopied(true);
   }
 
-  function selectTab(next: ShopTab) {
+  function selectSection(next: ShopSection) {
     setTab(next);
-    // replaceState so switching tabs doesn't fill the back button; a refresh keeps the tab.
-    history.replaceState(null, "", next === "sales" ? "?tab=sales" : location.pathname);
+    // replaceState so switching sections doesn't fill the back button; a refresh keeps the section.
+    history.replaceState(null, "", next === "products" ? location.pathname : `?tab=${next}`);
   }
 
-  function onTabKey(event: KeyboardEvent<HTMLDivElement>) {
-    if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
-    const next = tab === "for-sale" ? "sales" : "for-sale";
-    selectTab(next);
-    document.getElementById(`shop-tab-${next}`)?.focus();
+  function onPublished() {
+    selectSection("products");
+    setAttempt((a) => a + 1); // reload so the new product shows in the list
+  }
+
+  function setHidden(hidden: boolean) {
+    setMenuHidden(hidden);
+    writeMenuHidden(hidden);
   }
 
   if (error) return <main className="page"><ErrorState message={error} onRetry={() => setAttempt((a) => a + 1)} /></main>;
@@ -63,6 +65,47 @@ export function Profile({ handle }: { handle: string }) {
   const { profile, listings, soldCount } = shop;
   const account = currentAccount();
   const isOwner = account !== null && handle === currentHandle();
+
+  const forSale = (
+    <>
+      {!isOwner && <p className="muted">Open an item and make a blind offer up to the asking price.</p>}
+      {listings.length === 0 ? (
+        <p className="muted">Nothing for sale right now.</p>
+      ) : (
+        <ul className="grid">
+          {listings.map((listing) => (
+            <ListingCard key={listing.id} listing={listing} />
+          ))}
+        </ul>
+      )}
+    </>
+  );
+
+  if (isOwner && account) {
+    return (
+      <main className={`page shop-admin${menuHidden ? " menu-hidden" : ""}`}>
+        {menuHidden ? (
+          <button className="sidebar-show outline-button" onClick={() => setHidden(false)}>
+            Show menu
+          </button>
+        ) : (
+          <ShopSidebar shop={shop} section={tab} waiting={waiting} copied={copied} onSelect={selectSection} onHide={() => setHidden(true)} onCopy={() => void copyLink()} />
+        )}
+        <div className="shop-content">
+          {tab === "inbox" ? (
+            <Inbox side="selling" embedded />
+          ) : tab === "orders" ? (
+            <Orders account={account} />
+          ) : tab === "add-product" ? (
+            <Sell embedded onPublished={onPublished} />
+          ) : (
+            forSale
+          )}
+        </div>
+      </main>
+    );
+  }
+
   return (
     <main className="page profile-layout">
       <section className="profile-head" aria-label="Shop">
@@ -89,46 +132,7 @@ export function Profile({ handle }: { handle: string }) {
           {copied ? "Link copied" : "Copy shop link"}
         </button>
       </section>
-
-      <div className="profile-listings">
-        {isOwner && (
-          <div className="shop-tabs" role="tablist" aria-label="Shop sections" onKeyDown={onTabKey}>
-            {TABS.map(({ key, label }) => (
-              <button
-                key={key}
-                id={`shop-tab-${key}`}
-                role="tab"
-                aria-selected={tab === key}
-                aria-controls="shop-panel"
-                tabIndex={tab === key ? 0 : -1}
-                onClick={() => selectTab(key)}
-              >
-                {label}
-                {key === "for-sale" && <span className="num"> {listings.length}</span>}
-              </button>
-            ))}
-          </div>
-        )}
-
-        <div id="shop-panel" role={isOwner ? "tabpanel" : undefined} aria-labelledby={isOwner ? `shop-tab-${tab}` : undefined}>
-          {isOwner && tab === "sales" && account ? (
-            <Sales account={account} />
-          ) : (
-            <>
-              <p className="muted">Open an item and make a blind offer up to the asking price.</p>
-              {listings.length === 0 ? (
-                <p className="muted">Nothing for sale right now.</p>
-              ) : (
-                <ul className="grid">
-                  {listings.map((listing) => (
-                    <ListingCard key={listing.id} listing={listing} />
-                  ))}
-                </ul>
-              )}
-            </>
-          )}
-        </div>
-      </div>
+      <div className="profile-listings">{forSale}</div>
     </main>
   );
 }

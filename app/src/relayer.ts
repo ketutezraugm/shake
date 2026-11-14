@@ -58,6 +58,18 @@ export function signedDelete<T>(relayerUrl: string, signer: Signer, path: string
   return signedWrite("DELETE", relayerUrl, signer, path, null, what);
 }
 
+/** GETs as a Google or email login; used to read the shop a login was linked to. */
+export async function bearerGet<T>(relayerUrl: string, token: string, path: string, what: string): Promise<T> {
+  const response = await fetch(relayerUrl + path, { headers: { authorization: `Bearer ${token}` } }).catch(() => {
+    throw new RelayerError(`${what} failed: could not reach the relayer`, 0);
+  });
+  if (!response.ok) {
+    const { error } = (await response.json().catch(() => ({}))) as { error?: string };
+    throw new RelayerError(`${what} failed: ${error ?? `relayer answered ${response.status}`}`, response.status);
+  }
+  return (await response.json()) as T;
+}
+
 /** POSTs JSON as a Google or email login, for the few routes open to someone without a NEAR account. */
 export function bearerPost<T>(relayerUrl: string, token: string, path: string, payload: object, what: string): Promise<T> {
   return send("POST", relayerUrl, path, { authorization: `Bearer ${token}` }, payload, what);

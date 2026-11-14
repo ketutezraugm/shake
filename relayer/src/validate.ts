@@ -101,6 +101,7 @@ export function parseAssistantAsk(body: unknown): AssistantReq {
   const { listingId } = record(body);
   return { listingId: typeof listingId === "string" ? listingId : "", question: parseAsk(body).question };
 }
+export const parseLinkLogin = (body: unknown): { accessToken: string } => ({ accessToken: text(record(body).accessToken, "accessToken", 1, 4000) });
 export const parseAnswer = (body: unknown): AnswerReq => ({ answer: text(record(body).answer, "answer", 1, 1000) });
 export const parseMessage = (body: unknown): SendMessageReq => ({ body: text(record(body).body, "body", 1, 1000) });
 

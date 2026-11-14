@@ -21,6 +21,7 @@ import {
   parseReceipt,
   parsePhotoReq,
   parseSlots,
+  parseLinkLogin,
   parseUpdateProfile,
 } from "./validate.js";
 
@@ -88,13 +89,18 @@ export function createApp({ store, near, allowedOrigin, verifyJwt, chat, now = D
     return { account, body: parseBody(raw) };
   }
 
-  /** `signed`, or a Google or email login as a bearer token: a login has no NEAR account, so it is named `supabase:<user id>`. */
+  async function userOf(token: string): Promise<string> {
+    const userId = verifyJwt ? await verifyJwt(token) : null;
+    if (!userId) throw new HttpError(401, "sign in first");
+    return userId;
+  }
+
+  /** `signed`, or a Google or email login as a bearer token: a login is the wallet account it was linked to, else `supabase:<user id>`. */
   async function signedOrLoggedIn(c: Context): Promise<{ account: string; body: unknown }> {
     const token = c.req.header("authorization")?.match(/^Bearer (.+)$/)?.[1];
     if (!token) return signed(c);
-    const userId = verifyJwt ? await verifyJwt(token) : null;
-    if (!userId) throw new HttpError(401, "sign in first");
-    return { account: `supabase:${userId}`, body: parseBody(await c.req.text()) };
+    const userId = await userOf(token);
+    return { account: (await store.accountOfUser(userId)) ?? `supabase:${userId}`, body: parseBody(await c.req.text()) };
   }
 
   async function findListing(id: string): Promise<Listing> {
@@ -279,6 +285,22 @@ export function createApp({ store, near, allowedOrigin, verifyJwt, chat, now = D
     if (await store.profileOf(account)) return c.json(await store.saveProfile(account, fields));
     if (!handle) throw new HttpError(400, "handle is required to create a profile");
     return c.json(await store.saveProfile(account, fields, { handle }));
+  });
+
+  // The wallet signature proves the account and the token proves the login, so one call binds them; repeating it is harmless.
+  app.put("/me/login", async (c) => {
+    const { account, body } = await signed(c);
+    await store.linkLogin(account, await userOf(parseLinkLogin(body).accessToken));
+    return c.json({ linked: true });
+  });
+
+  app.get("/login/profile", async (c) => {
+    const token = c.req.header("authorization")?.match(/^Bearer (.+)$/)?.[1];
+    if (!token) throw new HttpError(401, "sign in first");
+    const account = await store.accountOfUser(await userOf(token));
+    const profile = account && (await store.profileOf(account));
+    if (!account || !profile) throw new HttpError(404, "this login is not linked to a shop");
+    return c.json({ account, profile });
   });
 
   app.get("/listings/:id/questions", async (c) => c.json(await store.answeredQuestions((await findListing(c.req.param("id"))).id)));

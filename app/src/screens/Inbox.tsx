@@ -1,18 +1,22 @@
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
 import type { Inbox as InboxData } from "../../../relayer/src/types";
 import { currentAccount } from "../accounts";
 import { chainFor } from "../client";
 import { relayerUrl } from "../config";
 import { digitsOnly, formatRp, groupThousands } from "../format";
-import { answerQuestion, badgeCount, getInbox, resubmitRound } from "../inbox";
+import { currentHandle } from "../accounts";
+import { answerQuestion, badgeCount, getInbox, resubmitRound, splitInbox, type InboxSide } from "../inbox";
 import { Link } from "../routes";
 import { storedMinimum } from "../slots";
 import { ChatThread } from "./Chat";
 
 const POLL_MS = 10_000;
 
-/** Conversations on the left, the open one on the right; on a phone the list and the chat take turns. */
-export function Inbox({ dealId }: { dealId?: number }) {
+/**
+ * Conversations on the left, the open one on the right; on a phone the list and the chat take turns.
+ * `/inbox` is the buying side; the shop's Inbox tab passes `side="selling"` and `embedded`.
+ */
+export function Inbox({ dealId, side = "buying", embedded = false }: { dealId?: number; side?: InboxSide; embedded?: boolean }) {
   const account = currentAccount();
   if (!account) {
     return (
@@ -30,12 +34,14 @@ export function Inbox({ dealId }: { dealId?: number }) {
       </main>
     );
   }
-  return <InboxFor account={account} relayerUrl={relayerUrl} dealId={dealId} />;
+  return <InboxFor account={account} relayerUrl={relayerUrl} dealId={dealId} side={side} embedded={embedded} />;
 }
 
-function InboxFor({ account, relayerUrl, dealId }: { account: string; relayerUrl: string; dealId?: number }) {
+type ForProps = { account: string; relayerUrl: string; dealId?: number; side: InboxSide; embedded: boolean };
+
+function InboxFor({ account, relayerUrl, dealId, side: wanted, embedded }: ForProps) {
   const chain = useRef(chainFor(account)).current;
-  const [inbox, setInbox] = useState<InboxData | null>(null);
+  const [everything, setInbox] = useState<InboxData | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   async function reload() {
@@ -53,7 +59,7 @@ function InboxFor({ account, relayerUrl, dealId }: { account: string; relayerUrl
     return () => clearInterval(timer);
   }, []);
 
-  if (!inbox) {
+  if (!everything) {
     return (
       <main className="page narrow">
         <h1 className="headline">Inbox</h1>
@@ -62,20 +68,24 @@ function InboxFor({ account, relayerUrl, dealId }: { account: string; relayerUrl
     );
   }
 
+  // A chat link carries only a deal number, so the open deal says which side of the inbox it belongs to.
+  const side: InboxSide = dealId === undefined ? wanted : everything.matches.find((m) => m.dealId === dealId)?.role === "seller" ? "selling" : "buying";
+  const inbox = splitInbox(everything, side);
+  const home = side === "selling" ? `/@${currentHandle()}?tab=inbox` : "/inbox";
   const count = badgeCount(inbox);
   const tasks = inbox.roundsWaiting.length + inbox.questions.length;
   const unread = (id: number) => inbox.newMessages.filter((m) => m.dealId === id);
 
   return (
-    <main className={dealId === undefined ? "page inbox" : "page inbox chat-open"}>
+    <Root embedded={embedded} className={`${embedded ? "inbox embedded" : "page inbox"}${dealId === undefined ? "" : " chat-open"}`}>
       <aside className="inbox-list" aria-label="Conversations">
         <div className="section-head">
-          <h1 className="headline">Inbox</h1>
+          {embedded ? <h2 className="headline">Inbox</h2> : <h1 className="headline">{side === "selling" ? "Shop inbox" : "Inbox"}</h1>}
           <span className="num muted">{count > 0 ? `${count} new` : "All caught up"}</span>
         </div>
         {error && <p className="error" role="alert">{error}</p>}
         {tasks > 0 && (
-          <Link to="/inbox" className="convo" current={dealId === undefined}>
+          <Link to={home} className="convo" current={dealId === undefined}>
             <span className="avatar" aria-hidden="true">!</span>
             <span className="convo-text">
               <strong>Needs you</strong>
@@ -102,7 +112,7 @@ function InboxFor({ account, relayerUrl, dealId }: { account: string; relayerUrl
       <section className="inbox-pane" aria-label={dealId === undefined ? "Needs you" : "Chat"}>
         {dealId !== undefined ? (
           <>
-            <Link to="/inbox" className="mobile-only">← All conversations</Link>
+            <Link to={home} className="mobile-only">← All conversations</Link>
             <ChatThread key={dealId} dealId={dealId} account={account} relayerUrl={relayerUrl} chain={chain} />
             {inbox.matches.some((m) => m.dealId === dealId && m.role === "buyer") && <Link to={`/deals/${dealId}`}>Open the deal</Link>}
           </>
@@ -134,8 +144,13 @@ function InboxFor({ account, relayerUrl, dealId }: { account: string; relayerUrl
           </>
         )}
       </section>
-    </main>
+    </Root>
   );
+}
+
+/** Inside the shop the inbox sits in the page's own `<main>`, so it is a plain block there. */
+function Root({ embedded, className, children }: { embedded: boolean; className: string; children: ReactNode }) {
+  return embedded ? <div className={className}>{children}</div> : <main className={className}>{children}</main>;
 }
 
 type RoundProps = { request: InboxData["roundsWaiting"][number]; onOpen: (limit?: string) => Promise<void> };

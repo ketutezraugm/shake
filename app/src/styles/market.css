@@ -788,9 +788,12 @@ button.pill {
   }
 }
 
+/* The header chips sit flat on the white bar, as in the reference: avatar and name with no outline of their own. */
 .account-chip {
   gap: var(--space-8);
-  padding-left: var(--space-8);
+  padding: 0 var(--space-8);
+  border-color: transparent;
+  background: transparent;
 }
 
 .chip-avatar {
@@ -934,25 +937,312 @@ button.pill {
   font-size: var(--text-14);
 }
 
-.shop-tabs {
+.shop-admin {
   display: flex;
-  gap: var(--space-24, 24px);
+  flex-direction: column;
+  gap: var(--space-16);
+}
+
+.shop-content {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+}
+
+.shop-sidebar {
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-hero);
+  animation: sidebar-in var(--dur-quick) var(--ease-out);
+}
+
+@keyframes sidebar-in {
+  from {
+    opacity: 0;
+    transform: translateX(-12px);
+  }
+}
+
+.sidebar-hide {
+  align-self: stretch;
+  padding: 16px 20px;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  background: transparent;
+  font: inherit;
+  font-size: var(--text-13);
+  font-weight: 700;
+  text-align: left;
+  color: var(--ink-muted);
+  cursor: pointer;
+}
+
+.sidebar-block {
+  margin: 0;
+  padding: 16px 20px;
   border-bottom: 1px solid var(--line);
 }
 
-.shop-tabs button {
-  padding: 10px 0;
-  margin-bottom: -1px;
+.sidebar-block:last-child {
+  border-bottom: 0;
+}
+
+.shop-sidebar .avatar {
+  width: 44px;
+  height: 44px;
+  font-size: var(--text-20);
+}
+
+.shop-sidebar .profile-row h1 {
+  font-size: var(--text-16);
+  letter-spacing: -0.01em;
+}
+
+.sidebar-rows {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  font-size: var(--text-14);
+}
+
+.sidebar-rows div {
+  display: flex;
+  justify-content: space-between;
+}
+
+.sidebar-rows dt {
+  color: var(--ink-muted);
+}
+
+.sidebar-rows dd {
+  margin: 0;
+  font-weight: 700;
+}
+
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  padding-block: var(--space-8);
+}
+
+.sidebar-nav button,
+.sidebar-links a,
+.sidebar-links button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 44px;
+  padding: 0;
   border: 0;
-  border-bottom: 2px solid transparent;
   background: transparent;
   font: inherit;
+  font-weight: 700;
+  color: var(--ink);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.sidebar-nav button[aria-current="page"] {
+  color: var(--mint-ink);
+  box-shadow: inset 3px 0 0 var(--mint-ink);
+  margin-left: -20px;
+  padding-left: 17px;
+}
+
+.sidebar-links a,
+.sidebar-links button {
+  font-weight: 600;
+  color: var(--ink-muted);
+}
+
+.sidebar-count {
+  min-width: 22px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: var(--mint);
+  color: var(--mint-ink);
+  font-size: var(--text-13);
+  text-align: center;
+}
+
+.sidebar-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar-item > button {
+  width: 100%;
+}
+
+.sidebar-toggle[data-active] {
+  color: var(--mint-ink);
+}
+
+/* A drawn chevron, so no icon asset is needed; it turns over while the group is open. */
+.sidebar-chevron {
+  width: 8px;
+  height: 8px;
+  border: solid currentColor;
+  border-width: 0 2px 2px 0;
+  transform: translateY(-2px) rotate(45deg);
+  transition: transform var(--dur-quick) var(--ease-out);
+}
+
+.sidebar-toggle[aria-expanded="true"] .sidebar-chevron {
+  transform: translateY(2px) rotate(-135deg);
+}
+
+.sidebar-sub {
+  display: flex;
+  flex-direction: column;
+  padding-left: var(--space-16);
+}
+
+.sidebar-sub button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 40px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  font-size: var(--text-14);
   font-weight: 600;
   color: var(--ink-muted);
   cursor: pointer;
 }
 
-.shop-tabs button[aria-selected="true"] {
-  color: var(--ink);
-  border-bottom-color: var(--ink);
+.sidebar-nav .sidebar-sub button[aria-current="page"] {
+  margin-left: 0;
+  padding-left: 0;
+  box-shadow: none;
+  color: var(--mint-ink);
+}
+
+.sell-embedded {
+  max-width: 880px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+}
+
+.sidebar-show {
+  align-self: flex-start;
+}
+
+@media (min-width: 900px) {
+  /* Like a seller dashboard: the menu is a full-height column against the left edge, the work fills the rest. */
+  .page.shop-admin {
+    max-width: none;
+    padding: 0;
+    display: grid;
+    grid-template-columns: 240px minmax(0, 1fr);
+    gap: 0;
+    align-items: stretch;
+    min-height: calc(100vh - 80px);
+  }
+
+  .shop-admin.menu-hidden {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .shop-sidebar {
+    border-width: 0 1px 0 0;
+    border-radius: 0;
+  }
+
+  .sidebar-show {
+    margin: 16px;
+  }
+
+  .shop-content {
+    padding: 24px var(--desk-gutter);
+  }
+
+  .shop-admin .grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shop-sidebar {
+    animation: none;
+  }
+
+  .sidebar-chevron {
+    transition: none;
+  }
+}
+
+/* The shop chip sits beside the account chip; its panel is the account menu's shape with a summary and two buttons. */
+.shop-menu .convo-badge {
+  background: var(--tag);
+  color: var(--check);
+}
+
+.shop-panel {
+  width: min(320px, calc(100vw - 32px));
+  padding: var(--space-16);
+  gap: var(--space-16);
+}
+
+.shop-panel-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-12);
+}
+
+.shop-panel-head .chip-avatar {
+  width: 48px;
+  height: 48px;
+  font-size: var(--text-17);
+}
+
+.shop-panel-head span:not(.chip-avatar) {
+  display: flex;
+  flex-direction: column;
+}
+
+.shop-panel-stats {
+  margin: 0;
+  padding: var(--space-12) 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-8);
+  border-block: 1px solid var(--line);
+}
+
+.shop-panel-stats dt {
+  font-size: var(--text-13);
+  color: var(--ink-muted);
+}
+
+.shop-panel-stats dd {
+  margin: 0;
+  font-size: var(--text-17);
+  font-weight: 700;
+}
+
+.shop-panel-action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}
+
+@media (max-width: 640px) {
+  .shop-chip-name {
+    display: none;
+  }
+}
+
+.sell-action {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
 }
