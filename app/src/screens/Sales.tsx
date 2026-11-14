@@ -27,15 +27,15 @@ export function Sales({ account }: { account: string }) {
     return () => clearInterval(timer);
   }, [account]);
 
-  if (!relayerUrl || (rows?.length === 0 && !error)) return null;
+  if (!relayerUrl) return <p className="muted">Sales need VITE_RELAYER_URL in the app's environment.</p>;
 
   return (
     <section className="sales" aria-label="Your sales">
       <div className="section-head">
-        <h2>Your sales</h2>
         <Link to="/history">Receipts</Link>
       </div>
       {error && <p className="error" role="alert">{error}</p>}
+      {rows?.length === 0 && !error && <p className="muted">No sales yet.</p>}
       {rows?.map((row) => (
         <Link key={row.id} to={`/l/${row.id}`} className={`offer-row${row.finished ? "" : " attention"}`}>
           <span className="offer-row-title">{row.title}</span>
