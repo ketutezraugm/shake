@@ -7,39 +7,45 @@ For Abel and her Claude. **Abel owns every visual decision.** This brief separat
 - **Starting point:** `docs/IDENTITY.md` (the marosok layout in security-tint blue and carbon-copy yellow) is where the team landed on 10 Nov. Keep it, bend it, or replace it. When something changes, update IDENTITY.md so Frontend builds the current version.
 - **Avoid list:** `docs/PLAYBOOK.md` section 6 lists looks the research says judges have seen too often (dark neon crypto, cream-and-serif editorial, stock landing-page structures, library icons). Treat it as advice; override it when you have a reason.
 
-## The product in 60 seconds *(Fixed)*
-A seller and a buyer each set a private price limit for one item. A sealed machine (a TEE) compares them. If the ranges overlap, the deal closes at a random price inside the overlap; otherwise both see "no deal" and learn nothing else. The seller picks 1-3 rounds; after a no-deal both may try again (buyer only up, seller only down). The buyer pays into escrow; the money releases when they tap "Received".
+## The product in 60 seconds *(Fixed; changed 2026-11-12 by the marketplace pivot)*
+A second-hand marketplace where every listing shows an asking price but nobody can see how low the seller would go (changed 2026-11-13). A seller puts their shop link (`/@handle`) in their Instagram or marketplace bio. Buyers land on the shop, open a listing (photos, details), ask an AI assistant about the item or ask the seller publicly, then make a blind offer: the seller sealed a minimum when listing, the buyer types a maximum, and a sealed machine (a TEE) compares them. On an overlap the deal closes at a random price inside it; otherwise the buyer sees "no deal" and learns nothing else. The seller picks 1-3 rounds per buyer; after a no-deal the buyer may only raise. A match reserves the item; the buyer pays into escrow; chat opens; the money releases when the buyer taps "Received" and the item shows Sold.
 
-**Who and where:** students and ordinary people selling used things, both non-crypto, on a phone, usually mid-WhatsApp chat, 1-3 minutes per deal. Mistakes cost real money, so the number entry and the confirm step must be unmistakable. Second audience: judges watching a split-screen demo on a laptop or projector.
+**Who and where:** people selling used things (students first), both non-crypto, on a phone, arriving from an Instagram or marketplace bio. Browsing is minutes; an offer is 1-3 minutes. Mistakes cost real money, so the number entry and the confirm step must be unmistakable. Second audience: judges on a laptop or projector, starting from the seeded shop `/@demo`.
 
 ## Screens and states *(Fixed: what exists; how each looks is Abel's call)*
+Build order for Frontend: 1, 4, 3 first (task MK-30 in docs/plans/IMPLEMENTATION.md).
 | # | Screen | Purpose | Must show | States |
 |---|---|---|---|---|
-| 1 | Landing / start | Explain in one look, start a deal | What it does, "Start a deal" | first visit, returning |
-| 2 | Name yourself | Walletless account in ~3 s | One name field | taken name, creating, error |
-| 3 | Create deal | Seller describes the item | Title, short description, rounds (1/2/3, default 2) | empty, filled, submitting |
-| 4 | Share link | Seller sends the buyer link | Link, copy, share to WhatsApp | copied |
-| 5 | Enter limit | Each side sets their number privately | Item, own role, Rupiah amount, round x of y, "only you see this" | empty, typing, invalid, confirm step, encrypting |
-| 6 | Waiting | One side is in, the other isn't | Own limit is sealed, other side's status | waiting, other side joined |
-| 7 | Reveal: deal | The magic moment | Deal price, "neither of you sees the other's number" | — |
-| 8 | Reveal: no deal | Rounds left | "No deal this round", rounds left, try again (buyer up / seller down) | rounds left, final no deal |
-| 9 | Pay | Buyer funds escrow | Price in Rp and test NEAR, pay | paying, paid, error |
-| 10 | Handover | Buyer confirms receipt | "Received" button, deadline, refund note | funded, released, refunded, expired |
-| 11 | Proof panel | Show why it's private | What the TEE proved, code hash, on-chain links | verified, unavailable |
-| 12 | Demo split screen | Judges see both phones at once | Seller and buyer side by side | seeded deal running |
-| — | Global | | | offline, loading first paint, 404, very long item titles |
+| 1 | Home | Browse open listings | Grid of listing cards (photo, title, asking price, city, "Blind offer" badge), search, category filter | first visit, results, no results, loading |
+| 2 | Sign in + handle | Google or email link (NEAR account made behind it), or "Connect NEAR wallet" for people who have one; then pick a shop handle | Both sign-in options, handle field | email sent, wallet connecting, wallet rejected, taken handle, creating account, error |
+| 3 | Seller profile `/@handle` | The bio link destination | Avatar, name, bio, city, sold count, active listings (Reserved badge) | own profile (edit), visitor, not found, empty shop |
+| 4 | Listing | Decide whether to offer | Up to 4 photos, title, asking price, details, seller card, "N of 10 offers used", AI assistant, public Q&A, "Make a blind offer" | Open, Reserved, Sold, Closed, offers full, own listing |
+| 5 | AI assistant | Answer questions about this item | Question box, answer, "the seller didn't say" + "Ask the seller" | thinking, answer, unknown, rate-limited, error |
+| 6 | Public Q&A | Questions and the seller's answers | Answered questions; seller sees unanswered with an answer field | none yet, pending (asker and seller only) |
+| 7 | Create listing | Seller lists an item | Photos (up to 4), title, description, category, city, asking price (public), rounds (1/2/3, default 2), lowest price you'd accept (sealed, at or below the asking price) with "only you see this" | empty, filled, uploading, sealing, submitting, error |
+| 8 | Blind offer | Buyer sets a maximum privately, up to the asking price | Item, asking price as the cap, Rupiah amount, round x of y, "only you see this", confirm step | empty, typing, invalid, confirm, encrypting, offers full, waiting for the seller (round 2+), wallet approval (wallet users) |
+| 9 | Reveal: deal | The magic moment | Deal price, "neither of you sees the other's number" | deal, another buyer got there first (no pay button) |
+| 10 | Reveal: no deal | Rounds left | "No deal this round", rounds left, raise | rounds left, final no deal |
+| 11 | Pay + handover | Buyer funds escrow, then confirms | Price in Rp and test NEAR, pay; later "Received", deadline, refund note | paying, paid, released, refunded, expired |
+| 12 | Chat | After a deal only | Messages between buyer and seller, the item | locked ("chat opens after a deal"), open, sending, error |
+| 13 | Inbox | Seller and buyer activity | New questions, "Round 2 requested" with one-tap resubmit (same or lower minimum), matches, payments, chats; badge count | empty, unread |
+| 14 | Keys | Move the account to another device | Export key, import key | exported, imported, wrong key |
+| 15 | Proof panel (Should) | Show why it's private | What the TEE proved, code hash, on-chain links | verified, unavailable |
+| — | Global | | | offline, loading first paint, 404, very long titles, missing photo |
 
-The reveal (7) is the one moment that should feel like an event. Everything else should get out of the way.
+The reveal (9) is the one moment that should feel like an event. Everything else should get out of the way.
 
 ## Copy *(starting drafts; Abel and the team can rewrite)*
 - Start: "Name your price without showing it."
 - Enter limit (seller): "The lowest you'd accept. Only you will ever see this number."
 - Enter limit (buyer): "The most you'd pay. Only you will ever see this number."
 - Confirm: "Lock Rp 4.000.000? You can't change it this round."
-- Waiting: "Your number is sealed. Waiting for the buyer."
+- Listing badge: "Blind offer. Offer the asking price and you'll pay it or less. Offer less and the seller never learns your number."
+- Assistant unknown: "The seller didn't mention that. Ask them? Their answer will show here for everyone."
+- Chat locked: "Chat opens once you have a deal."
 - Deal: "Deal: Rp 4.200.000. Neither of you will see the other's number."
 - No deal: "No deal this round. Your ranges didn't meet, and neither of you learns more than that."
-- Try again: "Round 2 of 2. You can only raise your number." / "...only lower your number."
+- Try again: "Round 2 of 2. You can only raise your number."
 - Paid: "Payment is held. It goes to the seller when you tap Received."
 - Proof: "Your number was compared inside a sealed machine. Here's its proof."
 Bahasa versions welcome where they read more naturally ("Cocok!").

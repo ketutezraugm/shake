@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-12 -12 144 144" width="144" height="144" role="img" aria-label="A hand showing four fingers">
+  <!-- Source: Shake design system (Claude Design, Abel), sticker "four fingers": your offer. -->
+  <g stroke-linejoin="round">
+    <g fill="#FFFFFF" stroke="#FFFFFF" stroke-width="30"><rect x="22" y="54" width="79" height="50" rx="18"/><rect x="22" y="18" width="13" height="50" rx="6.5"/><rect x="44" y="10" width="13" height="56" rx="6.5"/><rect x="66" y="12" width="13" height="54" rx="6.5"/><rect x="88" y="22" width="13" height="44" rx="6.5"/><rect x="34" y="100" width="52" height="14" rx="4"/></g>
+    <g fill="#1D1C1A" stroke="#1D1C1A" stroke-width="18"><rect x="22" y="54" width="79" height="50" rx="18"/><rect x="22" y="18" width="13" height="50" rx="6.5"/><rect x="44" y="10" width="13" height="56" rx="6.5"/><rect x="66" y="12" width="13" height="54" rx="6.5"/><rect x="88" y="22" width="13" height="44" rx="6.5"/></g>
+    <g fill="#F7B8D2"><rect x="22" y="54" width="79" height="50" rx="18"/><rect x="22" y="18" width="13" height="50" rx="6.5"/><rect x="44" y="10" width="13" height="56" rx="6.5"/><rect x="66" y="12" width="13" height="54" rx="6.5"/><rect x="88" y="22" width="13" height="44" rx="6.5"/></g>
+    <rect x="34" y="100" width="52" height="14" rx="4" fill="#1D1C1A" stroke="#1D1C1A" stroke-width="9"/>
+  </g>
+  <path d="M36 78H76" fill="none" stroke="#1D1C1A" stroke-width="9" stroke-linecap="round"/>
+</svg>

@@ -1,0 +1,56 @@
+[
+  {
+    "photo": "camera.jpg",
+    "title": "Sony Cyber-shot HX90 compact camera, 30x zoom",
+    "description": "Bought in 2017 for a trip, used maybe twenty times since. 30x Zeiss zoom, pop-up viewfinder, flip screen for selfies, shoots Full HD video. No scratches on the lens or screen, light wear on the grip. Comes with one battery, the USB charger and a wrist strap. No box. Pickup in Sleman or courier.",
+    "category": "electronics",
+    "city": "Yogyakarta",
+    "askingPrice": "2800000",
+    "maxRounds": 2
+  },
+  {
+    "photo": "headphones.jpg",
+    "title": "AudioQuest NightHawk Carbon wired headphones",
+    "description": "Over-ear, semi-open hi-fi headphones with a 3.5 mm cable and the 6.3 mm adapter. Pads are original and still soft, headband has small marks from the stand. Wired only, no Bluetooth and no microphone. Selling because I switched to wireless. Stand not included.",
+    "category": "electronics",
+    "city": "Yogyakarta",
+    "askingPrice": "1900000",
+    "maxRounds": 2
+  },
+  {
+    "photo": "speaker.jpg",
+    "title": "Fender Indio Bluetooth speaker, cream",
+    "description": "Portable Bluetooth speaker with the amp look. Battery still lasts about a full day of music. Has a 3.5 mm input and a carry handle. Small yellowing on the cream vinyl at the bottom edge, grille is clean. Charger included.",
+    "category": "electronics",
+    "city": "Yogyakarta",
+    "askingPrice": "1600000",
+    "maxRounds": 2
+  },
+  {
+    "photo": "laptop.jpg",
+    "title": "MacBook Air 13-inch, first generation, for parts or light use",
+    "description": "Old 13-inch MacBook Air in silver. Boots and runs, fine for typing and browsing, but it is slow and cannot install the newest macOS. Battery holds about an hour. Keyboard and trackpad work. Good as a backup machine or for parts. Charger included.",
+    "category": "electronics",
+    "city": "Yogyakarta",
+    "askingPrice": "1200000",
+    "maxRounds": 2
+  },
+  {
+    "photo": "bike.jpg",
+    "title": "Batavus city bike, white, step-through frame",
+    "description": "Dutch-style city bike with an upright position, hub gears, front light, mudguards, rear rack and kickstand. Tyres replaced last year. Some rust on the chain, brakes adjusted in October. Fits riders around 155 to 175 cm. Pickup only, near UGM.",
+    "category": "vehicles",
+    "city": "Yogyakarta",
+    "askingPrice": "1750000",
+    "maxRounds": 3
+  },
+  {
+    "photo": "helmet.jpg",
+    "title": "Modular motorcycle helmet, neon yellow, size L",
+    "description": "Flip-up modular helmet with a clear visor and an inner sun visor. Size L, about 59 to 60 cm head. Liner washed, scratches on the shell from normal use, never dropped in a crash. Very visible at night. Selling because I bought a smaller size.",
+    "category": "vehicles",
+    "city": "Yogyakarta",
+    "askingPrice": "650000",
+    "maxRounds": 2
+  }
+]

@@ -1,0 +1,147 @@
+import { KeyPair } from "near-api-js";
+import { describe, expect, it, vi } from "vitest";
+import { connectWallet, loadWalletSession, walletSigner, type WalletLike } from "./walletSigner";
+
+const chain = { contractId: "blind-deal-1wxklib7.testnet", rpcUrl: "https://rpc.example" };
+const FEE = 2_100_000_000_000_000_000_000n;
+
+function memoryStorage() {
+  const data = new Map<string, string>();
+  return {
+    getItem: (k: string) => data.get(k) ?? null,
+    setItem: (k: string, v: string) => void data.set(k, v),
+    removeItem: (k: string) => void data.delete(k),
+  } as unknown as Storage;
+}
+
+function fakeWallet(accountId = "alice.testnet") {
+  const sent: { receiverId: string; actions: unknown[] }[] = [];
+  const wallet: WalletLike = {
+    getAccounts: async () => [{ accountId }],
+    signAndSendTransaction: async (params) => {
+      sent.push(params as { receiverId: string; actions: unknown[] });
+      return {} as never;
+    },
+  };
+  return { wallet, sent };
+}
+
+/** A connector whose sign-in reports `signedIn`, like the real one does after the user picks an account. */
+function fakeConnector(wallet: WalletLike, signedIn?: string) {
+  let handler: ((event: { accounts: { accountId: string }[] }) => void) | undefined;
+  const connect = vi.fn<(input: unknown) => Promise<WalletLike>>(async () => {
+    if (signedIn) handler?.({ accounts: [{ accountId: signedIn }] });
+    return wallet;
+  });
+  return {
+    connect,
+    once: (_event: "wallet:signIn", h: typeof handler) => void (handler = h),
+    off: () => void (handler = undefined),
+  };
+}
+
+describe("connectWallet", () => {
+  it("asks the wallet for a function-call key on the deal contract that cannot take money", async () => {
+    const { wallet } = fakeWallet();
+    const connector = fakeConnector(wallet);
+    const connect = connector.connect;
+    const storage = memoryStorage();
+
+    const session = await connectWallet(connector, chain, storage);
+
+    const params = (connect.mock.calls[0] as unknown as [{ addFunctionCallKey: Record<string, unknown> }])[0];
+    expect(params.addFunctionCallKey).toMatchObject({
+      contractId: chain.contractId,
+      publicKey: KeyPair.fromString(session.secretKey as `ed25519:${string}`).getPublicKey().toString(),
+      allowMethods: { anyMethod: false },
+      gasAllowance: { kind: "limited", amount: "1000000000000000000000000" },
+    });
+    const methods = (params.addFunctionCallKey.allowMethods as { methodNames: string[] }).methodNames;
+    expect(methods).toContain("create_deal");
+    expect(methods).toContain("submit_limit");
+    expect(methods).not.toContain("deposit"); // a deposit needs the wallet's own approval
+    expect(session.accountId).toBe("alice.testnet");
+  });
+
+  it("keeps the session in the browser so a reload does not ask the wallet again", async () => {
+    const storage = memoryStorage();
+    const session = await connectWallet(fakeConnector(fakeWallet().wallet), chain, storage);
+
+    expect(loadWalletSession(storage)).toEqual(session);
+  });
+
+  it("signs in as the account picked in the popup, not the first one the wallet holds", async () => {
+    // The wallet lists shake first, but this sign-in was approved for shakebuyer.
+    const { wallet } = fakeWallet("shake.testnet");
+    const connector = fakeConnector(wallet, "shakebuyer.testnet");
+
+    const session = await connectWallet(connector, chain, memoryStorage());
+
+    expect(session.accountId).toBe("shakebuyer.testnet");
+  });
+});
+
+describe("walletSigner.send", () => {
+  const key = KeyPair.fromRandom("ed25519").toString();
+
+  it("returns the hash the wallet reports for a payment, and the key's hash when no money moves", async () => {
+    const wallet: WalletLike = {
+      getAccounts: async () => [{ accountId: "alice.testnet" }],
+      signAndSendTransaction: async () => ({ transaction: { hash: "WALLET_HASH" } }) as never,
+    };
+    const base = { accountId: "alice.testnet", signRequest: async () => ({}), call: async () => 0, send: async () => "KEY_HASH" };
+    const signer = walletSigner({ accountId: "alice.testnet", secretKey: key }, async () => wallet, chain, base);
+
+    expect(await signer.send("deposit", { deal_id: 7 }, FEE)).toBe("WALLET_HASH");
+    expect(await signer.send("confirm_received", { deal_id: 7 })).toBe("KEY_HASH");
+  });
+});
+
+describe("walletSigner.call", () => {
+  const key = KeyPair.fromRandom("ed25519").toString();
+
+  it("signs calls without a deposit with the function-call key, so no popup", async () => {
+    const { wallet, sent } = fakeWallet();
+    const viaKey = vi.fn(async () => 42);
+    const base = { accountId: "alice.testnet", signRequest: async () => ({}), call: viaKey, send: async () => "" };
+    const signer = walletSigner({ accountId: "alice.testnet", secretKey: key }, async () => wallet, chain, base);
+
+    const result = await signer.call("create_deal", { title: "t" });
+
+    expect(result).toBe(42);
+    expect(viaKey).toHaveBeenCalledWith("create_deal", { title: "t" });
+    expect(sent).toHaveLength(0);
+  });
+
+  it("sends calls that attach money through the wallet, with the exact deposit", async () => {
+    const { wallet, sent } = fakeWallet();
+    const signer = walletSigner({ accountId: "alice.testnet", secretKey: key }, async () => wallet, chain);
+
+    await signer.call("submit_limit", { deal_id: 7 }, FEE);
+
+    expect(sent).toEqual([
+      {
+        network: "testnet",
+        signerId: "alice.testnet",
+        receiverId: chain.contractId,
+        actions: [
+          {
+            type: "FunctionCall",
+            params: { methodName: "submit_limit", args: { deal_id: 7 }, gas: "300000000000000", deposit: FEE.toString() },
+          },
+        ],
+      },
+    ]);
+  });
+
+  it("signs relayer requests with the function-call key", async () => {
+    const pair = KeyPair.fromRandom("ed25519");
+    const { wallet } = fakeWallet();
+    const signer = walletSigner({ accountId: "alice.testnet", secretKey: pair.toString() }, async () => wallet, chain);
+
+    const headers = await signer.signRequest("PUT", "/me/profile", "{}");
+
+    expect(headers["x-account-id"]).toBe("alice.testnet");
+    expect(headers["x-public-key"]).toBe(pair.getPublicKey().toString());
+  });
+});

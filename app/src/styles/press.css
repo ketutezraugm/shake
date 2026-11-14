@@ -1,0 +1,173 @@
+/* Hover and press feedback for everything tappable. Only `scale`, `translate` and `opacity` move (IDENTITY.md), with the
+   instant and quick tokens. A disabled control stays still. Footer links keep their own reveal and underline. */
+
+:is(button, .primary, .outline-button, .link-button, .chip, .pill, .more, .thumb, .tab, .desk-link, .seller-card, a.card, a.offer-row):not(:disabled) {
+  /* Release: a calm return, longer than the press that started it. */
+  transition:
+    scale var(--dur-quick) var(--ease-out),
+    opacity var(--dur-quick) var(--ease-out);
+
+  /* Hover: a slight growth in place (nothing changes position), only where a real pointer exists (a touch screen
+     would leave it stuck after a tap). */
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      scale: var(--grow, 1.04);
+    }
+  }
+
+  /* Press: answers the finger or click within --dur-instant, so the interface feels like it heard it. */
+  &:active {
+    scale: var(--press, 0.97);
+    transition-duration: var(--dur-instant);
+  }
+
+  /* Reduced motion: nothing moves; a press dims instead, so the feedback is still there. */
+  @media (prefers-reduced-motion: reduce) {
+    &:hover {
+      scale: none;
+    }
+
+    &:active {
+      scale: none;
+      opacity: 0.85;
+    }
+  }
+}
+
+/* Big or small targets grow and press by a different amount. A catalog card grows a little under the pointer and
+   shrinks past its resting size when pressed, so it feels picked up and pushed; `scale` changes no layout, so it
+   never moves its neighbours. */
+.tab {
+  --press: 0.94;
+}
+
+.thumb {
+  --press: 0.95;
+}
+
+a.card {
+  --grow: 1.03;
+}
+
+a.offer-row {
+  --grow: 1.01;
+  --press: 0.985;
+}
+
+.seller-card {
+  --grow: 1.01;
+  --press: 0.985;
+}
+
+.desk-link {
+  --grow: 1.06;
+}
+
+/* Hover colour. A coloured layer sits inside the button and fades in, so the colour changes smoothly with `opacity`
+   only (no colour is animated). The colours stay inside the identity: light tints under ink text on the light buttons,
+   and ink-muted under ground text on the dark one. The sticker colours themselves never colour a button. A selected
+   chip keeps its ink. */
+:is(.primary, .outline-button, .more, .pill, .chip):not(:disabled):not([aria-pressed="true"]) {
+  position: relative;
+  isolation: isolate;
+
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    background: var(--hover-fill, transparent);
+    opacity: 0;
+    transition: opacity var(--dur-quick) var(--ease-out);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    &:hover::before {
+      opacity: 1;
+    }
+  }
+}
+
+/* The header links: the darker ink fades in over the text (an overlay copy of the label), not a colour transition. */
+.desk-label {
+  position: relative;
+
+  /* An invisible bold copy sets the label's width, so a link is the same width whether or not it is the current one
+     (bold is wider). The line under the current link and the layout around it never change with the selection. */
+  &::before {
+    content: attr(data-label);
+    display: block;
+    height: 0;
+    overflow: hidden;
+    visibility: hidden;
+    font-weight: 800;
+  }
+
+  &::after {
+    content: attr(data-label);
+    position: absolute;
+    inset: 0;
+    color: var(--ink);
+    opacity: 0;
+    transition: opacity var(--dur-quick) var(--ease-out);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .desk-link:hover &::after {
+      opacity: 1;
+    }
+  }
+}
+
+/* The line under the current link. Every link holds a line exactly as wide as its text (the link's box minus its side
+   padding; the label always has its bold width), shown only on the current link. The glide between links is played by
+   Shell.tsx from the boxes' real sizes, using `translate` and `scale`. */
+.desk-link {
+  position: relative;
+}
+
+.desk-line {
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  bottom: 6px;
+  height: 2px;
+  background: var(--ink);
+  transform-origin: left center;
+  visibility: hidden;
+
+  .desk-link[aria-current="page"] & {
+    visibility: visible;
+  }
+}
+
+.primary {
+  --hover-fill: var(--ink-muted);
+}
+
+.outline-button,
+.more {
+  --hover-fill: var(--sun-tint);
+}
+
+.pill {
+  --hover-fill: var(--sky-tint);
+}
+
+/* The category chips cycle through the tints, so a row of them is a small palette of its own. */
+.chip:nth-child(4n + 1) {
+  --hover-fill: var(--pink-tint);
+}
+
+.chip:nth-child(4n + 2) {
+  --hover-fill: var(--sun-tint);
+}
+
+.chip:nth-child(4n + 3) {
+  --hover-fill: var(--sky-tint);
+}
+
+.chip:nth-child(4n) {
+  --hover-fill: var(--mint);
+}

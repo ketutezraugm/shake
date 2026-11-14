@@ -1,0 +1,25 @@
+{
+  "note": "TEST ONLY: the key below protects nothing. Ciphertexts made with eciesjs 0.5.0; commit = sha256('blind-deal:v1|deal_id|side|round|limit|salt').",
+  "test_secret_key": "2222222222222222222222222222222222222222222222222222222222222222",
+  "test_public_key": "02466d7fcae563e5cb09a0d1870bb580344804617879a14949cf22285f1bae3f27",
+  "vectors": [
+    {
+      "deal_id": 7,
+      "side": "seller",
+      "round": 1,
+      "limit": "4000000",
+      "salt": "0a1b2c3d4e5f60718293a4b5c6d7e8f9",
+      "commit": "edf876e380561fcdfbda55c27332883b5c4150534309b2ebe8716a96e2c16a72",
+      "ciphertext": "04ebc93e3fa5c9e6ccbfd70ba461eb2fd1aeeb98ce2ee4c17b0f26ed55f340e80e877c4fff913b2681df697329b4dfac718db9332554ef6619a6dad4bb21da0bf7cca7830a001d68c481e1fcb06aa04d8370d8004b12a41a781f6e84cb4cc2d720259430a912e67b8649fef0166a97a7ba0ba98a20e250311aec2fb965dbfa42db65ce3ba1c4393b5ebe9f4261c2ebd32ee035fe283a88c81e12ebad9325026533e2020185c09d01a6a4f0824538b564302aa6190ca664697390a2c77cce7c24265c6f16"
+    },
+    {
+      "deal_id": 7,
+      "side": "buyer",
+      "round": 1,
+      "limit": "4600000",
+      "salt": "f9e8d7c6b5a4938271605f4e3d2c1b0a",
+      "commit": "2cb4e61c0063ce651fb375cc8d71c72b6bb1c7ec87827306f82a066f49d30306",
+      "ciphertext": "045e753c376489a663b266f6f6aef24ea30329ab57d69b5b50064f23bfbea8d16aea5852bdd3419fe04818f64bb230e2914bb6eab308c57939039ef9f905256fb8da538e058545ca25896845b879f6c1cb0c52563d23946cf8e241b940ee03daf7869a83f9da7272148ca8628b6b3160a50da334236a8a293cb7009bdebe782bac59f7980c68d476033b9189caa72331f24c3266bbc3720ed9c59da3d468faba5a81291874fb3ac6981305dc8685788b09a915e969dd7d94b58feec2a76c085c64c6a9"
+    }
+  ]
+}

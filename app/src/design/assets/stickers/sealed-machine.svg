@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-12 -12 144 144" width="144" height="144" role="img" aria-label="Sealed machine chip">
+  <!-- Source: Shake design system (Claude Design, Abel), sticker "sealed machine": proof. -->
+  <rect x="4" y="4" width="112" height="112" rx="16" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="18" stroke-linejoin="round"/>
+  <path d="M6 40H18M6 60H18M6 80H18M102 40H114M102 60H114M102 80H114M40 6V18M60 6V18M80 6V18M40 102V114M60 102V114M80 102V114" fill="none" stroke="#1D1C1A" stroke-width="9" stroke-linecap="round"/>
+  <rect x="18" y="18" width="84" height="84" rx="12" fill="#1D1C1A" stroke="#1D1C1A" stroke-width="18" stroke-linejoin="round"/>
+  <rect x="18" y="18" width="84" height="84" rx="12" fill="#D3E8DA"/>
+  <rect x="40" y="40" width="40" height="40" rx="6" fill="#8EC9F5" stroke="#1D1C1A" stroke-width="9" stroke-linejoin="round"/>
+</svg>
