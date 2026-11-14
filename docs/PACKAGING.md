@@ -37,15 +37,17 @@ Cut from the old draft: "no wallet and no seed phrase" (wrong since 2026-11-13: 
 
 ## 3. Submission write-up
 
-**"What did you build?" (1,368 of the form's 2,000 characters):**
+**`idea` field (the form's "What did you build?", 1742 of 2,000 characters, final 2026-11-14; it must say how NEAR fits in):**
 
-Haggling punishes whoever names a number first. A student selling a used laptop would take Rp 5M, the buyer would have paid 5.5M, and neither finds out. People walk away from deals both of them wanted because neither will show a limit.
+Haggling punishes whoever names a number first. A student selling a used laptop would take Rp 5M, the buyer would have paid 5.5M, and neither finds out. People walk away from deals both wanted because neither will show a limit.
 
 Shake is a second-hand marketplace where both limits stay blind. A seller puts one shop link (/@handle) in their Instagram or marketplace bio. Buyers browse listings with photos and an asking price, ask an AI assistant about the item, or post a public question the seller answers.
 
-The seller seals a lowest price once per listing. A buyer makes a blind offer of at most the asking price; offering the full ask always matches. Both numbers are encrypted in the browser to a key that exists only inside a TEE. Public, hash-pinned WASM on OutLayer checks the overlap and, if there is one, draws a random price inside it. Each side sees only "Deal at Rp X" or "No deal". The seller picks 1 to 3 rounds, and a buyer can only raise.
+The seller seals a lowest price once per listing. A buyer makes a blind offer of at most the asking price. Both numbers are encrypted in the browser to a key that exists only inside a TEE. Public, hash-pinned WASM on OutLayer checks the overlap and, if there is one, draws a random price inside it. Each side sees only "Deal at Rp X" or "No deal". The seller picks 1 to 3 rounds, and a buyer can only raise.
 
-A match reserves the item. The buyer pays into a NEAR escrow contract and chat opens. "Received" pays the seller and marks the item Sold; if nothing arrives in 7 days the buyer takes the money back. Google or email lets you browse and ask; selling and offering use your own NEAR wallet. Testnet only. Stated limits: OutLayer is operated centrally today, and each round reveals one bit: deal or no deal.
+How NEAR fits in: our Rust contract holds the sealed ciphertexts, commitments, deal state and the escrowed money; OutLayer runs the matcher in a TEE and calls back into that contract; every offer is signed by the buyer's own NEAR wallet; the assistant runs on NEAR AI Cloud and never sees a limit. A match reserves the item, the buyer pays into escrow, and "Received" pays the seller; if nothing arrives in 7 days the buyer takes the money back.
+
+Live on NEAR testnet, no real money: https://shake-app.onrender.com/welcome. Two wallets completed the whole flow on it, and the demo shop @demo holds a finished sale with receipts and chat. Stated limits: OutLayer is operated centrally today, each round reveals one bit (deal or no deal), and its runs sometimes fail; the contract then returns the round and the app says so.
 
 **README-ready version**
 
@@ -53,11 +55,11 @@ A match reserves the item. The buyer pays into a NEAR escrow contract and chat o
 
 *Track: Privacy.* Limits are encrypted in the browser to a key derived inside the TEE from a `PROTECTED_` secret. The WASM runs in Intel TDX on `outlayer.testnet`, is public and hash-pinned (`789705434c9498d88c739cd5e28b5331cf6ff44c2a1dad5f2a9e435d3479b904`), and returns only `{deal_id, matched, price}`; the key opens only for that build. The relayer and the AI assistant never see a lowest price or an offer. The chain holds ciphertexts and `sha256` commitments, and the buyer's proof panel recomputes each of their own commitments to show the sealed offer is the one they sent. Stated limits: OutLayer is operated centrally; nothing yet proves a result came from the pinned WASM (enclave-signed results are S-07, not built); each round leaks one bit; users trust the served frontend.
 
-*Track: Agents.* The product assistant runs DeepSeek V4.1 Flash on NEAR AI Cloud through the relayer and answers from the listing text and public Q&A. It may repeat the public asking price, never discusses offers, discounts or the lowest price, and says when it does not know; unanswered questions go to the seller as public Q&A. It is never given a limit, because nothing on the server holds one. "Say it in words" (a buyer types "paling mahal 4,3 juta") is read on the phone by a fixed rule, not by the model, so it adds nothing to this track. [Team call at submission: tag agents on the assistant alone, or not.]
+*Track: Agents.* The product assistant runs DeepSeek V4.1 Flash on NEAR AI Cloud through the relayer and answers from the listing text and public Q&A. It may repeat the public asking price, never discusses offers, discounts or the lowest price, and says when it does not know; unanswered questions go to the seller as public Q&A. It is never given a limit, because nothing on the server holds one. "Say it in words" (a buyer types "paling mahal 4,3 juta") is read on the phone by a fixed rule, not by the model, so it adds nothing to this track. [Decided 2026-11-14: agents is tagged, on the assistant alone.]
 
-*Track: Real-world.* Escrowed payments between real sellers and buyers: reserved, paid, sold, refunded and reopened states, receipts with transaction links, a bio-link shop, and a README a non-crypto person can follow. [TBD: "[N] real student deals" only if S-08 logs any; otherwise leave the count out.]
+*Track: Real-world.* Escrowed payments between sellers and buyers on testnet: reserved, paid, sold, refunded and reopened states, receipts with transaction links, a bio-link shop, a seeded demo shop (`@demo`) with a finished sale, and a README a non-crypto person can follow. No count of real student deals is claimed.
 
-*Disclosure.* Libraries: see `package.json` and `Cargo.toml`; the sealed-key approach follows OutLayer's `private-dao-example`. AI-written code: [TBD: the team's wording]. Baseline code before 2026-10-19: [TBD: none or list].
+*Disclosure.* Libraries: see `package.json` and `Cargo.toml`; the sealed-key approach follows OutLayer's `private-dao-example`. Baseline code before 2026-10-19: none (the first commit is 2026-11-09). AI use: [Team call, suggested wording] built by the four of us with AI coding assistance (Claude Code); the in-app product assistant runs on NEAR AI Cloud; the demo video's voiceover is generated with ElevenLabs.
 
 ## 4. Two-minute pitch (about 270 words)
 
@@ -113,5 +115,5 @@ Try it: shake-app.onrender.com/welcome."
 - **Present:** headline "[TBD: N] deals, [TBD: N] that would have failed to start" (the PRD metric), median time to deal, rounds used. Say it is a small sample with testnet money. Use only quotes with permission.
 
 ## TODO
-- Tracks proposed: privacy and realworld; agents on the AI assistant alone ("Say it in words" is not an AI). Final list is the team's call at submission.
+- Tracks (decided by Ezra, 2026-11-14): `privacy`, `agents` and `realworld`; agents rests on the product assistant alone ("Say it in words" is not an AI).
 - Sustainability: 0.5% fee on settled sales is a hypothesis. Confirm the number before the pitch.

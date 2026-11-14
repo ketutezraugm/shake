@@ -138,7 +138,11 @@ export function Listing({ id }: { id: string }) {
         <span className="fact">
           Up to {listing.maxRounds} {listing.maxRounds === 1 ? "round" : "rounds"}
         </span>
-        {listing.status === "open" && listing.freeSlots > 0 && <span className="fact">{listing.freeSlots} offers left</span>}
+        {listing.status === "open" && listing.freeSlots > 0 && (
+          <span className="fact">
+            {listing.freeSlots} {listing.freeSlots === 1 ? "offer" : "offers"} left
+          </span>
+        )}
       </div>
       {listing.description && <p>{listing.description}</p>}
 

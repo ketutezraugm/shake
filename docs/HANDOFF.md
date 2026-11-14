@@ -19,7 +19,7 @@ Each session edits only its own workstream section below.
 - **Lead duties during the build (Ezra):** `/handoff team` once a day; call gates G2 (slot round trip, 11-13 12:00 UTC) and G3 (11-13 20:00 UTC); approve releases; freeze 11-14 00:00 UTC; submit 11-14 12:00 UTC (checklist: docs/ENDGAME.md Phase 11).
 - **Open:** product name (blocks the parent account, README, logo); whether one project can win several tracks (rules silent; ask organizers); claim the $10 NEAR AI key at nearbuilders.org/dashboard (MK-05); competitor re-scan done 11-13 (docs/research/COMPETITORS.md: no second-hand marketplace with a sealed floor among 783 entries; "sealed" is a crowded word).
 - **Before submission:** humanizer pass on README + write-up (docs/PACKAGING.md); regenerate the team PDF only if the team asks (`python -I scripts/build-handoff-pdf.py docs <tmp>/handoff.html docs/Blind-deal-team-handoff.pdf`).
-- **Repo:** https://github.com/ketutezraugm/shake (private). `main` = releases (tag v0.0.1 = repo setup), `dev` = default. Rules: docs/CONTRIBUTING.md.
+- **Repo:** https://github.com/ketutezraugm/shake (public). `main` = releases and the default branch since 2026-11-14 (tags v0.0.1 repo setup, v0.9.0 and freeze-1 the freeze); both Render services build from it. `dev` = integration, where PRs land and from which release PRs go to `main`. Rules: docs/CONTRIBUTING.md.
 - **Artifacts:** style tiles https://claude.ai/artifact/N3gwoQ5biN7HzEoD2ZntvZ · design system (Abel owns) https://claude.ai/artifact/MZUADs1rMt3bbtCbXChzke
 
 ## Contracts & TEE
