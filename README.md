@@ -15,7 +15,7 @@ browser, matched inside OutLayer, and settled by our own contract. No real money
 | | |
 | --- | --- |
 | **App** | https://shake-app.onrender.com (relayer: https://shake-relayer.onrender.com/health) |
-| **Demo video** | To be added at submission |
+| **Demo video** | https://x.com/ezrahesperos/status/2121615362915799356 |
 | **Deal contract** (testnet) | [`blind-deal-1wxklib7.testnet`](https://testnet.nearblocks.io/address/blind-deal-1wxklib7.testnet) |
 | **Sealed-machine WASM** (SHA-256) | `789705434c9498d88c739cd5e28b5331cf6ff44c2a1dad5f2a9e435d3479b904` |
 | **Contract code hash** | `a62f3e91d2c75c79fb8ef628f6b894a08da66a1b95cb163a6a2190620e9dc7c2` |
