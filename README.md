@@ -143,6 +143,7 @@ npm run lint
 npm test                  # app and relayer; the 5 live-network relayer tests skip without credentials
 npm run build
 cargo test --workspace    # contract and sealed-machine code, needs Rust
+npx playwright install chromium && npm run test:e2e   # the happy path in two browsers, on the simulated chain
 ```
 
 CI runs all of these on every pull request ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)).
