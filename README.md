@@ -213,3 +213,7 @@ We would rather say these here than have you find them.
   [`seed/SOURCES.md`](seed/SOURCES.md).
 - Libraries are listed in `package.json` and `Cargo.toml`. The approach for the sealed key follows
   OutLayer's `private-dao-example`.
+
+## License
+
+MIT, see [`LICENSE`](LICENSE).
