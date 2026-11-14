@@ -198,6 +198,9 @@ The real path needs a Supabase project, a NEAR testnet wallet and an OutLayer de
 - **The relayer's rate-limit counters and signature cache live in memory and are never pruned.** A
   restart clears them.
 - **`POST /listings/:id/sync` needs no sign-in** and makes up to 10 chain reads per call.
+- **The sealed machine can fail to answer.** OutLayer's own runs fail in bursts. The contract then
+  returns the round to both sides so they can offer again, up to 3 times per deal, and the app says
+  when it happens. Past that, a failed run counts as a no-deal even when the offers overlap.
 - **A signed relayer request can be replayed for 5 minutes**, because it carries no nonce. TLS
   covers it in transit, but a replayed call that creates something would create it twice.
 

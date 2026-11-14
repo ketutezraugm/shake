@@ -63,7 +63,7 @@ Mirrors docs/plans/IMPLEMENTATION.md (marketplace plan, Revision B: slots and tw
 - [ ] **S-08** Real listings by real students: not in this submission, it needs real people; the demo shop is seeded.
 
 ## 2026-11-14: freeze 00:00 UTC, submit by 12:00 UTC
-- [ ] **P-04** Freeze
+- [x] **P-04** Freeze (EZ, 2026-11-14 16:46 UTC): `dev` released to `main` as `release: feature freeze`, tagged `v0.9.0` and `freeze-1` (checks in the release PR); `scripts/freeze-check.mts` all ok, so the contract id and both hashes in the README match the chain. Not checked here: `cargo test --workspace` (does not build on the owner's Windows machine; the CI rust job passes) and the test contract's removal from the OutLayer secret's readers (HANDOFF says it is done; the CLI is not installed on this machine). See DECISIONS 2026-11-14, the code freeze is back on.
 - [x] **P-01** README on a clean clone
 - [x] **P-02** Video and visuals
 - [x] **P-03** X post and pitch text
