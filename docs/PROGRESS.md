@@ -8,12 +8,12 @@ Mirrors docs/plans/IMPLEMENTATION.md (marketplace plan, Revision B: slots and tw
 - [x] **MKT-01** Marketplace API: Supabase schema, listings, photos, slots, claim, sync #35 (HA)
 
 ## Still needed from the old plan
-- [ ] **D1-02** CI (BI)
+- [x] **D1-02** CI (BI): `.github/workflows/ci.yml` runs the Rust and web jobs on every PR; both pass on #161 to #171
 - [x] **D1-03** Render hello-world (EZ): relayer `/health` answers on https://shake-relayer.onrender.com
 
 ## Block A: 2026-11-12 evening
 - [x] **MK-04** Client crypto, real contract client, slot helper (EZ)
-- [ ] **MK-10** Supabase: apply 0001, add 0002 (BI)
+- [x] **MK-10** Supabase: apply 0001, add 0002 (BI): migrations 0001 to 0005 are applied to the shared project; the hosted relayer reads and writes it (checked by EZ 2026-11-14: `/listings` returns `askingPrice` and `sellerHandle`, `demo:seed` and the live round trip write to it)
 - [x] **MK-30** Marketplace screens in Claude Design (DP): 32 frames, `docs/design/shake-marketplace-screens.html` (#77), linked in #70
 
 ## Block B: 2026-11-13 00:00-12:00 UTC
@@ -25,10 +25,10 @@ Mirrors docs/plans/IMPLEMENTATION.md (marketplace plan, Revision B: slots and tw
 - [x] **MK-06** NEAR wallet login (CT): code and live key checks pass (EZ); real Meteor session on 2026-11-13: a wallet seller published a listing and a second wallet bought it, paid through the Meteor popup and pressed Received (deal 59 Released on chain)
 - [x] **MK-21** Browse, search, seller profile (FE): #50, restyled to the frames in #84; checked in the browser on seed data; not yet run against the live relayer
 - [x] **MK-22** Create listing (FE): #60, asking price #69; done-check run on the mock chain with the dev relayer (DP, 2026-11-13): 3 photos uploaded, the listing shows on `/` and on the shop, the minimum (4137000) is in no request body; 3 slots are made at publish (`SLOTS_AT_PUBLISH`), the seller adds up to 10 from the own-listing panel; the live run needs the hosted relayer (#140)
-- [ ] **MK-23** Listing page: assistant and Q&A (FE): #74, assistant fallback on 429/503; unit-tested; on the mock chain (DP, 2026-11-13) an unknown question shows "Ask the seller", the question lands in the seller's inbox, the answer shows to a signed-out visitor; the assistant answering itself is still unchecked (the dev relayer returns 503 without a NEAR AI key, so the page falls back to "Ask the seller")
+- [x] **MK-23** Listing page: assistant and Q&A (FE): #74, assistant fallback on 429/503; unit-tested; on the mock chain (DP, 2026-11-13) an unknown question shows "Ask the seller", the question lands in the seller's inbox, the answer shows to a signed-out visitor; the hosted assistant answers from the listing (asked what the camera comes with: "one battery, the USB charger and a wrist strap (no box)") and returns unknown for a price probe (EZ, signed request against https://shake-relayer.onrender.com, 2026-11-14)
 
 ## Asking price (decided 2026-11-13)
-- [ ] **MK-15** Asking price in the API (BI): code, tests and migration 0003 written by CT (PR); the migration is not yet applied to the hosted project
+- [x] **MK-15** Asking price in the API (BI): code, tests and migration 0003 written by CT (PR); migration 0003 is applied: the hosted `/listings` returns `askingPrice` (EZ, 2026-11-14)
 - [x] **MK-26** Asking price in the screens (FE): #69, offer cap in #80; the live `askingPrice` field depends on MK-15's migration being applied
 - [x] **MK-32** Asking price in the frames (DP)
 
@@ -39,7 +39,7 @@ Mirrors docs/plans/IMPLEMENTATION.md (marketplace plan, Revision B: slots and tw
 - [x] **MK-41** Receipts and history (BI): the relayer checks a payment's transaction on chain and keeps it as a receipt; `/history` and the offer page show each with a nearblocks link and the item photo; unit-tested, migration 0005 applied to the shared project; the live testnet buy is still open
 - [x] **MK-31** Seed photos (DP): `seed/` with 6 freely licensed photos, listings and sources
 - [ ] **MK-14** Seed: demo shop (BI): `npm run demo:seed` (EZ) made `@demo` on the hosted relayer with 6 listings, photos and 3 slots each (2026-11-14); the scripted live offers, the Released deal and the chat are not done
-- [ ] **MK-40** End-to-end happy path (BI)
+- [x] **MK-40** End-to-end happy path (EZ, #171): `npm run test:e2e` runs the README flow in two browsers on the simulated chain (sign up, publish with a photo, blind offer, pay, Received, sold); `1 passed (8.5s)`
 - [x] **S-06** Hosted deploy (EZ): app https://shake-app.onrender.com and relayer https://shake-relayer.onrender.com on Render (2026-11-14); a wallet sign-in and `PUT /me/profile` pass in a browser; Google/email sign-in uses the stand-in until the Supabase anon key and Auth settings are set (#96)
 - [ ] **G3** Gate 20:00 UTC: MK-24 green on testnet (lead)
 
@@ -54,13 +54,13 @@ Mirrors docs/plans/IMPLEMENTATION.md (marketplace plan, Revision B: slots and tw
 - [x] **MK-57** Share an item (BI, PR): a Share pill in the listing's top bar (frame "4 Listing") opens the phone's share sheet, or copies the `/l/<id>` link on desktop, so a seller can paste one item's link into a Facebook or Instagram post; unit test on share, copy and a closed sheet
 
 ## Should (after G3)
-- [ ] **S-02** AI negotiator: the buyer's "Say it in words" is built (DP, PR) and reads the sentence in the browser, not with an AI; an AI reading would send the buyer's limit to the relayer, so that part waits on a decision (see DECISIONS)
-- [ ] **S-01** Verified panel: the buyer's proof panel is built (DP, PR): it recomputes each of the buyer's commitments in the browser and compares them with the chain, and shows the pinned WASM hash and the contract; the "fresh nonce per open" check against the sealed machine still needs CT
+- [ ] **S-02** AI negotiator: the buyer's "Say it in words" is built (DP, PR) and reads the sentence in the browser, not with an AI; an AI reading would send the buyer's limit to the relayer, so that part waits on a decision (see DECISIONS). Not in this submission: the in-browser reading stays.
+- [ ] **S-01** Verified panel: the buyer's proof panel is built (DP, PR): it recomputes each of the buyer's commitments in the browser and compares them with the chain, and shows the pinned WASM hash and the contract; the "fresh nonce per open" check against the sealed machine still needs CT. Not in this submission: it needs a change to the sealed machine, whose hash is pinned.
 - [x] **S-12** Link a Google login to a wallet (BI): `PUT /me/login`, `GET /login/profile`; a login made before the wallet links on the next wallet sign-in
-- [ ] **S-11** Ratings, saved items, email notifications
-- [ ] **S-13** Contract-level single sale
-- [ ] **S-07** Enclave-signed results
-- [ ] **S-08** Real listings by real students
+- [ ] **S-11** Ratings, saved items, email notifications: saved items are done (MK-55); ratings and email notifications are not in this submission.
+- [ ] **S-13** Contract-level single sale: not in this submission, it needs a contract change and the contract hash is pinned; the relayer enforces one sale per listing through reserved sync.
+- [ ] **S-07** Enclave-signed results: not in this submission, it needs a sealed-machine change and the WASM hash is pinned (listed under the README limits).
+- [ ] **S-08** Real listings by real students: not in this submission, it needs real people; the demo shop is seeded.
 
 ## 2026-11-14: freeze 00:00 UTC, submit by 12:00 UTC
 - [ ] **P-04** Freeze
