@@ -9,7 +9,7 @@ Mirrors docs/plans/IMPLEMENTATION.md (marketplace plan, Revision B: slots and tw
 
 ## Still needed from the old plan
 - [ ] **D1-02** CI (BI)
-- [ ] **D1-03** Render hello-world (BI)
+- [x] **D1-03** Render hello-world (EZ): relayer `/health` answers on https://shake-relayer.onrender.com
 
 ## Block A: 2026-11-12 evening
 - [x] **MK-04** Client crypto, real contract client, slot helper (EZ)
@@ -40,7 +40,7 @@ Mirrors docs/plans/IMPLEMENTATION.md (marketplace plan, Revision B: slots and tw
 - [x] **MK-31** Seed photos (DP): `seed/` with 6 freely licensed photos, listings and sources
 - [ ] **MK-14** Seed: demo shop (BI)
 - [ ] **MK-40** End-to-end happy path (BI)
-- [ ] **S-06** Hosted deploy (BI)
+- [x] **S-06** Hosted deploy (EZ): app https://shake-app.onrender.com and relayer https://shake-relayer.onrender.com on Render (2026-11-14); a wallet sign-in and `PUT /me/profile` pass in a browser; Google/email sign-in uses the stand-in until the Supabase anon key and Auth settings are set (#96)
 - [ ] **G3** Gate 20:00 UTC: MK-24 green on testnet (lead)
 
 ## Buyer and seller roles (decided 2026-11-13; spec `docs/superpowers/specs/2026-11-13-buyer-side-design.md`)
