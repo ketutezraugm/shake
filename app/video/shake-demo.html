@@ -742,6 +742,154 @@
         color: #b9b5ac;
         opacity: 0;
       }
+
+      /* Second cut: the pieces timeline.js builds (word masks, phone rig, wipe, rail, ripple, rings, rolling digits). */
+      #hook1 .w,
+      #hook1 .wi {
+        opacity: 1;
+      }
+
+      .w {
+        display: inline-block;
+        overflow: hidden;
+        vertical-align: top;
+        padding: 0.1em 0.05em 0.2em;
+        margin: -0.1em -0.05em -0.2em;
+      }
+
+      .wi {
+        display: inline-block;
+        translate: 0 115%;
+        transform-origin: 0 100%;
+      }
+
+      .rig {
+        position: absolute;
+        inset: 0;
+      }
+
+      .ghost {
+        position: absolute;
+        left: 560px;
+        top: 10px;
+        font-size: 1000px;
+        font-weight: 800;
+        line-height: 1;
+        color: var(--line);
+        opacity: 0;
+      }
+
+      #grid {
+        position: absolute;
+        left: -100px;
+        top: -100px;
+        width: 2800px;
+        height: 1600px;
+        background-image: radial-gradient(
+          circle,
+          var(--line) 2.5px,
+          transparent 3px
+        );
+        background-size: 56px 56px;
+      }
+
+      #wipe {
+        position: absolute;
+        left: -25%;
+        top: -10%;
+        width: 150%;
+        height: 120%;
+        z-index: 20;
+        background: var(--ink);
+        transform: skewX(-10deg);
+        translate: -112% 0;
+      }
+
+      #rail {
+        position: absolute;
+        left: 150px;
+        top: 1004px;
+        z-index: 5;
+        display: flex;
+        gap: 38px;
+        font-size: 24px;
+        font-weight: 600;
+        color: var(--ink-muted);
+        opacity: 0;
+      }
+
+      #rail span {
+        position: relative;
+      }
+
+      #rail b {
+        position: absolute;
+        left: 0;
+        top: 0;
+        font-weight: 800;
+        color: var(--ink);
+        background: var(--ground);
+        white-space: nowrap;
+        opacity: 0;
+      }
+
+      #rail i {
+        position: absolute;
+        left: 0;
+        bottom: -10px;
+        width: 100px;
+        height: 4px;
+        border-radius: 2px;
+        background: var(--ink);
+        transform-origin: 0 50%;
+      }
+
+      .btn {
+        overflow: hidden;
+      }
+
+      .ripple {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: 120px;
+        height: 120px;
+        margin: -60px 0 0 -60px;
+        border-radius: 999px;
+        background: currentColor;
+        opacity: 0;
+      }
+
+      .pulse {
+        position: absolute;
+        left: 830px;
+        top: 270px;
+        width: 260px;
+        height: 260px;
+        box-sizing: border-box;
+        border: 3px solid var(--ink);
+        border-radius: 999px;
+        opacity: 0;
+      }
+
+      .col {
+        display: inline-block;
+        height: 1em;
+        line-height: 1;
+        overflow: hidden;
+        vertical-align: bottom;
+      }
+
+      .strip,
+      .strip span {
+        display: block;
+        height: 1em;
+        line-height: 1;
+      }
+
+      .strip {
+        height: auto;
+      }
     </style>
   </head>
   <body>
@@ -1220,7 +1368,7 @@
           class="center"
           id="s6-only"
           style="
-            top: 930px;
+            top: 900px;
             font-size: 22px;
             color: var(--ink-muted);
             opacity: 0;
@@ -1231,7 +1379,7 @@
         <div
           class="center"
           id="s6-cap"
-          style="top: 980px; font-size: 34px; font-weight: 700; opacity: 0"
+          style="top: 942px; font-size: 34px; font-weight: 700; opacity: 0"
         >
           They overlap, so the price lands at random inside the gap.
         </div>
@@ -1316,7 +1464,7 @@
         <div
           class="center display"
           id="s7-cap"
-          style="top: 935px; font-size: 64px; opacity: 0"
+          style="top: 905px; font-size: 64px; opacity: 0"
         >
           One fair price. Nobody's number shown.
         </div>
