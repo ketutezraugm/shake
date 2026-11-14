@@ -4,6 +4,7 @@ import { CATEGORY_LABELS } from "../categories";
 import priceTag from "../design/assets/stickers/price-tag.svg";
 import type { ShopListing } from "../market";
 import { market } from "../marketSource";
+import { Link } from "../routes";
 import { ListingCard } from "./ListingCard";
 import { CardSkeletons, EmptyState, ErrorState } from "./States";
 
@@ -67,6 +68,7 @@ export function Home({ initialQuery = "" }: { initialQuery?: string }) {
         <div>
           <h1>Post your price, keep your floor.</h1>
           <p>Every item shows its asking price. Offer it or less; the seller never sees your number.</p>
+          <Link to="/welcome" className="hero-link">How it works</Link>
         </div>
         <img className="sticker" src={priceTag} alt="" />
       </section>

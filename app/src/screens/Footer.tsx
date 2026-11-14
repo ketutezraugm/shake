@@ -46,6 +46,7 @@ export function Footer() {
       <div className="footer-cols">
         <section className="footer-col" aria-label="Try it">
           <span className="footer-pill sun">Try it</span>
+          <Link to="/welcome">How it works</Link>
           <Link to="/">Browse listings</Link>
           <Link to="/sell">Sell something</Link>
         </section>
