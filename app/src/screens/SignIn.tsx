@@ -136,7 +136,7 @@ export function SignIn() {
         </p>
       )}
 
-      <p className="hint auth-foot">No crypto needed. We set up your account behind the scenes. Testnet only.</p>
+      <p className="hint auth-foot">Google or email lets you browse and ask questions. Selling and making offers need a NEAR wallet. Testnet only, no real money.</p>
     </main>
   );
 }
