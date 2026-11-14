@@ -54,7 +54,8 @@ type MessageRow = { id: number; deal_id: number; sender_account: string; body: s
 
 const PROFILE_COLUMNS = "account_id, handle, display_name, avatar_url, bio, city";
 const QUESTION_COLUMNS = "id, listing_id, question, answer, answered_at, created_at";
-const RECEIPT_COLUMNS = "deal_id, kind, tx_hash, signer_account, amount_yocto, recorded_at";
+// amount_yocto is read as text: PostgREST sends a numeric as a JSON number, and a price in yoctoNEAR (about 1e22) does not fit one exactly.
+const RECEIPT_COLUMNS = "deal_id, kind, tx_hash, signer_account, amount_yocto::text, recorded_at";
 const MESSAGE_COLUMNS = "id, deal_id, sender_account, body, created_at";
 
 const toProfile = (row: ProfileRow): Profile => ({
