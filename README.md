@@ -15,7 +15,7 @@ moves.
 
 | | |
 | --- | --- |
-| **App** | To be added at submission |
+| **App** | https://shake-app.onrender.com (relayer: https://shake-relayer.onrender.com/health) |
 | **Demo video** | To be added at submission |
 | **Deal contract** (testnet) | [`blind-deal-1wxklib7.testnet`](https://testnet.nearblocks.io/address/blind-deal-1wxklib7.testnet) |
 | **Sealed-machine WASM** (SHA-256) | `789705434c9498d88c739cd5e28b5331cf6ff44c2a1dad5f2a9e435d3479b904` |
