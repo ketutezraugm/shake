@@ -156,7 +156,9 @@ export class FakeStore implements Store {
     return this.profileView(this.profiles.find((p) => p.accountId === accountId) as NewProfile);
   }
 
-  async addQuestion(listingId: string, _asker: string, question: string) {
+  private readonly askers = new Map<number, string>();
+
+  async addQuestion(listingId: string, asker: string, question: string) {
     const row: Question = {
       id: this.questions.length + 1,
       listingId,
@@ -166,7 +168,18 @@ export class FakeStore implements Store {
       createdAt: new Date().toISOString(),
     };
     this.questions.push(row);
+    this.askers.set(row.id, asker);
     return row;
+  }
+
+  async askedBy(asker: string) {
+    return this.questions
+      .filter((q) => this.askers.get(q.id) === asker)
+      .reverse()
+      .flatMap((q) => {
+        const listing = this.listings.find((l) => l.id === q.listingId);
+        return listing ? [{ ...q, listingTitle: listing.title }] : [];
+      });
   }
 
   async answeredQuestions(listingId: string) {

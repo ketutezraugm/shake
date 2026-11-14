@@ -300,6 +300,19 @@ export function supabaseStore(url: string, serviceKey: string): Store {
       return rows.map((row) => ({ ...toQuestion(row), listingTitle: row.listings.title }));
     },
 
+    async askedBy(asker) {
+      const rows = check(
+        await db
+          .from("questions")
+          .select(`${QUESTION_COLUMNS}, listings!inner(title)`)
+          .eq("asker_account", asker)
+          .order("id", { ascending: false })
+          .limit(50)
+          .returns<(QuestionRow & { listings: { title: string } })[]>(),
+      );
+      return rows.map((row) => ({ ...toQuestion(row), listingTitle: row.listings.title }));
+    },
+
     async addMessage(dealId, sender, body) {
       const row = check(
         await db.from("messages").insert({ deal_id: dealId, sender_account: sender, body }).select(MESSAGE_COLUMNS).single<MessageRow>(),

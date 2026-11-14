@@ -2,7 +2,7 @@ import type { ClaimRes } from "../../relayer/src/types";
 import type { ContractClient, Deal } from "./contract";
 import { sealLimit } from "./crypto";
 import { formatRp, isRupiah } from "./format";
-import { rememberSealed } from "./proof";
+import { hasSealed, rememberSealed } from "./proof";
 import { signedPost } from "./relayer";
 import type { Signer } from "./signer";
 
@@ -55,6 +55,15 @@ export function offerView(deal: Deal, account: string, reservation: Reservation 
       return { kind: deal.matched_at_ns !== null ? "expired" : "noDeal" };
   }
 }
+
+/** How often the contract hands a round back per deal when OutLayer's own run fails; past it a failure counts as a no-deal. */
+export const MAX_MATCHER_RETRIES = 3;
+
+/** This browser sealed an offer for the current round but the chain no longer holds it: the machine did not answer and the round came back. */
+export const wasHandedBack = (deal: Deal): boolean => deal.buyer_cts.length < deal.round && hasSealed(deal.id, deal.round);
+
+/** The machine has failed as often as the contract allows, so a no-deal on this deal may be its failure and not the offers. */
+export const machineTroubled = (deal: Deal): boolean => deal.matcher_retries >= MAX_MATCHER_RETRIES;
 
 /** The claimed deal and its token stay in this browser so the buyer can come back to it. */
 export type Negotiation = { listingId: string; title: string; askingPrice: string; linkToken: string };

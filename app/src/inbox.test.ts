@@ -32,7 +32,7 @@ function stubRelayer(reply: Response) {
   return seen;
 }
 
-const emptyInbox: Inbox = { questions: [], roundsWaiting: [], matches: [], newMessages: [] };
+const emptyInbox: Inbox = { questions: [], asked: [], roundsWaiting: [], matches: [], newMessages: [] };
 
 describe("inbox reads", () => {
   afterEach(() => vi.unstubAllGlobals());
@@ -64,6 +64,7 @@ describe("inbox reads", () => {
   it("counts everything waiting on the person for the badge", () => {
     const inbox: Inbox = {
       questions: [{ id: 1, listingId: "l", question: "q", answer: null, answeredAt: null, createdAt: "", listingTitle: "t" }],
+      asked: [],
       roundsWaiting: [{ listingId: "l", title: "t", dealId: 1, round: 2 }],
       matches: [{ listingId: "l", title: "t", dealId: 1, role: "seller", counterparty: "b", state: "Matched" }],
       newMessages: [{ id: 1, dealId: 1, senderAccount: "b", body: "hi", createdAt: "" }],
@@ -150,6 +151,7 @@ describe("resubmitRound", () => {
 describe("splitInbox", () => {
   const inbox: Inbox = {
     questions: [{ id: 1, listingId: "l1", question: "Still here?", answer: null, createdAt: "", answeredAt: null, listingTitle: "Camera" }],
+    asked: [{ id: 5, listingId: "l2", question: "Is the frame steel?", answer: "Yes, steel.", createdAt: "", answeredAt: "", listingTitle: "Bike" }],
     roundsWaiting: [{ listingId: "l1", title: "Camera", dealId: 1, round: 2 }],
     matches: [
       { listingId: "l1", title: "Camera", dealId: 1, role: "seller", counterparty: "buyer.testnet", state: "Matched" },
@@ -164,6 +166,7 @@ describe("splitInbox", () => {
   it("keeps questions, rounds and seller chats for the shop", () => {
     const shop = splitInbox(inbox, "selling");
     expect(shop.questions).toHaveLength(1);
+    expect(shop.asked).toEqual([]);
     expect(shop.roundsWaiting).toHaveLength(1);
     expect(shop.matches.map((m) => m.dealId)).toEqual([1]);
     expect(shop.newMessages.map((m) => m.dealId)).toEqual([1]);
@@ -172,6 +175,7 @@ describe("splitInbox", () => {
   it("keeps only buyer chats for /inbox", () => {
     const buying = splitInbox(inbox, "buying");
     expect(buying.questions).toEqual([]);
+    expect(buying.asked.map((q) => q.answer)).toEqual(["Yes, steel."]);
     expect(buying.roundsWaiting).toEqual([]);
     expect(buying.matches.map((m) => m.dealId)).toEqual([2]);
     expect(buying.newMessages.map((m) => m.dealId)).toEqual([2]);
