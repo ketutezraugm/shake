@@ -6,9 +6,8 @@ import backIcon from "../design/assets/icons/back.svg";
 import fourFingers from "../design/assets/stickers/four-fingers.svg";
 import priceTag from "../design/assets/stickers/price-tag.svg";
 import scratchCard from "../design/assets/stickers/scratch-card.svg";
-import { setRole } from "../role";
 import { Link, navigate } from "../routes";
-import { createWalletProfile, fetchMyProfile } from "../wallet";
+import { createWalletProfile, fetchMyProfile, linkLoginToWallet } from "../wallet";
 import { loadWalletSession } from "../walletSigner";
 
 /** Frame "What brings you here": a new account says whether it will sell or only buy, then names itself. */
@@ -67,8 +66,9 @@ function HandleForm({ selling }: { selling: boolean }) {
     }
     if (!relayerUrl) throw new Error("Sign-up needs VITE_RELAYER_URL in the app's environment.");
     // The relayer would rewrite an existing shop's fields, so a returning account is sent to its shop instead.
-    const existing = await fetchMyProfile(relayerUrl, walletSession);
-    return (existing ?? (await createWalletProfile(relayerUrl, walletSession, handle))).handle;
+    const shop = (await fetchMyProfile(relayerUrl, walletSession)) ?? (await createWalletProfile(relayerUrl, walletSession, handle));
+    await linkLoginToWallet(relayerUrl, walletSession);
+    return shop.handle;
   }
 
   async function submit(event: FormEvent) {
@@ -79,7 +79,6 @@ function HandleForm({ selling }: { selling: boolean }) {
     try {
       const saved = await create();
       saveHandle(saved);
-      setRole(selling ? "seller" : "buyer");
       navigate(selling ? `/@${saved}` : "/");
     } catch (e) {
       if (isHandleTaken(e)) setTaken(handle);

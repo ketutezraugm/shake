@@ -6,7 +6,7 @@ import { Link } from "../routes";
 import { SaveButton } from "./SaveButton";
 
 /** The four soft photo-box colours from the design, picked by id so a card keeps its colour. */
-const tintOf = (id: string) => [...id].reduce((sum, ch) => sum + ch.charCodeAt(0), 0) % 4;
+export const tintOf = (id: string) => [...id].reduce((sum, ch) => sum + ch.charCodeAt(0), 0) % 4;
 
 function badgeOf(listing: ShopListing): { text: string; muted: boolean } {
   if (listing.status === "sold") return { text: "Sold", muted: true };

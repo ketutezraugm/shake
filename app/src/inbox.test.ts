@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { Inbox } from "../../relayer/src/types";
 import type { ContractClient } from "./contract";
-import { answerQuestion, badgeCount, getInbox, getMessages, resubmitRound, sendMessage } from "./inbox";
+import { answerQuestion, badgeCount, getInbox, getMessages, resubmitRound, sendMessage, splitInbox } from "./inbox";
 import type { Signer } from "./signer";
 
 // A real compressed secp256k1 public key (the TEE test key); sealing needs a valid one.
@@ -144,5 +144,36 @@ describe("resubmitRound", () => {
     await expect(resubmitRound(options(chain.client))).rejects.toThrow("open this on the device you listed from");
 
     expect(chain.submitted).toHaveLength(0);
+  });
+});
+
+describe("splitInbox", () => {
+  const inbox: Inbox = {
+    questions: [{ id: 1, listingId: "l1", question: "Still here?", answer: null, createdAt: "", answeredAt: null, listingTitle: "Camera" }],
+    roundsWaiting: [{ listingId: "l1", title: "Camera", dealId: 1, round: 2 }],
+    matches: [
+      { listingId: "l1", title: "Camera", dealId: 1, role: "seller", counterparty: "buyer.testnet", state: "Matched" },
+      { listingId: "l2", title: "Bike", dealId: 2, role: "buyer", counterparty: "shop.testnet", state: "Matched" },
+    ],
+    newMessages: [
+      { id: 10, dealId: 1, senderAccount: "buyer.testnet", body: "hi", createdAt: "" },
+      { id: 11, dealId: 2, senderAccount: "shop.testnet", body: "hello", createdAt: "" },
+    ],
+  };
+
+  it("keeps questions, rounds and seller chats for the shop", () => {
+    const shop = splitInbox(inbox, "selling");
+    expect(shop.questions).toHaveLength(1);
+    expect(shop.roundsWaiting).toHaveLength(1);
+    expect(shop.matches.map((m) => m.dealId)).toEqual([1]);
+    expect(shop.newMessages.map((m) => m.dealId)).toEqual([1]);
+  });
+
+  it("keeps only buyer chats for /inbox", () => {
+    const buying = splitInbox(inbox, "buying");
+    expect(buying.questions).toEqual([]);
+    expect(buying.roundsWaiting).toEqual([]);
+    expect(buying.matches.map((m) => m.dealId)).toEqual([2]);
+    expect(buying.newMessages.map((m) => m.dealId)).toEqual([2]);
   });
 });

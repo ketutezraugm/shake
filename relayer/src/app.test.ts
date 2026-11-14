@@ -553,6 +553,32 @@ describe("login without a NEAR account", () => {
     expect((await post("/listings", listingBody, "token-ann")).status).toBe(401);
   });
 
+  it("links a login to a wallet account, which then speaks for it", async () => {
+    const wallet = person("ann.testnet");
+    await call(wallet, "PUT", "/me/profile", { ...profileBody, handle: "ann" });
+    const get = (token: string) => app.request("/login/profile", { headers: { authorization: `Bearer ${token}` } });
+
+    expect((await get("token-ann")).status).toBe(404);
+    expect((await call(wallet, "PUT", "/me/login", { accessToken: "token-bad" })).status).toBe(401);
+    expect((await call(wallet, "PUT", "/me/login", { accessToken: "token-ann" })).status).toBe(200);
+    expect((await call(wallet, "PUT", "/me/login", { accessToken: "token-ann" })).status).toBe(200);
+
+    const linked = await get("token-ann");
+    expect(linked.status).toBe(200);
+    expect(await linked.json()).toMatchObject({ account: "ann.testnet", profile: { handle: "ann" } });
+  });
+
+  it("refuses to link without a shop, or a login that belongs to another account", async () => {
+    const first = person("ann.testnet");
+    const second = person("bob.testnet");
+    expect((await call(first, "PUT", "/me/login", { accessToken: "token-ann" })).status).toBe(404);
+
+    await call(first, "PUT", "/me/profile", { ...profileBody, handle: "ann" });
+    await call(second, "PUT", "/me/profile", { ...profileBody, handle: "bob" });
+    await call(first, "PUT", "/me/login", { accessToken: "token-ann" });
+    expect((await call(second, "PUT", "/me/login", { accessToken: "token-ann" })).status).toBe(409);
+  });
+
   it("has no POST /accounts any more", async () => {
     expect((await post("/accounts", { handle: "dita" }, "token-ann")).status).toBe(404);
   });

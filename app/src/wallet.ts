@@ -1,7 +1,8 @@
 import type { NearConnector } from "@hot-labs/near-connect";
 import { setCurrentAccount } from "./accounts";
 import { chain } from "./config";
-import { RelayerError, signedGet, signedPut } from "./relayer";
+import { loadSession } from "./auth";
+import { RelayerError, bearerGet, signedGet, signedPut } from "./relayer";
 import type { Profile } from "../../relayer/src/types";
 import { keySigner } from "./signer";
 import { connectWallet, type WalletSession } from "./walletSigner";
@@ -35,6 +36,27 @@ export async function fetchMyProfile(relayerUrl: string, session: WalletSession)
     return await signedGet<Profile>(relayerUrl, signer, "/me/profile", "loading your shop");
   } catch (e) {
     if (e instanceof RelayerError && e.status === 404) return null;
+    throw e;
+  }
+}
+
+/**
+ * Ties the Google or email login in this browser to the wallet's account, so both sign-ins open the same shop.
+ * Best effort: a login that is already linked, or one that expired, must not stop the wallet sign-in.
+ */
+export async function linkLoginToWallet(relayerUrl: string, session: WalletSession): Promise<void> {
+  const login = loadSession();
+  if (!login) return;
+  const signer = keySigner(session.accountId, session.secretKey, chain);
+  await signedPut(relayerUrl, signer, "/me/login", { accessToken: login.accessToken }, "linking your login").catch(() => undefined);
+}
+
+/** The wallet account and shop a Google or email login was linked to; null when it was never linked. */
+export async function fetchLinkedShop(relayerUrl: string, token: string): Promise<{ account: string; profile: Profile } | null> {
+  try {
+    return await bearerGet(relayerUrl, token, "/login/profile", "loading your shop");
+  } catch (e) {
+    if (e instanceof RelayerError && (e.status === 404 || e.status === 401)) return null;
     throw e;
   }
 }

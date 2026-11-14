@@ -1,75 +1,19 @@
 import { useLayoutEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
-import { currentHandle } from "../accounts";
 import lockup from "../design/assets/logo/shake-lockup.svg";
-import { currentRole, tabsFor, type TabKey } from "../role";
 import { Link, navigate } from "../routes";
 import { AccountMenu } from "./AccountMenu";
 import { Footer } from "./Footer";
+import { BubbleIcon, GridIcon, HeartIcon, TagIcon } from "./icons";
+import { ShopMenu } from "./ShopMenu";
 import { OfflineBanner } from "./States";
 
 type Tab = { to: string; label: string; icon: ReactNode };
 
-const stroke = { fill: "none", stroke: "currentColor", strokeWidth: 2, strokeLinecap: "round", strokeLinejoin: "round", "aria-hidden": true } as const;
-
-const BROWSE: Tab = {
-  to: "/",
-  label: "Browse",
-  icon: (
-    <svg viewBox="0 0 24 24" {...stroke}>
-      <rect x="4" y="4" width="6.5" height="6.5" rx="1.5" />
-      <rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5" />
-      <rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5" />
-      <rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.5" />
-    </svg>
-  ),
-};
-const SELL: Tab = {
-  to: "/sell",
-  label: "Sell",
-  icon: (
-    <svg viewBox="0 0 24 24" {...stroke}>
-      <circle cx="12" cy="12" r="8.5" />
-      <path d="M12 8v8M8 12h8" />
-    </svg>
-  ),
-};
-const INBOX: Tab = {
-  to: "/inbox",
-  label: "Inbox",
-  icon: (
-    <svg viewBox="0 0 24 24" {...stroke}>
-      <path d="M4 6.5A2.5 2.5 0 0 1 6.5 4h11A2.5 2.5 0 0 1 20 6.5v8a2.5 2.5 0 0 1-2.5 2.5H10l-4.5 3.5V17H6.5A2.5 2.5 0 0 1 4 14.5z" />
-    </svg>
-  ),
-};
-const SAVED: Tab = {
-  to: "/saved",
-  label: "Saved",
-  icon: (
-    <svg viewBox="0 0 24 24" {...stroke}>
-      <path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.5A4 4 0 0 1 19 10c0 5.6-7 10-7 10z" />
-    </svg>
-  ),
-};
-const OFFERS: Tab = {
-  to: "/offers",
-  label: "My offers",
-  icon: (
-    <svg viewBox="0 0 24 24" {...stroke}>
-      <path d="M4 12.5V5a1 1 0 0 1 1-1h7.5L20 11.5 12.5 19z" />
-      <circle cx="8.5" cy="8.5" r="1.2" />
-    </svg>
-  ),
-};
-const SHOP = (handle: string): Tab => ({
-  to: `/@${handle}`,
-  label: "My shop",
-  icon: (
-    <svg viewBox="0 0 24 24" {...stroke}>
-      <path d="M4 9l1.5-5h13L20 9M4 9v10h16V9M4 9h16M9 19v-5h6v5" />
-    </svg>
-  ),
-});
+const BROWSE: Tab = { to: "/", label: "Browse", icon: <GridIcon /> };
+const INBOX: Tab = { to: "/inbox", label: "Inbox", icon: <BubbleIcon /> };
+const SAVED: Tab = { to: "/saved", label: "Saved", icon: <HeartIcon /> };
+const OFFERS: Tab = { to: "/offers", label: "My offers", icon: <TagIcon /> };
+const TABS = [BROWSE, SAVED, OFFERS, INBOX];
 
 /** A chat lives inside the inbox, so the inbox tab stays lit on it. */
 function isCurrent(tab: Tab, path: string): boolean {
@@ -134,11 +78,8 @@ function DeskNav({ tabs, path }: { tabs: Tab[]; path: string }) {
  * On a wide screen (frames "Desktop 1-9"): a white header with the logo, a search field and the main links.
  */
 export function Shell({ path, children }: { path: string; children: ReactNode }) {
-  const handle = currentHandle();
   // The footer closes the pages people browse; the offer, chat and sign-in flows stay free of it.
   const showFooter = path === "/" || path.startsWith("/@") || path.startsWith("/l/");
-  const byKey: Record<TabKey, Tab | null> = { browse: BROWSE, saved: SAVED, offers: OFFERS, inbox: INBOX, sell: SELL, shop: handle ? SHOP(handle) : null };
-  const tabs = tabsFor(currentRole(), handle !== null).flatMap((key) => byKey[key] ?? []);
   const [draft, setDraft] = useState(() => new URLSearchParams(location.search).get("q") ?? "");
 
   function search(event: FormEvent) {
@@ -163,14 +104,15 @@ export function Shell({ path, children }: { path: string; children: ReactNode })
             <input type="search" value={draft} onChange={(e) => setDraft(e.target.value)} placeholder="Search cameras, bikes, jackets…" />
           </label>
         </form>
-        <DeskNav tabs={tabs} path={path} />
+        <DeskNav tabs={TABS} path={path} />
+        <ShopMenu />
         <AccountMenu />
       </header>
       {children}
       {showFooter && <Footer />}
       <div className="tabs">
         <nav aria-label="Main">
-          {tabs.map((tab) => (
+          {TABS.map((tab) => (
             <Link key={tab.to} to={tab.to} className="tab" current={isCurrent(tab, path)}>
               {tab.icon}
               {tab.label}

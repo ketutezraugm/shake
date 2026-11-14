@@ -217,6 +217,17 @@ export function supabaseStore(url: string, serviceKey: string): Store {
       if (error) throw new Error(error.message);
     },
 
+    async linkLogin(accountId, supabaseUserId) {
+      const result = await db.from("profiles").update({ supabase_user_id: supabaseUserId }).eq("account_id", accountId).select("account_id");
+      if (result.error?.code === UNIQUE_VIOLATION) throw new HttpError(409, "this login is already linked to another account");
+      if (check(result).length === 0) throw new HttpError(404, "no shop for this account yet");
+    },
+
+    async accountOfUser(supabaseUserId) {
+      const row = optional(await db.from("profiles").select("account_id").eq("supabase_user_id", supabaseUserId).maybeSingle<{ account_id: string }>());
+      return row?.account_id ?? null;
+    },
+
     async profileByHandle(handle) {
       const row = optional(await db.from("profiles").select(PROFILE_COLUMNS).eq("handle", handle).maybeSingle<ProfileRow>());
       return row ? { ...toProfile(row), accountId: row.account_id } : null;

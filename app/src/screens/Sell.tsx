@@ -16,7 +16,9 @@ function progressText(step: PublishStep | null): string {
   return `Sealing your minimum into offer slots (${step.done} of ${step.total})…`;
 }
 
-export function Sell() {
+type Embed = { embedded?: boolean; onPublished?: () => void };
+
+export function Sell({ embedded = false, onPublished }: Embed = {}) {
   const account = currentAccount();
   if (!account) {
     return (
@@ -38,12 +40,12 @@ export function Sell() {
       </main>
     );
   }
-  return <SellForm account={account} relayerUrl={relayerUrl} />;
+  return <SellForm account={account} relayerUrl={relayerUrl} embedded={embedded} onPublished={onPublished} />;
 }
 
-type FormProps = { account: string; relayerUrl: string };
+type FormProps = Embed & { account: string; relayerUrl: string };
 
-function SellForm({ account, relayerUrl }: FormProps) {
+function SellForm({ account, relayerUrl, embedded = false, onPublished }: FormProps) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState<Category>("other");
@@ -76,7 +78,8 @@ function SellForm({ account, relayerUrl }: FormProps) {
         relayerUrl,
         onProgress: setStep,
       });
-      navigate(`/l/${id}`);
+      if (onPublished) onPublished();
+      else navigate(`/l/${id}`);
     } catch (e) {
       setError((e as Error).message);
       setStep(null);
@@ -84,8 +87,8 @@ function SellForm({ account, relayerUrl }: FormProps) {
   }
 
   return (
-    <main className="page">
-      <h1 className="headline">Sell something</h1>
+    <main className={embedded ? "sell-embedded" : "page"}>
+      {embedded ? <h2 className="section-title">Add product</h2> : <h1 className="headline">Sell something</h1>}
       <p className="muted">Signed in as {account}</p>
 
       <form className="flow-card sell-form" onSubmit={submit}>

@@ -40,6 +40,10 @@ export interface Store {
   handleTaken(handle: string): Promise<boolean>;
   /** Throws a 409 HttpError when the handle or the user already has a profile. */
   createProfile(profile: NewProfile): Promise<void>;
+  /** Ties a Google or email login to the wallet account's profile. Throws 404 without a profile, 409 when the login belongs to another account. */
+  linkLogin(accountId: string, supabaseUserId: string): Promise<void>;
+  /** The wallet account a login was linked to, or null for a login that never linked. */
+  accountOfUser(supabaseUserId: string): Promise<string | null>;
   profileByHandle(handle: string): Promise<(Profile & { accountId: string }) | null>;
   profileOf(accountId: string): Promise<Profile | null>;
   /** Updates the caller's profile, or inserts a wallet profile when `create` carries a handle. Throws 409 on a taken handle. */

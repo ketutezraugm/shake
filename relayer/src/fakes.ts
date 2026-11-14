@@ -113,6 +113,19 @@ export class FakeStore implements Store {
     return this.profiles.some((p) => p.supabaseUserId === supabaseUserId);
   }
 
+  async linkLogin(accountId: string, supabaseUserId: string) {
+    const profile = this.profiles.find((p) => p.accountId === accountId);
+    if (!profile) throw new HttpError(404, "no shop for this account yet");
+    if (this.profiles.some((p) => p.supabaseUserId === supabaseUserId && p.accountId !== accountId)) {
+      throw new HttpError(409, "this login is already linked to another account");
+    }
+    profile.supabaseUserId = supabaseUserId;
+  }
+
+  async accountOfUser(supabaseUserId: string) {
+    return this.profiles.find((p) => p.supabaseUserId === supabaseUserId)?.accountId ?? null;
+  }
+
   async handleTaken(handle: string) {
     return this.profiles.some((p) => p.handle === handle);
   }
